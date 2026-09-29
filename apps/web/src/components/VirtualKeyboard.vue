@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref, watch } from 'vue'
-import { KEY_ROWS, type KeyDef } from '../utils/keyboardLayout'
+import { KEY_ROWS, PAD, U, type KeyDef } from '../utils/keyboardLayout'
 import { FINGERS, FINGER_BY_ID, fingerOfKey, isLeftHand, resolveKey } from '../utils/fingerMap'
+import type { FingerId } from '../utils/fingerMap'
+import HandOverlay, { type HandPose } from './HandOverlay.vue'
 
 interface Props {
   /** 当前目标字符(英文/指法为下一个待打字符,中文为音节首字母) */
@@ -9,16 +11,19 @@ interface Props {
   /** 按键反馈:correct 绿色闪烁,wrong 红色闪烁 */
   feedback?: { key: string; correct: boolean; id: number } | null
   showFingers?: boolean
+  /** 是否叠加双手手势提示图 */
+  showHands?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   targetChar: null,
   feedback: null,
   showFingers: true,
+  showHands: true,
 })
 
-const U = 42
-const PAD = 6
+/** 手势图在键盘下方额外占用的高度 */
+const HAND_EXTRA = 110
 
 interface PlacedKey extends KeyDef {
   x: number
@@ -38,7 +43,7 @@ const placedKeys = computed<PlacedKey[]>(() => {
 })
 
 const svgWidth = 15 * U + PAD * 2
-const svgHeight = 5 * U + PAD * 2
+const svgHeight = computed(() => 5 * U + PAD * 2 + (props.showHands ? HAND_EXTRA : 0))
 
 const target = computed(() => (props.targetChar ? resolveKey(props.targetChar) : null))
 
@@ -107,6 +112,25 @@ function keyLabelFill(k: PlacedKey): string {
 function isSpecial(k: PlacedKey): boolean {
   return k.w > 1.2 || k.code === 'space'
 }
+
+/** 手势图:目标键手指 + 对侧 Shift 手指(大写/上档场景) */
+const poses = computed<HandPose[]>(() => {
+  const list: HandPose[] = []
+  const t = target.value
+  if (t) {
+    const f = fingerOfKey(t.key)
+    if (f) list.push({ finger: f, keyCode: t.key })
+  }
+  if (shiftCode.value) {
+    const sf = fingerOfKey(shiftCode.value)
+    if (sf) list.push({ finger: sf, keyCode: shiftCode.value })
+  }
+  return list
+})
+
+const flashFinger = computed<FingerId | null>(() =>
+  flash.value ? (fingerOfKey(flash.value.code) ?? null) : null,
+)
 </script>
 
 <template>
@@ -157,6 +181,12 @@ function isSpecial(k: PlacedKey): boolean {
           </text>
         </g>
       </g>
+      <HandOverlay
+        v-if="showHands"
+        :poses="poses"
+        :flash-finger="flashFinger"
+        :flash-correct="flash?.correct ?? true"
+      />
     </svg>
 
     <div v-if="showFingers" class="mt-3 flex flex-wrap items-center justify-center gap-x-4 gap-y-1">

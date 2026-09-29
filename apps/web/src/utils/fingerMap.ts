@@ -79,6 +79,14 @@ export const KEY_FINGER: Record<string, FingerId> = {
   "'": 'rp',
   '/': 'rp',
   ' ': 'thumb',
+  // 功能键(resolveKey 归一化后的 code)
+  space: 'thumb',
+  lshift: 'lp',
+  rshift: 'rp',
+  tab: 'lp',
+  capslock: 'lp',
+  enter: 'rp',
+  backspace: 'rp',
 }
 
 export interface KeyTarget {

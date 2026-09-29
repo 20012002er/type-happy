@@ -1,5 +1,9 @@
 import type { FingerId } from './fingerMap'
 
+/** 单个标准键的像素尺寸与画布内边距 */
+export const U = 42
+export const PAD = 6
+
 export interface KeyDef {
   /** 键标识:字符键为小写字符本身,功能键为名称(tab/capslock/enter/lshift...) */
   code: string
@@ -68,3 +72,19 @@ export const KEY_ROWS: KeyDef[][] = [
     { code: 'rctrl', label: 'Ctrl', w: 1.5, finger: 'rp' },
   ],
 ]
+
+/** 键 code → 键中心坐标(SVG 画布坐标,含内边距) */
+export function keyCenter(code: string): { x: number; y: number } | null {
+  let y = 0
+  for (const row of KEY_ROWS) {
+    let x = 0
+    for (const k of row) {
+      if (k.code === code) {
+        return { x: PAD + x + (k.w * U) / 2, y: PAD + y + U / 2 }
+      }
+      x += k.w * U
+    }
+    y += U
+  }
+  return null
+}
