@@ -1,0 +1,84 @@
+{
+  "id": "c-08",
+  "courseId": "chinese",
+  "index": 8,
+  "title": "简单短句",
+  "description": "带标点的简单短句，标点由输入法直接上屏。",
+  "content": {
+    "kind": "pinyin",
+    "chars": [
+      {
+        "char": "我",
+        "pinyin": "wo"
+      },
+      {
+        "char": "爱",
+        "pinyin": "ai"
+      },
+      {
+        "char": "打",
+        "pinyin": "da"
+      },
+      {
+        "char": "字",
+        "pinyin": "zi"
+      },
+      {
+        "char": "练",
+        "pinyin": "lian"
+      },
+      {
+        "char": "习",
+        "pinyin": "xi"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      },
+      {
+        "char": "你",
+        "pinyin": "ni"
+      },
+      {
+        "char": "今",
+        "pinyin": "jin"
+      },
+      {
+        "char": "天",
+        "pinyin": "tian"
+      },
+      {
+        "char": "好",
+        "pinyin": "hao"
+      },
+      {
+        "char": "吗",
+        "pinyin": "ma"
+      },
+      {
+        "char": "？",
+        "pinyin": "？"
+      },
+      {
+        "char": "我",
+        "pinyin": "wo"
+      },
+      {
+        "char": "很",
+        "pinyin": "hen"
+      },
+      {
+        "char": "开",
+        "pinyin": "kai"
+      },
+      {
+        "char": "心",
+        "pinyin": "xin"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      }
+    ]
+  }
+}

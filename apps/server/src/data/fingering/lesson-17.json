@@ -1,0 +1,12 @@
+{
+  "id": "f-17",
+  "courseId": "fingering",
+  "index": 17,
+  "title": "常用符号(一)",
+  "description": "不需 Shift 的常用符号：逗号、句号、分号、引号、斜杠、方括号。",
+  "content": {
+    "kind": "text",
+    "text": ", . ; ' / [ ] - =\na, b. c; d' e/ f[ g] h- i=\nthe cat, the dog; a bird.\nit's a dog's life, one/two\nthree-four five=six [test] 'quote'",
+    "showKeyboard": true
+  }
+}

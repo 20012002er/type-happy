@@ -1,0 +1,12 @@
+{
+  "id": "f-08",
+  "courseId": "fingering",
+  "index": 8,
+  "title": "小指区 Q 与 P",
+  "description": "小指力量最弱，击键要轻而准：左手 Q,右手 P。",
+  "content": {
+    "kind": "text",
+    "text": "aq ;p qa ap aqap ;p;p\nqu pu ap pa aq ;p qu\nqueue quip pup pop pip\npeep prop quip queue papa",
+    "showKeyboard": true
+  }
+}

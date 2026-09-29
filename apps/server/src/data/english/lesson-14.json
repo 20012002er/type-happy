@@ -1,0 +1,12 @@
+{
+  "id": "e-14",
+  "courseId": "english",
+  "index": 14,
+  "title": "综合练习：打字心得",
+  "description": "中等长度自编短文，巩固日常输入。",
+  "content": {
+    "kind": "text",
+    "text": "Typing is a skill that anyone can learn. With a little practice\nevery day, your fingers will find the keys without looking.\nSit up straight, rest your feet on the floor, and keep your wrists\nrelaxed. Look at the screen, not at the keyboard. Speed will come\nwith time; accuracy must come first.",
+    "showKeyboard": false
+  }
+}

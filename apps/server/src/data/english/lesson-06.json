@@ -1,0 +1,12 @@
+{
+  "id": "e-06",
+  "courseId": "english",
+  "index": 6,
+  "title": "日常主题词汇",
+  "description": "颜色、家人、时间与饮食等日常生活词汇。",
+  "content": {
+    "kind": "text",
+    "text": "red orange yellow green blue purple black white brown pink gray\nmother father sister brother family friend teacher student child\nmorning afternoon evening night today tomorrow yesterday weekend\nbreakfast lunch dinner water milk coffee tea bread rice egg meat\napple banana orange grape fruit vegetable potato tomato onion",
+    "showKeyboard": false
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "f-06",
+  "courseId": "fingering",
+  "index": 6,
+  "title": "中指区 E 与 I",
+  "description": "左手中指向上击 E,右手中指向上击 I,注意手指弧度。",
+  "content": {
+    "kind": "text",
+    "text": "de ki ek ik deki iked\ndede kiki eiei ikik\nride tire kite fire hire\ndied deed dire rite edit",
+    "showKeyboard": true
+  }
+}

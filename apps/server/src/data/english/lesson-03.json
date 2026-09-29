@@ -1,0 +1,12 @@
+{
+  "id": "e-03",
+  "courseId": "english",
+  "index": 3,
+  "title": "高频字母组合",
+  "description": "英文中使用频率最高的字母：e t a o i n s h r d l u。",
+  "content": {
+    "kind": "text",
+    "text": "e t a o i n s h r d l u\nee tt aa oo ii nn ss hh rr dd ll uu\nte ea ao in os sh rd lu er at en\nthe and for are not you all can her",
+    "showKeyboard": true
+  }
+}

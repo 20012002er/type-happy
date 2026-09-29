@@ -1,0 +1,12 @@
+{
+  "id": "e-11",
+  "courseId": "english",
+  "index": 11,
+  "title": "名著：福尔摩斯探案集",
+  "description": "柯南·道尔《波希米亚丑闻》开头(1892),公版作品节选。",
+  "content": {
+    "kind": "text",
+    "text": "To Sherlock Holmes she is always the woman. I have seldom heard\nhim mention her under any other name. In his eyes she eclipses and\npredominates the whole of her sex. It was not that he felt any emotion\nakin to love for Irene Adler.",
+    "showKeyboard": false
+  }
+}

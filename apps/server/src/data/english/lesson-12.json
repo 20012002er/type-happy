@@ -1,0 +1,12 @@
+{
+  "id": "e-12",
+  "courseId": "english",
+  "index": 12,
+  "title": "名著：了不起的盖茨比",
+  "description": "菲茨杰拉德(1925),公版作品开头节选。",
+  "content": {
+    "kind": "text",
+    "text": "In my younger and more vulnerable years my father gave me some\nadvice that I've been turning over in my mind ever since.\n\"Whenever you feel like criticizing anyone,\" he told me,\n\"just remember that all the people in this world haven't had the\nadvantages that you've had.\"",
+    "showKeyboard": false
+  }
+}

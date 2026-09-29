@@ -1,0 +1,12 @@
+{
+  "id": "f-19",
+  "courseId": "fingering",
+  "index": 19,
+  "title": "综合短文：pangram",
+  "description": "经典全字母句，一句话覆盖 26 个字母。",
+  "content": {
+    "kind": "text",
+    "text": "The quick brown fox jumps over the lazy dog.\nPack my box with five dozen liquor jugs.\nHow vexingly quick daft zebras jump!\nSphinx of black quartz, judge my vow.",
+    "showKeyboard": true
+  }
+}

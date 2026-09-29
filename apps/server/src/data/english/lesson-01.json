@@ -1,0 +1,12 @@
+{
+  "id": "e-01",
+  "courseId": "english",
+  "index": 1,
+  "title": "小写字母表",
+  "description": "按顺序输入 26 个小写字母，再按键盘分区熟悉键位。",
+  "content": {
+    "kind": "text",
+    "text": "abcdefghijklmnopqrstuvwxyz\nabcdefghijklmnopqrstuvwxyz\nqwertyuiop asdfghjkl zxcvbnm",
+    "showKeyboard": true
+  }
+}

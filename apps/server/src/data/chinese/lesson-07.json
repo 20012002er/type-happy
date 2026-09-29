@@ -1,0 +1,108 @@
+{
+  "id": "c-07",
+  "courseId": "chinese",
+  "index": 7,
+  "title": "四字成语",
+  "description": "常用四字成语，练习连续多音节输入。",
+  "content": {
+    "kind": "pinyin",
+    "chars": [
+      {
+        "char": "一",
+        "pinyin": "yi"
+      },
+      {
+        "char": "心",
+        "pinyin": "xin"
+      },
+      {
+        "char": "一",
+        "pinyin": "yi"
+      },
+      {
+        "char": "意",
+        "pinyin": "yi"
+      },
+      {
+        "char": "四",
+        "pinyin": "si"
+      },
+      {
+        "char": "面",
+        "pinyin": "mian"
+      },
+      {
+        "char": "八",
+        "pinyin": "ba"
+      },
+      {
+        "char": "方",
+        "pinyin": "fang"
+      },
+      {
+        "char": "万",
+        "pinyin": "wan"
+      },
+      {
+        "char": "紫",
+        "pinyin": "zi"
+      },
+      {
+        "char": "千",
+        "pinyin": "qian"
+      },
+      {
+        "char": "红",
+        "pinyin": "hong"
+      },
+      {
+        "char": "春",
+        "pinyin": "chun"
+      },
+      {
+        "char": "暖",
+        "pinyin": "nuan"
+      },
+      {
+        "char": "花",
+        "pinyin": "hua"
+      },
+      {
+        "char": "开",
+        "pinyin": "kai"
+      },
+      {
+        "char": "山",
+        "pinyin": "shan"
+      },
+      {
+        "char": "清",
+        "pinyin": "qing"
+      },
+      {
+        "char": "水",
+        "pinyin": "shui"
+      },
+      {
+        "char": "秀",
+        "pinyin": "xiu"
+      },
+      {
+        "char": "十",
+        "pinyin": "shi"
+      },
+      {
+        "char": "全",
+        "pinyin": "quan"
+      },
+      {
+        "char": "十",
+        "pinyin": "shi"
+      },
+      {
+        "char": "美",
+        "pinyin": "mei"
+      }
+    ]
+  }
+}

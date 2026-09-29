@@ -1,0 +1,112 @@
+{
+  "id": "c-09",
+  "courseId": "chinese",
+  "index": 9,
+  "title": "生活短句",
+  "description": "描述日常生活的短句，包含逗号与句号。",
+  "content": {
+    "kind": "pinyin",
+    "chars": [
+      {
+        "char": "早",
+        "pinyin": "zao"
+      },
+      {
+        "char": "上",
+        "pinyin": "shang"
+      },
+      {
+        "char": "我",
+        "pinyin": "wo"
+      },
+      {
+        "char": "去",
+        "pinyin": "qu"
+      },
+      {
+        "char": "学",
+        "pinyin": "xue"
+      },
+      {
+        "char": "校",
+        "pinyin": "xiao"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "下",
+        "pinyin": "xia"
+      },
+      {
+        "char": "午",
+        "pinyin": "wu"
+      },
+      {
+        "char": "回",
+        "pinyin": "hui"
+      },
+      {
+        "char": "家",
+        "pinyin": "jia"
+      },
+      {
+        "char": "写",
+        "pinyin": "xie"
+      },
+      {
+        "char": "作",
+        "pinyin": "zuo"
+      },
+      {
+        "char": "业",
+        "pinyin": "ye"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      },
+      {
+        "char": "晚",
+        "pinyin": "wan"
+      },
+      {
+        "char": "上",
+        "pinyin": "shang"
+      },
+      {
+        "char": "和",
+        "pinyin": "he"
+      },
+      {
+        "char": "妈",
+        "pinyin": "ma"
+      },
+      {
+        "char": "妈",
+        "pinyin": "ma"
+      },
+      {
+        "char": "一",
+        "pinyin": "yi"
+      },
+      {
+        "char": "起",
+        "pinyin": "qi"
+      },
+      {
+        "char": "吃",
+        "pinyin": "chi"
+      },
+      {
+        "char": "饭",
+        "pinyin": "fan"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      }
+    ]
+  }
+}

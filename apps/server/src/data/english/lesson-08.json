@@ -1,0 +1,12 @@
+{
+  "id": "e-08",
+  "courseId": "english",
+  "index": 8,
+  "title": "英语谚语",
+  "description": "经典谚语，边打字边积累。",
+  "content": {
+    "kind": "text",
+    "text": "Actions speak louder than words.\nAll that glitters is not gold.\nA journey of a thousand miles begins with a single step.\nBetter late than never.\nPractice makes perfect.\nWhere there is a will, there is a way.\nKnowledge is power.\nEvery cloud has a silver lining.",
+    "showKeyboard": false
+  }
+}

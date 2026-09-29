@@ -1,0 +1,60 @@
+{
+  "id": "c-01",
+  "courseId": "chinese",
+  "index": 1,
+  "title": "单音节入门",
+  "description": "每个汉字一个音节，用拼音输入法逐字输入，熟悉基本音节。",
+  "content": {
+    "kind": "pinyin",
+    "chars": [
+      {
+        "char": "啊",
+        "pinyin": "a"
+      },
+      {
+        "char": "喔",
+        "pinyin": "o"
+      },
+      {
+        "char": "鹅",
+        "pinyin": "e"
+      },
+      {
+        "char": "衣",
+        "pinyin": "yi"
+      },
+      {
+        "char": "乌",
+        "pinyin": "wu"
+      },
+      {
+        "char": "鱼",
+        "pinyin": "yu"
+      },
+      {
+        "char": "马",
+        "pinyin": "ma"
+      },
+      {
+        "char": "大",
+        "pinyin": "da"
+      },
+      {
+        "char": "米",
+        "pinyin": "mi"
+      },
+      {
+        "char": "土",
+        "pinyin": "tu"
+      },
+      {
+        "char": "木",
+        "pinyin": "mu"
+      },
+      {
+        "char": "火",
+        "pinyin": "huo"
+      }
+    ]
+  }
+}

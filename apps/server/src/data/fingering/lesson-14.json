@@ -1,0 +1,12 @@
+{
+  "id": "f-14",
+  "courseId": "fingering",
+  "index": 14,
+  "title": "数字排左手 1-5",
+  "description": "左手负责数字 1-5：小指 1、无名指 2、中指 3、食指 4 和 5。",
+  "content": {
+    "kind": "text",
+    "text": "1 2 3 4 5 1 2 3 4 5\n11 22 33 44 55 12 34 51 23 45\n15 24 13 42 51 1234 4321 1524\na1 s2 d3 f4 g5 1a 2s 3d 4f 5g",
+    "showKeyboard": true
+  }
+}

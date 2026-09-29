@@ -1,0 +1,12 @@
+{
+  "id": "e-10",
+  "courseId": "english",
+  "index": 10,
+  "title": "名著：爱丽丝漫游奇境",
+  "description": "刘易斯·卡罗尔(1865),公版作品节选。",
+  "content": {
+    "kind": "text",
+    "text": "Alice was beginning to get very tired of sitting by her sister\non the bank, and of having nothing to do: once or twice she had\npeeped into the book her sister was reading, but it had no pictures\nor conversations in it, 'and what is the use of a book,' thought\nAlice 'without pictures or conversation?'",
+    "showKeyboard": false
+  }
+}

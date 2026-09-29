@@ -1,0 +1,12 @@
+{
+  "id": "f-05",
+  "courseId": "fingering",
+  "index": 5,
+  "title": "食指扩展 R T Y U",
+  "description": "食指负责范围扩大：左手 R T,右手 Y U。",
+  "content": {
+    "kind": "text",
+    "text": "fr ft ju jy frtf juky\nrt yh fu jy rtyh fuyj\ntr yt uf hj fg jy kt dr\ntrue jury fury try rut fry guy hurt",
+    "showKeyboard": true
+  }
+}

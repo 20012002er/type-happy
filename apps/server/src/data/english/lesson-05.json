@@ -1,0 +1,12 @@
+{
+  "id": "e-05",
+  "courseId": "english",
+  "index": 5,
+  "title": "高频单词 100",
+  "description": "覆盖英文文本一半以上使用频率的核心单词。",
+  "content": {
+    "kind": "text",
+    "text": "the be to of and a in that have it for not on with he as you do at\nthis but his by from they we say her she or an will my one all would\nthere their what so up out if about who get which go me when make can\nlike time no just him know take people into year your good some could\nthem see other than then now look only come its over think also back\nafter use two how our work first well way even new want because any\nthese give day most us great little world own old right big high different",
+    "showKeyboard": false
+  }
+}

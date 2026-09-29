@@ -1,0 +1,76 @@
+{
+  "id": "c-04",
+  "courseId": "chinese",
+  "index": 4,
+  "title": "双音节常用词",
+  "description": "常用双音节词语，可逐字输入，也可以整词输入。",
+  "content": {
+    "kind": "pinyin",
+    "chars": [
+      {
+        "char": "你",
+        "pinyin": "ni"
+      },
+      {
+        "char": "好",
+        "pinyin": "hao"
+      },
+      {
+        "char": "谢",
+        "pinyin": "xie"
+      },
+      {
+        "char": "谢",
+        "pinyin": "xie"
+      },
+      {
+        "char": "妈",
+        "pinyin": "ma"
+      },
+      {
+        "char": "妈",
+        "pinyin": "ma"
+      },
+      {
+        "char": "爸",
+        "pinyin": "ba"
+      },
+      {
+        "char": "爸",
+        "pinyin": "ba"
+      },
+      {
+        "char": "老",
+        "pinyin": "lao"
+      },
+      {
+        "char": "师",
+        "pinyin": "shi"
+      },
+      {
+        "char": "学",
+        "pinyin": "xue"
+      },
+      {
+        "char": "生",
+        "pinyin": "sheng"
+      },
+      {
+        "char": "中",
+        "pinyin": "zhong"
+      },
+      {
+        "char": "国",
+        "pinyin": "guo"
+      },
+      {
+        "char": "朋",
+        "pinyin": "peng"
+      },
+      {
+        "char": "友",
+        "pinyin": "you"
+      }
+    ]
+  }
+}

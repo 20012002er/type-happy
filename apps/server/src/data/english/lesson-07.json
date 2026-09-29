@@ -1,0 +1,12 @@
+{
+  "id": "e-07",
+  "courseId": "english",
+  "index": 7,
+  "title": "简单句练习",
+  "description": "简短完整的英文句子，注意大小写与句末标点。",
+  "content": {
+    "kind": "text",
+    "text": "The cat sat on the mat.\nI like to read books at night.\nShe goes to school by bus every day.\nHe is my best friend.\nWe play games after dinner.\nThe sun rises in the east.\nPlease close the door behind you.\nMy mother makes the best soup in town.",
+    "showKeyboard": false
+  }
+}

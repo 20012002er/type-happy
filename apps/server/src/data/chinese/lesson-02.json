@@ -1,0 +1,68 @@
+{
+  "id": "c-02",
+  "courseId": "chinese",
+  "index": 2,
+  "title": "声母与韵母",
+  "description": "常见声母韵母组合：b p m f、d t n l、g k h、j q x。",
+  "content": {
+    "kind": "pinyin",
+    "chars": [
+      {
+        "char": "八",
+        "pinyin": "ba"
+      },
+      {
+        "char": "怕",
+        "pinyin": "pa"
+      },
+      {
+        "char": "妈",
+        "pinyin": "ma"
+      },
+      {
+        "char": "发",
+        "pinyin": "fa"
+      },
+      {
+        "char": "大",
+        "pinyin": "da"
+      },
+      {
+        "char": "他",
+        "pinyin": "ta"
+      },
+      {
+        "char": "拿",
+        "pinyin": "na"
+      },
+      {
+        "char": "拉",
+        "pinyin": "la"
+      },
+      {
+        "char": "哥",
+        "pinyin": "ge"
+      },
+      {
+        "char": "科",
+        "pinyin": "ke"
+      },
+      {
+        "char": "喝",
+        "pinyin": "he"
+      },
+      {
+        "char": "鸡",
+        "pinyin": "ji"
+      },
+      {
+        "char": "七",
+        "pinyin": "qi"
+      },
+      {
+        "char": "西",
+        "pinyin": "xi"
+      }
+    ]
+  }
+}

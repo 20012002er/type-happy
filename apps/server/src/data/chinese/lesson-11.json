@@ -1,0 +1,108 @@
+{
+  "id": "c-11",
+  "courseId": "chinese",
+  "index": 11,
+  "title": "古诗：静夜思",
+  "description": "李白《静夜思》,注意后鼻音音节。",
+  "content": {
+    "kind": "pinyin",
+    "chars": [
+      {
+        "char": "床",
+        "pinyin": "chuang"
+      },
+      {
+        "char": "前",
+        "pinyin": "qian"
+      },
+      {
+        "char": "明",
+        "pinyin": "ming"
+      },
+      {
+        "char": "月",
+        "pinyin": "yue"
+      },
+      {
+        "char": "光",
+        "pinyin": "guang"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "疑",
+        "pinyin": "yi"
+      },
+      {
+        "char": "是",
+        "pinyin": "shi"
+      },
+      {
+        "char": "地",
+        "pinyin": "di"
+      },
+      {
+        "char": "上",
+        "pinyin": "shang"
+      },
+      {
+        "char": "霜",
+        "pinyin": "shuang"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      },
+      {
+        "char": "举",
+        "pinyin": "ju"
+      },
+      {
+        "char": "头",
+        "pinyin": "tou"
+      },
+      {
+        "char": "望",
+        "pinyin": "wang"
+      },
+      {
+        "char": "明",
+        "pinyin": "ming"
+      },
+      {
+        "char": "月",
+        "pinyin": "yue"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "低",
+        "pinyin": "di"
+      },
+      {
+        "char": "头",
+        "pinyin": "tou"
+      },
+      {
+        "char": "思",
+        "pinyin": "si"
+      },
+      {
+        "char": "故",
+        "pinyin": "gu"
+      },
+      {
+        "char": "乡",
+        "pinyin": "xiang"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      }
+    ]
+  }
+}

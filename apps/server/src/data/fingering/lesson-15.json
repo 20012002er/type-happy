@@ -1,0 +1,12 @@
+{
+  "id": "f-15",
+  "courseId": "fingering",
+  "index": 15,
+  "title": "数字排右手 6-0",
+  "description": "右手负责数字 6-0：食指 6 和 7、中指 8、无名指 9、小指 0。",
+  "content": {
+    "kind": "text",
+    "text": "6 7 8 9 0 6 7 8 9 0\n66 77 88 99 00 67 89 60 78\n96 80 79 68 6789 9876 6098\nh6 j7 k8 l9 6h 7j 8k 9l 0;",
+    "showKeyboard": true
+  }
+}

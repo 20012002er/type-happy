@@ -1,0 +1,12 @@
+{
+  "id": "e-04",
+  "courseId": "english",
+  "index": 4,
+  "title": "常见短单词",
+  "description": "三到四个字母的常见短单词，注意空格用拇指击打。",
+  "content": {
+    "kind": "text",
+    "text": "cat dog run sit top hat pen cup map bus red sun sky one two six ten\nbig hot cold fast slow up down in on at by me we he she it is as if or",
+    "showKeyboard": true
+  }
+}

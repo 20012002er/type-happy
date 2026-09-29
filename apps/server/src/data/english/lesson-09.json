@@ -1,0 +1,12 @@
+{
+  "id": "e-09",
+  "courseId": "english",
+  "index": 9,
+  "title": "寓言：狐狸与葡萄",
+  "description": "伊索寓言改写短文。",
+  "content": {
+    "kind": "text",
+    "text": "A hungry fox found some fine grapes hanging high on a vine.\nHe jumped again and again, but he could not reach them.\nAt last he turned away and said, \"They are probably sour anyway.\"\nIt is easy to despise what you cannot have.",
+    "showKeyboard": false
+  }
+}

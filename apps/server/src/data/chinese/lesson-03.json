@@ -1,0 +1,68 @@
+{
+  "id": "c-03",
+  "courseId": "chinese",
+  "index": 3,
+  "title": "最常用的汉字",
+  "description": "使用频率最高的一批汉字，日常输入的基石。",
+  "content": {
+    "kind": "pinyin",
+    "chars": [
+      {
+        "char": "你",
+        "pinyin": "ni"
+      },
+      {
+        "char": "好",
+        "pinyin": "hao"
+      },
+      {
+        "char": "我",
+        "pinyin": "wo"
+      },
+      {
+        "char": "他",
+        "pinyin": "ta"
+      },
+      {
+        "char": "是",
+        "pinyin": "shi"
+      },
+      {
+        "char": "的",
+        "pinyin": "de"
+      },
+      {
+        "char": "了",
+        "pinyin": "le"
+      },
+      {
+        "char": "在",
+        "pinyin": "zai"
+      },
+      {
+        "char": "有",
+        "pinyin": "you"
+      },
+      {
+        "char": "不",
+        "pinyin": "bu"
+      },
+      {
+        "char": "这",
+        "pinyin": "zhe"
+      },
+      {
+        "char": "人",
+        "pinyin": "ren"
+      },
+      {
+        "char": "中",
+        "pinyin": "zhong"
+      },
+      {
+        "char": "大",
+        "pinyin": "da"
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "f-03",
+  "courseId": "fingering",
+  "index": 3,
+  "title": "双手基准键综合",
+  "description": "左右手基准键位混合练习，保持节奏均匀。",
+  "content": {
+    "kind": "text",
+    "text": "asdf jkl; asdf jkl;\nfj dk sl a; fj dk sl a;\naskl dfj; sala djfk\nadd ssl fad jak las ask",
+    "showKeyboard": true
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "e-13",
+  "courseId": "english",
+  "index": 13,
+  "title": "名著：傲慢与偏见",
+  "description": "简·奥斯汀(1813),公版作品开头名句。",
+  "content": {
+    "kind": "text",
+    "text": "It is a truth universally acknowledged, that a single man in\npossession of a good fortune, must be in want of a wife.\nHowever little known the feelings or views of such a man may be\non his first entering a neighbourhood, this truth is so well fixed\nin the minds of the surrounding families.",
+    "showKeyboard": false
+  }
+}

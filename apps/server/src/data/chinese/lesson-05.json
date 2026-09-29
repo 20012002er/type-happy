@@ -1,0 +1,76 @@
+{
+  "id": "c-05",
+  "courseId": "chinese",
+  "index": 5,
+  "title": "数字与方位",
+  "description": "数字一到十与常见方位词。",
+  "content": {
+    "kind": "pinyin",
+    "chars": [
+      {
+        "char": "一",
+        "pinyin": "yi"
+      },
+      {
+        "char": "二",
+        "pinyin": "er"
+      },
+      {
+        "char": "三",
+        "pinyin": "san"
+      },
+      {
+        "char": "四",
+        "pinyin": "si"
+      },
+      {
+        "char": "五",
+        "pinyin": "wu"
+      },
+      {
+        "char": "六",
+        "pinyin": "liu"
+      },
+      {
+        "char": "七",
+        "pinyin": "qi"
+      },
+      {
+        "char": "八",
+        "pinyin": "ba"
+      },
+      {
+        "char": "九",
+        "pinyin": "jiu"
+      },
+      {
+        "char": "十",
+        "pinyin": "shi"
+      },
+      {
+        "char": "上",
+        "pinyin": "shang"
+      },
+      {
+        "char": "下",
+        "pinyin": "xia"
+      },
+      {
+        "char": "左",
+        "pinyin": "zuo"
+      },
+      {
+        "char": "右",
+        "pinyin": "you"
+      },
+      {
+        "char": "前",
+        "pinyin": "qian"
+      },
+      {
+        "char": "后",
+        "pinyin": "hou"
+      }
+    ]
+  }
+}

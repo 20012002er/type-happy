@@ -1,0 +1,12 @@
+{
+  "id": "f-02",
+  "courseId": "fingering",
+  "index": 2,
+  "title": "右手基准键 J K L ;",
+  "description": "右手四指轻放基准键位：食指 J、中指 K、无名指 L、小指 ;。",
+  "content": {
+    "kind": "text",
+    "text": "jjj kkk lll ;;;\njkl; jkl; ;lkj ;lkj\njlks kjls lskj klsj\n;j kj lj fj dj sj aj",
+    "showKeyboard": true
+  }
+}

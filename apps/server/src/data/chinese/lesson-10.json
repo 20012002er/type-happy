@@ -1,0 +1,108 @@
+{
+  "id": "c-10",
+  "courseId": "chinese",
+  "index": 10,
+  "title": "古诗：咏鹅",
+  "description": "骆宾王《咏鹅》,拼音输入的经典入门篇目。",
+  "content": {
+    "kind": "pinyin",
+    "chars": [
+      {
+        "char": "鹅",
+        "pinyin": "e"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "鹅",
+        "pinyin": "e"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "鹅",
+        "pinyin": "e"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "曲",
+        "pinyin": "qu"
+      },
+      {
+        "char": "项",
+        "pinyin": "xiang"
+      },
+      {
+        "char": "向",
+        "pinyin": "xiang"
+      },
+      {
+        "char": "天",
+        "pinyin": "tian"
+      },
+      {
+        "char": "歌",
+        "pinyin": "ge"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      },
+      {
+        "char": "白",
+        "pinyin": "bai"
+      },
+      {
+        "char": "毛",
+        "pinyin": "mao"
+      },
+      {
+        "char": "浮",
+        "pinyin": "fu"
+      },
+      {
+        "char": "绿",
+        "pinyin": "lu"
+      },
+      {
+        "char": "水",
+        "pinyin": "shui"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "红",
+        "pinyin": "hong"
+      },
+      {
+        "char": "掌",
+        "pinyin": "zhang"
+      },
+      {
+        "char": "拨",
+        "pinyin": "bo"
+      },
+      {
+        "char": "清",
+        "pinyin": "qing"
+      },
+      {
+        "char": "波",
+        "pinyin": "bo"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      }
+    ]
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "e-02",
+  "courseId": "english",
+  "index": 2,
+  "title": "大写字母表",
+  "description": "配合 Shift 输入大写字母与大小写组合。",
+  "content": {
+    "kind": "text",
+    "text": "ABCDEFGHIJKLMNOPQRSTUVWXYZ\nAaBbCcDdEeFfGgHhIiJjKkLlMm\nNnOoPpQqRrSsTtUuVvWwXxYyZz",
+    "showKeyboard": true
+  }
+}

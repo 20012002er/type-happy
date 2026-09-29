@@ -1,0 +1,220 @@
+{
+  "id": "c-13",
+  "courseId": "chinese",
+  "index": 13,
+  "title": "短文：四季",
+  "description": "描写四季的自编短文，篇幅适中。",
+  "content": {
+    "kind": "pinyin",
+    "chars": [
+      {
+        "char": "春",
+        "pinyin": "chun"
+      },
+      {
+        "char": "天",
+        "pinyin": "tian"
+      },
+      {
+        "char": "来",
+        "pinyin": "lai"
+      },
+      {
+        "char": "了",
+        "pinyin": "le"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "花",
+        "pinyin": "hua"
+      },
+      {
+        "char": "园",
+        "pinyin": "yuan"
+      },
+      {
+        "char": "里",
+        "pinyin": "li"
+      },
+      {
+        "char": "开",
+        "pinyin": "kai"
+      },
+      {
+        "char": "满",
+        "pinyin": "man"
+      },
+      {
+        "char": "了",
+        "pinyin": "le"
+      },
+      {
+        "char": "花",
+        "pinyin": "hua"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      },
+      {
+        "char": "夏",
+        "pinyin": "xia"
+      },
+      {
+        "char": "天",
+        "pinyin": "tian"
+      },
+      {
+        "char": "很",
+        "pinyin": "hen"
+      },
+      {
+        "char": "热",
+        "pinyin": "re"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "我",
+        "pinyin": "wo"
+      },
+      {
+        "char": "们",
+        "pinyin": "men"
+      },
+      {
+        "char": "喜",
+        "pinyin": "xi"
+      },
+      {
+        "char": "欢",
+        "pinyin": "huan"
+      },
+      {
+        "char": "去",
+        "pinyin": "qu"
+      },
+      {
+        "char": "游",
+        "pinyin": "you"
+      },
+      {
+        "char": "泳",
+        "pinyin": "yong"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      },
+      {
+        "char": "秋",
+        "pinyin": "qiu"
+      },
+      {
+        "char": "天",
+        "pinyin": "tian"
+      },
+      {
+        "char": "凉",
+        "pinyin": "liang"
+      },
+      {
+        "char": "快",
+        "pinyin": "kuai"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "树",
+        "pinyin": "shu"
+      },
+      {
+        "char": "叶",
+        "pinyin": "ye"
+      },
+      {
+        "char": "慢",
+        "pinyin": "man"
+      },
+      {
+        "char": "慢",
+        "pinyin": "man"
+      },
+      {
+        "char": "变",
+        "pinyin": "bian"
+      },
+      {
+        "char": "黄",
+        "pinyin": "huang"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      },
+      {
+        "char": "冬",
+        "pinyin": "dong"
+      },
+      {
+        "char": "天",
+        "pinyin": "tian"
+      },
+      {
+        "char": "下",
+        "pinyin": "xia"
+      },
+      {
+        "char": "雪",
+        "pinyin": "xue"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "孩",
+        "pinyin": "hai"
+      },
+      {
+        "char": "子",
+        "pinyin": "zi"
+      },
+      {
+        "char": "们",
+        "pinyin": "men"
+      },
+      {
+        "char": "在",
+        "pinyin": "zai"
+      },
+      {
+        "char": "雪",
+        "pinyin": "xue"
+      },
+      {
+        "char": "地",
+        "pinyin": "di"
+      },
+      {
+        "char": "里",
+        "pinyin": "li"
+      },
+      {
+        "char": "玩",
+        "pinyin": "wan"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      }
+    ]
+  }
+}

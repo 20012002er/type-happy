@@ -1,0 +1,12 @@
+{
+  "id": "f-09",
+  "courseId": "fingering",
+  "index": 9,
+  "title": "下排左手 Z X C V B",
+  "description": "下排键位向左下方斜移：Z X C V 与左食指负责的 B。",
+  "content": {
+    "kind": "text",
+    "text": "az za sx xs dc cd fv vf\nvb bv zx cv xz vc azsx dcvf\nzip vex wax tax cab cob axe\nlazy dizzy cozy fuzzy exact",
+    "showKeyboard": true
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "f-12",
+  "courseId": "fingering",
+  "index": 12,
+  "title": "大写字母与 Shift(一)",
+  "description": "按住对侧 Shift 键输入大写字母：打左半区字母用右手小指按 Shift。",
+  "content": {
+    "kind": "text",
+    "text": "Asdf Jkl; Asdf Dkfj Sldk Aa;\nAa Ss Dd Ff Gg Hh Jj Kk Ll ;;\nQq Ww Ee Rr Tt Yy Uu Ii Oo Pp\nZz Xx Cc Vv Bb Nn Mm AaSs DdFf",
+    "showKeyboard": true
+  }
+}

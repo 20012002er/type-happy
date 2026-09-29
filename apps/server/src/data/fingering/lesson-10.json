@@ -1,0 +1,12 @@
+{
+  "id": "f-10",
+  "courseId": "fingering",
+  "index": 10,
+  "title": "下排右手 N M 与标点",
+  "description": "下排右手区：N M 由右食指/中指负责，逗号和句号由中指、无名指负责。",
+  "content": {
+    "kind": "text",
+    "text": "jn km ,. jnkm ,. /;\nman men noon nine mine fine\nname same game came mom\nnine men, ten moms. one moon, two lines.",
+    "showKeyboard": true
+  }
+}

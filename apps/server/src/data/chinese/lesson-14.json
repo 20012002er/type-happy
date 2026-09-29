@@ -1,0 +1,268 @@
+{
+  "id": "c-14",
+  "courseId": "chinese",
+  "index": 14,
+  "title": "短文：坚持练习",
+  "description": "关于练习方法的短文，综合检验拼音输入。",
+  "content": {
+    "kind": "pinyin",
+    "chars": [
+      {
+        "char": "打",
+        "pinyin": "da"
+      },
+      {
+        "char": "字",
+        "pinyin": "zi"
+      },
+      {
+        "char": "是",
+        "pinyin": "shi"
+      },
+      {
+        "char": "一",
+        "pinyin": "yi"
+      },
+      {
+        "char": "项",
+        "pinyin": "xiang"
+      },
+      {
+        "char": "有",
+        "pinyin": "you"
+      },
+      {
+        "char": "用",
+        "pinyin": "yong"
+      },
+      {
+        "char": "的",
+        "pinyin": "de"
+      },
+      {
+        "char": "技",
+        "pinyin": "ji"
+      },
+      {
+        "char": "能",
+        "pinyin": "neng"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      },
+      {
+        "char": "开",
+        "pinyin": "kai"
+      },
+      {
+        "char": "始",
+        "pinyin": "shi"
+      },
+      {
+        "char": "的",
+        "pinyin": "de"
+      },
+      {
+        "char": "时",
+        "pinyin": "shi"
+      },
+      {
+        "char": "候",
+        "pinyin": "hou"
+      },
+      {
+        "char": "可",
+        "pinyin": "ke"
+      },
+      {
+        "char": "能",
+        "pinyin": "neng"
+      },
+      {
+        "char": "很",
+        "pinyin": "hen"
+      },
+      {
+        "char": "慢",
+        "pinyin": "man"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "但",
+        "pinyin": "dan"
+      },
+      {
+        "char": "是",
+        "pinyin": "shi"
+      },
+      {
+        "char": "不",
+        "pinyin": "bu"
+      },
+      {
+        "char": "要",
+        "pinyin": "yao"
+      },
+      {
+        "char": "着",
+        "pinyin": "zhao"
+      },
+      {
+        "char": "急",
+        "pinyin": "ji"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      },
+      {
+        "char": "只",
+        "pinyin": "zhi"
+      },
+      {
+        "char": "要",
+        "pinyin": "yao"
+      },
+      {
+        "char": "每",
+        "pinyin": "mei"
+      },
+      {
+        "char": "天",
+        "pinyin": "tian"
+      },
+      {
+        "char": "坚",
+        "pinyin": "jian"
+      },
+      {
+        "char": "持",
+        "pinyin": "chi"
+      },
+      {
+        "char": "练",
+        "pinyin": "lian"
+      },
+      {
+        "char": "习",
+        "pinyin": "xi"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "手",
+        "pinyin": "shou"
+      },
+      {
+        "char": "指",
+        "pinyin": "zhi"
+      },
+      {
+        "char": "就",
+        "pinyin": "jiu"
+      },
+      {
+        "char": "会",
+        "pinyin": "hui"
+      },
+      {
+        "char": "越",
+        "pinyin": "yue"
+      },
+      {
+        "char": "来",
+        "pinyin": "lai"
+      },
+      {
+        "char": "越",
+        "pinyin": "yue"
+      },
+      {
+        "char": "灵",
+        "pinyin": "ling"
+      },
+      {
+        "char": "活",
+        "pinyin": "huo"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      },
+      {
+        "char": "相",
+        "pinyin": "xiang"
+      },
+      {
+        "char": "信",
+        "pinyin": "xin"
+      },
+      {
+        "char": "你",
+        "pinyin": "ni"
+      },
+      {
+        "char": "自",
+        "pinyin": "zi"
+      },
+      {
+        "char": "己",
+        "pinyin": "ji"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "一",
+        "pinyin": "yi"
+      },
+      {
+        "char": "定",
+        "pinyin": "ding"
+      },
+      {
+        "char": "能",
+        "pinyin": "neng"
+      },
+      {
+        "char": "练",
+        "pinyin": "lian"
+      },
+      {
+        "char": "成",
+        "pinyin": "cheng"
+      },
+      {
+        "char": "快",
+        "pinyin": "kuai"
+      },
+      {
+        "char": "速",
+        "pinyin": "su"
+      },
+      {
+        "char": "的",
+        "pinyin": "de"
+      },
+      {
+        "char": "输",
+        "pinyin": "shu"
+      },
+      {
+        "char": "入",
+        "pinyin": "ru"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      }
+    ]
+  }
+}

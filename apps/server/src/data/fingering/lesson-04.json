@@ -1,0 +1,12 @@
+{
+  "id": "f-04",
+  "courseId": "fingering",
+  "index": 4,
+  "title": "食指区 G 与 H",
+  "description": "左右食指从基准键向上斜移半格击打 G 和 H,打完立即回位。",
+  "content": {
+    "kind": "text",
+    "text": "fg jh gf hj fgjh jhgf\nfjfj gkgk hlhl fjgk\ng h g h fg hj gf jh\nasdfg jkl;h gfdsa h;lkj",
+    "showKeyboard": true
+  }
+}

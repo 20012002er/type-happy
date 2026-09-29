@@ -1,0 +1,108 @@
+{
+  "id": "c-12",
+  "courseId": "chinese",
+  "index": 12,
+  "title": "古诗：悯农",
+  "description": "李绅《悯农》,体会平翘舌音的切换。",
+  "content": {
+    "kind": "pinyin",
+    "chars": [
+      {
+        "char": "锄",
+        "pinyin": "chu"
+      },
+      {
+        "char": "禾",
+        "pinyin": "he"
+      },
+      {
+        "char": "日",
+        "pinyin": "ri"
+      },
+      {
+        "char": "当",
+        "pinyin": "dang"
+      },
+      {
+        "char": "午",
+        "pinyin": "wu"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "汗",
+        "pinyin": "han"
+      },
+      {
+        "char": "滴",
+        "pinyin": "di"
+      },
+      {
+        "char": "禾",
+        "pinyin": "he"
+      },
+      {
+        "char": "下",
+        "pinyin": "xia"
+      },
+      {
+        "char": "土",
+        "pinyin": "tu"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      },
+      {
+        "char": "谁",
+        "pinyin": "shui"
+      },
+      {
+        "char": "知",
+        "pinyin": "zhi"
+      },
+      {
+        "char": "盘",
+        "pinyin": "pan"
+      },
+      {
+        "char": "中",
+        "pinyin": "zhong"
+      },
+      {
+        "char": "餐",
+        "pinyin": "can"
+      },
+      {
+        "char": "，",
+        "pinyin": "，"
+      },
+      {
+        "char": "粒",
+        "pinyin": "li"
+      },
+      {
+        "char": "粒",
+        "pinyin": "li"
+      },
+      {
+        "char": "皆",
+        "pinyin": "jie"
+      },
+      {
+        "char": "辛",
+        "pinyin": "xin"
+      },
+      {
+        "char": "苦",
+        "pinyin": "ku"
+      },
+      {
+        "char": "。",
+        "pinyin": "。"
+      }
+    ]
+  }
+}

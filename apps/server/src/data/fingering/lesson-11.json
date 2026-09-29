@@ -1,0 +1,12 @@
+{
+  "id": "f-11",
+  "courseId": "fingering",
+  "index": 11,
+  "title": "小写字母综合复习",
+  "description": "26 个小写字母与最高频单词综合练习，巩固全部键位。",
+  "content": {
+    "kind": "text",
+    "text": "as is at be by do go he if in it me my no of on or so to up us we\nthe and for are you not her was one our out day get has him his how\nman new now old see two way who boy did its let say she too use can",
+    "showKeyboard": true
+  }
+}

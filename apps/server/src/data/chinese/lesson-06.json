@@ -1,0 +1,92 @@
+{
+  "id": "c-06",
+  "courseId": "chinese",
+  "index": 6,
+  "title": "日常用语词汇",
+  "description": "时间与日常交流中最常用的词语。",
+  "content": {
+    "kind": "pinyin",
+    "chars": [
+      {
+        "char": "今",
+        "pinyin": "jin"
+      },
+      {
+        "char": "天",
+        "pinyin": "tian"
+      },
+      {
+        "char": "明",
+        "pinyin": "ming"
+      },
+      {
+        "char": "天",
+        "pinyin": "tian"
+      },
+      {
+        "char": "昨",
+        "pinyin": "zuo"
+      },
+      {
+        "char": "天",
+        "pinyin": "tian"
+      },
+      {
+        "char": "时",
+        "pinyin": "shi"
+      },
+      {
+        "char": "间",
+        "pinyin": "jian"
+      },
+      {
+        "char": "什",
+        "pinyin": "shen"
+      },
+      {
+        "char": "么",
+        "pinyin": "me"
+      },
+      {
+        "char": "我",
+        "pinyin": "wo"
+      },
+      {
+        "char": "们",
+        "pinyin": "men"
+      },
+      {
+        "char": "你",
+        "pinyin": "ni"
+      },
+      {
+        "char": "们",
+        "pinyin": "men"
+      },
+      {
+        "char": "他",
+        "pinyin": "ta"
+      },
+      {
+        "char": "们",
+        "pinyin": "men"
+      },
+      {
+        "char": "现",
+        "pinyin": "xian"
+      },
+      {
+        "char": "在",
+        "pinyin": "zai"
+      },
+      {
+        "char": "知",
+        "pinyin": "zhi"
+      },
+      {
+        "char": "道",
+        "pinyin": "dao"
+      }
+    ]
+  }
+}

@@ -1,0 +1,126 @@
+# 打字乐园(type-happy)
+
+一个纯打字练习网站:三大课程(**标准指法练习 / 英文练习 / 中文练习**),SVG 虚拟键盘指法引导,中文 IME 拼音逐音节判分,成绩保存在浏览器本地。无账号、无排行榜、无数据库。
+
+## 快速开始
+
+要求 Node ≥ 20、pnpm(可通过 `corepack enable pnpm` 启用)。
+
+```bash
+pnpm install
+pnpm dev          # 同时启动后端(:3001)与前端(:5173),浏览器访问 http://localhost:5173
+```
+
+常用脚本(仓库根目录):
+
+| 命令                                  | 说明                                              |
+| ------------------------------------- | ------------------------------------------------- |
+| `pnpm dev`                            | 并行启动 server + web(dev proxy `/api` → `:3001`) |
+| `pnpm build`                          | 全部构建(shared → server/web,拓扑序)              |
+| `pnpm typecheck`                      | 全部类型检查(tsc / vue-tsc)                       |
+| `pnpm lint`                           | ESLint 全仓检查                                   |
+| `pnpm format`                         | Prettier 格式化                                   |
+| `pnpm --filter @type-happy/web smoke` | 打字引擎冒烟测试(Node 内模拟浏览器事件)           |
+
+## 项目结构
+
+```
+type-happy/
+├── packages/shared/          # @type-happy/shared:前后端共享 TS 类型
+├── apps/
+│   ├── server/               # @type-happy/server:Fastify 只读 API
+│   │   ├── src/index.ts          # 启动、CORS、健康检查
+│   │   ├── src/data-loader.ts    # JSON 加载 + zod 校验(启动时全量读入内存)
+│   │   ├── src/routes/courses.ts # 课程/关卡路由
+│   │   ├── src/data/             # 课程内容 JSON(一课一文件)
+│   │   └── scripts/gen-content.mjs # 内容生成器
+│   └── web/                  # @type-happy/web:Vue 3 SPA
+│       ├── src/composables/      # useTypingEngine / useChineseEngine / useStats
+│       ├── src/components/       # 虚拟键盘、打字区、拼音打字区、统计、结算
+│       ├── src/stores/progress.ts# Pinia + localStorage 进度
+│       ├── src/utils/            # fingerMap / keyboardLayout / format
+│       └── src/views/            # Home / CourseList / CourseDetail / Practice
+└── README.md
+```
+
+技术栈:pnpm monorepo;前端 Vue 3 + Vite + TypeScript + Pinia + Vue Router + Tailwind CSS v4(vite 插件方式,无 tailwind.config);后端 Node + TypeScript + Fastify + zod;课程内容为静态 JSON。
+
+## API
+
+| 方法 | 路径                                       | 说明                                |
+| ---- | ------------------------------------------ | ----------------------------------- |
+| GET  | `/api/courses`                             | 课程列表(含 lessonCount)            |
+| GET  | `/api/courses/:courseId`                   | `{ course, lessons: LessonMeta[] }` |
+| GET  | `/api/courses/:courseId/lessons/:lessonId` | 关卡完整内容                        |
+| GET  | `/health`                                  | 健康检查                            |
+
+courseId:`fingering` / `english` / `chinese`。非法 id 返回 404。
+
+## 核心机制
+
+### 字符级引擎(指法/英文)
+
+监听全局 `keydown`;首次按键启动计时;错误字符标红计错,退格可修正;**最后一个字符输入正确时结算**。输入法组合事件期间自动挂起。WPM 采用 5 字符 = 1 词换算。
+
+### 中文 IME 拼音比对
+
+- 隐藏 input 保持焦点,监听 `compositionstart/update/end` 与 `input` 事件;
+- 组合中:拼音(去声调)与当前起连续汉字的音节逐字母比对,实时着色;
+- 上屏后:按音节切片比对,**拼音完全匹配即正确**(同音字不误判);不匹配标错并前进,不阻塞;
+- 兼容 Chrome(compositionend 后跟随 input)与 Safari(input 先于 compositionend)两种事件顺序,按 composition session 去重;
+- 标点由输入法直接上屏,按字符相等比对(内容数据统一使用全角标点);
+- 输入法关闭时退化为手动拼音缓冲比对,空格作为音节分隔兜底;
+- 多音字由内容 JSON 固定读音,不做运行时消歧。
+
+### 虚拟键盘
+
+数据驱动 SVG:主键盘区布局表 + 键位→手指映射(8 指分色 + 拇指),高亮下一个目标键、大写上档时提示对侧 Shift、按键对错闪烁反馈。中文课高亮当前音节首字母。
+
+### 进度存储
+
+- localStorage key:`type-happy:progress:v1`,版本化便于迁移;
+- 每关记录 `{ best, attempts, history(≤20) }`;最佳按 WPM(同分比准确率);
+- 关卡**线性解锁**:完成第 N 关解锁第 N+1 关;
+- 练习中途离开页面不保存本次成绩;localStorage 损坏时自动重置损坏条目。
+
+## 内容扩充指南
+
+课程数据位于 `apps/server/src/data/<courseId>/lesson-XX.json`,一课一文件,启动时由 zod 校验加载。**推荐通过生成器维护**:编辑 `apps/server/scripts/gen-content.mjs` 中的课程数组后运行:
+
+```bash
+node apps/server/scripts/gen-content.mjs
+```
+
+生成器会清空三个课程目录并重写全部关卡(紧凑编写格式:指法/英文传文本,中文传文本 + 空格分隔的无声调拼音,标点自动占位并归一化为全角)。
+
+也可以直接手写 JSON,格式:
+
+```jsonc
+// 指法/英文关卡
+{
+  "id": "f-21",            // 课程内唯一
+  "courseId": "fingering",
+  "index": 21,             // 课程内唯一,决定关卡顺序
+  "title": "关卡标题",
+  "description": "可选说明",
+  "content": { "kind": "text", "text": "练习文本,\n换行需按 Enter", "showKeyboard": true }
+}
+
+// 中文关卡(多音字在此固定读音)
+{
+  "id": "c-16",
+  "courseId": "chinese",
+  "index": 16,
+  "title": "关卡标题",
+  "content": {
+    "kind": "pinyin",
+    "chars": [{ "char": "你", "pinyin": "ni" }, { "char": "。", "pinyin": "。" }]
+  }
+}
+```
+
+## 已知边界
+
+- 中文课需在系统拼音输入法下练习;输入法关闭时按手动拼音缓冲判定,体验降级但可用;
+- IME 候选窗位置跟随隐藏 input(位于当前汉字下方),个别输入法可能略有偏移;
+- 生产部署:`pnpm build` 后 `pnpm --filter @type-happy/server start`(内置只读 API,前端产物需另行静态托管或将 proxy 指回)。

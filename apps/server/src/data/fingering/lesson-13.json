@@ -1,0 +1,12 @@
+{
+  "id": "f-13",
+  "courseId": "fingering",
+  "index": 13,
+  "title": "大写字母与 Shift(二)",
+  "description": "大写单词与人名练习，注意 Shift 用对侧小指。",
+  "content": {
+    "kind": "text",
+    "text": "The And For You That With Have This From\nThey Know Want Been Good Much Just Like\nTom Ann Jim Sue Bob Eva Roy Kay Ivy Max\nMr. Smith, Mrs. Green, Miss White, Dr. Lee",
+    "showKeyboard": true
+  }
+}

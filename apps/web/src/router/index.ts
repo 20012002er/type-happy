@@ -1,0 +1,42 @@
+import { createRouter, createWebHistory } from 'vue-router'
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [
+    {
+      path: '/',
+      name: 'home',
+      component: () => import('../views/HomeView.vue'),
+      meta: { title: '首页' },
+    },
+    {
+      path: '/courses',
+      name: 'courses',
+      component: () => import('../views/CourseListView.vue'),
+      meta: { title: '全部课程' },
+    },
+    {
+      path: '/courses/:courseId',
+      name: 'course-detail',
+      component: () => import('../views/CourseDetailView.vue'),
+      props: true,
+      meta: { title: '课程' },
+    },
+    {
+      path: '/courses/:courseId/lessons/:lessonId',
+      name: 'practice',
+      component: () => import('../views/PracticeView.vue'),
+      props: true,
+      meta: { title: '练习' },
+    },
+    { path: '/:pathMatch(.*)*', redirect: '/' },
+  ],
+  scrollBehavior: () => ({ top: 0 }),
+})
+
+router.afterEach((to) => {
+  const title = typeof to.meta.title === 'string' ? to.meta.title : ''
+  document.title = title ? `${title} · 打字乐园` : '打字乐园'
+})
+
+export default router

@@ -1,0 +1,12 @@
+{
+  "id": "f-20",
+  "courseId": "fingering",
+  "index": 20,
+  "title": "综合短文：进阶挑战",
+  "description": "大小写、数字、符号混合的综合练习，检验你的指法成果。",
+  "content": {
+    "kind": "text",
+    "text": "In 2026, typing is a basic skill; everyone can learn it.\nPractice 20 minutes a day, and your speed will grow.\nWell done! Keep going: 1, 2, 3... you can do it.\nEmail me at tom@example.com or call 010-12345678.",
+    "showKeyboard": true
+  }
+}

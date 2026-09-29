@@ -1,0 +1,12 @@
+{
+  "id": "f-01",
+  "courseId": "fingering",
+  "index": 1,
+  "title": "左手基准键 A S D F",
+  "description": "左手四指轻放基准键位：小指 A、无名指 S、中指 D、食指 F,击键后回到原位。",
+  "content": {
+    "kind": "text",
+    "text": "aaa sss ddd fff\nasdf asdf fdsa fdsa\nadsf sadf dfas fasd\naf sf df ad fs da sa fa",
+    "showKeyboard": true
+  }
+}

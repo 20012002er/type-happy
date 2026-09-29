@@ -1,0 +1,12 @@
+{
+  "id": "e-15",
+  "courseId": "english",
+  "index": 15,
+  "title": "挑战：双城记开篇",
+  "description": "狄更斯(1859),公版作品著名开篇，长文挑战。",
+  "content": {
+    "kind": "text",
+    "text": "It was the best of times, it was the worst of times, it was the age\nof wisdom, it was the age of foolishness, it was the epoch of belief,\nit was the epoch of incredulity, it was the season of Light, it was\nthe season of Darkness, it was the spring of hope, it was the winter\nof despair, we had everything before us, we had nothing before us.",
+    "showKeyboard": false
+  }
+}

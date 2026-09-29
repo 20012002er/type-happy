@@ -1,0 +1,12 @@
+{
+  "id": "f-07",
+  "courseId": "fingering",
+  "index": 7,
+  "title": "无名指区 W 与 O",
+  "description": "左手无名指击 W,右手无名指击 O,这是最容易弱化的两根手指。",
+  "content": {
+    "kind": "text",
+    "text": "sw lo ws ol swlo olws\nwo sow low owl how wow\nwood look soon fool show\nhowl slow who wool wall",
+    "showKeyboard": true
+  }
+}
