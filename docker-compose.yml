@@ -1,0 +1,28 @@
+name: type-happy
+
+services:
+  server:
+    build:
+      context: .
+      dockerfile: apps/server/Dockerfile
+    image: type-happy-server:latest
+    environment:
+      NODE_ENV: production
+      PORT: "3001"
+    restart: unless-stopped
+    # 3001 仅供 web(nginx)容器在内部网络反代,不发布到宿主机;
+    # 如需从宿主机直接访问 API,取消下面注释:
+    # ports:
+    #   - "3001:3001"
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    image: type-happy-web:latest
+    ports:
+      - "8080:80"
+    depends_on:
+      server:
+        condition: service_healthy
+    restart: unless-stopped

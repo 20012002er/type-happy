@@ -22,6 +22,29 @@ pnpm dev          # 同时启动后端(:3001)与前端(:5173),浏览器访问 ht
 | `pnpm format`                         | Prettier 格式化                                   |
 | `pnpm --filter @type-happy/web smoke` | 打字引擎冒烟测试(Node 内模拟浏览器事件)           |
 
+## Docker 部署
+
+一条命令启动生产环境(两个容器:nginx 托管前端 + Node 运行只读 API):
+
+```bash
+docker compose up -d --build
+```
+
+启动后访问 **http://localhost:8080**。`web` 容器内的 nginx 托管前端静态产物,并把 `/api` 与 `/health` 反向代理到 `server` 容器的 3001 端口;`server` 通过健康检查(`/health`)就绪后 `web` 才会启动。
+
+| 操作                     | 命令                        |
+| ------------------------ | --------------------------- |
+| 查看日志                 | `docker compose logs -f`    |
+| 停止并移除容器           | `docker compose down`       |
+| 重新构建镜像             | `docker compose build`      |
+
+说明:
+
+- 对外端口在 `docker-compose.yml` 的 `web.ports`(默认 `8080:80`)中修改;
+- `server` 的 3001 端口默认只在 compose 内部网络可达,需要从宿主机直连 API 时取消该服务 `ports` 的注释;
+- 两个 Dockerfile(`apps/server/Dockerfile`、`apps/web/Dockerfile`)均以**仓库根目录**为构建上下文的多阶段构建,单独构建示例:`docker build -f apps/server/Dockerfile .`;
+- nginx 反代地址写死为 compose 服务名 `server:3001`(`apps/web/nginx.conf`),改服务名需同步修改。
+
 ## 项目结构
 
 ```
@@ -33,13 +56,18 @@ type-happy/
 │   │   ├── src/data-loader.ts    # JSON 加载 + zod 校验(启动时全量读入内存)
 │   │   ├── src/routes/courses.ts # 课程/关卡路由
 │   │   ├── src/data/             # 课程内容 JSON(一课一文件)
-│   │   └── scripts/gen-content.mjs # 内容生成器
+│   │   ├── scripts/gen-content.mjs # 内容生成器
+│   │   └── Dockerfile            # 后端 API 生产镜像(Node 运行时,多阶段构建)
 │   └── web/                  # @type-happy/web:Vue 3 SPA
 │       ├── src/composables/      # useTypingEngine / useChineseEngine / useStats
 │       ├── src/components/       # 虚拟键盘、打字区、拼音打字区、统计、结算
 │       ├── src/stores/progress.ts# Pinia + localStorage 进度
 │       ├── src/utils/            # fingerMap / keyboardLayout / format
-│       └── src/views/            # Home / CourseList / CourseDetail / Practice
+│       ├── src/views/            # Home / CourseList / CourseDetail / Practice
+│       ├── nginx.conf            # 前端容器 nginx:SPA 回退 + /api 反代
+│       └── Dockerfile            # 前端镜像(vite 产物 + nginx)
+├── docker-compose.yml        # 一键启动 web(nginx,:8080)+ server(API,:3001)
+├── .dockerignore
 └── README.md
 ```
 
@@ -123,4 +151,4 @@ node apps/server/scripts/gen-content.mjs
 
 - 中文课需在系统拼音输入法下练习;输入法关闭时按手动拼音缓冲判定,体验降级但可用;
 - IME 候选窗位置跟随隐藏 input(位于当前汉字下方),个别输入法可能略有偏移;
-- 生产部署:`pnpm build` 后 `pnpm --filter @type-happy/server start`(内置只读 API,前端产物需另行静态托管或将 proxy 指回)。
+- 生产部署:推荐 `docker compose up -d --build` 一键启动(见上文「Docker 部署」);也可手动 `pnpm build` 后 `pnpm --filter @type-happy/server start`(内置只读 API,前端产物需另行静态托管或将 proxy 指回)。
