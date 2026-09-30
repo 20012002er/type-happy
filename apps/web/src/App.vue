@@ -35,6 +35,13 @@ import { RouterLink, RouterView } from 'vue-router'
           >
             全部课程
           </RouterLink>
+          <RouterLink
+            to="/games"
+            class="rounded-md px-3 py-1.5 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+            active-class="!text-indigo-600"
+          >
+            打字游戏
+          </RouterLink>
         </nav>
       </div>
     </header>

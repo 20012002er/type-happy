@@ -21,7 +21,7 @@ services:
       dockerfile: apps/web/Dockerfile
     image: type-happy-web:latest
     ports:
-      - "8080:80"
+      - "8088:80"
     depends_on:
       server:
         condition: service_healthy

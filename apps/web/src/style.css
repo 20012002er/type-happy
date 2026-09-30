@@ -34,3 +34,174 @@
 .kb-flash {
   animation: kb-flash 0.25s ease-out forwards;
 }
+
+/* ===== 打字小游戏动画 ===== */
+
+/* 气球被击中:爆裂放大淡出 */
+@keyframes game-pop {
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 1;
+  }
+  40% {
+    transform: translate(-50%, -50%) scale(1.35);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(1.7);
+    opacity: 0;
+  }
+}
+.game-pop {
+  animation: game-pop 0.34s ease-out forwards;
+}
+
+/* 爆裂冲击环 */
+@keyframes game-burst {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.1);
+    opacity: 0;
+  }
+}
+.game-burst {
+  animation: game-burst 0.5s ease-out forwards;
+}
+
+/* 得分数字上浮 */
+@keyframes game-float {
+  0% {
+    transform: translate(-50%, -50%) scale(0.8);
+    opacity: 0;
+  }
+  25% {
+    transform: translate(-50%, -70%) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -160%) scale(1);
+    opacity: 0;
+  }
+}
+.game-float {
+  animation: game-float 0.62s ease-out forwards;
+}
+
+/* 顶部漏掉红闪 */
+@keyframes game-miss-flash {
+  0% {
+    opacity: 0;
+  }
+  20% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.game-miss-flash {
+  animation: game-miss-flash 0.6s ease-out forwards;
+}
+
+/* 漏掉时画面轻微抖动 */
+@keyframes game-shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-6px);
+  }
+  40% {
+    transform: translateX(5px);
+  }
+  60% {
+    transform: translateX(-3px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+}
+.game-shake {
+  animation: game-shake 0.32s ease-in-out;
+}
+
+/* 鸭子翅膀扇动 */
+@keyframes duck-flap {
+  0%,
+  100% {
+    transform: rotate(-18deg);
+  }
+  50% {
+    transform: rotate(28deg);
+  }
+}
+.duck-flap {
+  transform-box: fill-box;
+  transform-origin: 78% 22%;
+  animation: duck-flap 0.28s ease-in-out infinite;
+}
+
+/* 鸭子被击中:旋转坠落淡出 */
+@keyframes duck-fall {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, 240%) rotate(360deg);
+    opacity: 0;
+  }
+}
+.duck-fall {
+  animation: duck-fall 0.46s ease-in forwards;
+}
+
+/* 猎枪枪口火光 */
+@keyframes muzzle-flash {
+  0% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  30% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+.muzzle-flash {
+  animation: muzzle-flash 0.22s ease-out forwards;
+}
+
+/* 草丛随风轻摆 */
+@keyframes grass-sway {
+  0%,
+  100% {
+    transform: skewX(-2deg);
+  }
+  50% {
+    transform: skewX(2deg);
+  }
+}
+.grass-sway {
+  animation: grass-sway 3.5s ease-in-out infinite;
+}
+
+/* 云朵缓慢飘动 */
+@keyframes cloud-drift {
+  0% {
+    transform: translateX(-10%);
+  }
+  100% {
+    transform: translateX(110%);
+  }
+}
+.cloud-drift {
+  animation: cloud-drift linear infinite;
+}
