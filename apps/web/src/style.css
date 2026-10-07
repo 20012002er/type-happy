@@ -205,3 +205,224 @@
 .cloud-drift {
   animation: cloud-drift linear infinite;
 }
+
+/* ===== 打字街霸动画 ===== */
+
+/* 待机呼吸浮动 */
+@keyframes fighter-breathe {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2.5px);
+  }
+}
+.fighter-breathe {
+  animation: fighter-breathe 1.7s ease-in-out infinite;
+}
+
+/* 波动拳:向前垫步 */
+@keyframes anim-lunge {
+  0% {
+    transform: translateX(0);
+  }
+  30% {
+    transform: translateX(16px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+.anim-lunge {
+  animation: anim-lunge 0.5s ease-out;
+}
+
+/* 升龙拳:跃起上冲再落地 */
+@keyframes anim-shoryu {
+  0% {
+    transform: translate(0, 0);
+  }
+  32% {
+    transform: translate(30px, -46px) rotate(-6deg);
+  }
+  58% {
+    transform: translate(20px, -30px) rotate(-3deg);
+  }
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+}
+.anim-shoryu {
+  animation: anim-shoryu 0.75s ease-out;
+}
+
+/* 龙卷旋风脚:前冲 + 720° 旋转 */
+@keyframes anim-tatsu {
+  0% {
+    transform: translateX(0) rotate(0deg);
+  }
+  50% {
+    transform: translateX(72px) rotate(360deg);
+  }
+  75% {
+    transform: translateX(54px) rotate(620deg);
+  }
+  100% {
+    transform: translateX(0) rotate(720deg);
+  }
+}
+.anim-tatsu {
+  animation: anim-tatsu 0.8s ease-in-out;
+}
+
+/* 气功弹:隆(左→右) */
+@keyframes proj-ryu {
+  0% {
+    left: 21%;
+    opacity: 0;
+    transform: translate(-50%, 50%) scale(0.4);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, 50%) scale(1);
+  }
+  86% {
+    opacity: 1;
+  }
+  100% {
+    left: 75%;
+    opacity: 0.15;
+    transform: translate(-50%, 50%) scale(1.3);
+  }
+}
+.proj-ryu {
+  animation: proj-ryu 0.45s linear forwards;
+}
+
+/* 气功弹:肯(右→左) */
+@keyframes proj-ken {
+  0% {
+    left: 79%;
+    opacity: 0;
+    transform: translate(-50%, 50%) scale(0.4);
+  }
+  14% {
+    opacity: 1;
+    transform: translate(-50%, 50%) scale(1);
+  }
+  86% {
+    opacity: 1;
+  }
+  100% {
+    left: 25%;
+    opacity: 0.15;
+    transform: translate(-50%, 50%) scale(1.3);
+  }
+}
+.proj-ken {
+  animation: proj-ken 0.45s linear forwards;
+}
+
+/* 受击红闪 */
+@keyframes hurt-flash {
+  0%,
+  100% {
+    filter: none;
+  }
+  25%,
+  65% {
+    filter: brightness(1.45) saturate(1.5) drop-shadow(0 0 7px rgba(244, 63, 94, 0.95));
+  }
+  45%,
+  85% {
+    filter: brightness(1.1) drop-shadow(0 0 4px rgba(244, 63, 94, 0.6));
+  }
+}
+.hurt-flash {
+  animation: hurt-flash 0.48s linear;
+}
+
+/* K.O. 倒地(以脚底为轴向后倒) */
+.fighter-stand {
+  transform: none;
+  transform-origin: 50% 100%;
+  transition: transform 0.3s ease;
+}
+.fighter-ko {
+  transform: rotate(-88deg) translateY(-4px);
+  transform-origin: 50% 100%;
+  transition: transform 0.7s ease-in;
+}
+
+/* ROUND/FIGHT/K.O. 横幅 */
+@keyframes fight-banner {
+  0% {
+    transform: scale(2.4);
+    opacity: 0;
+  }
+  18% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  75% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+}
+.fight-banner {
+  animation: fight-banner 0.95s ease-out forwards;
+}
+
+/* 招式名提示(斜体冲入后上浮消失) */
+@keyframes move-toast {
+  0% {
+    transform: translateY(12px) skewX(-8deg) scale(0.7);
+    opacity: 0;
+  }
+  18% {
+    transform: translateY(0) skewX(-8deg) scale(1.1);
+    opacity: 1;
+  }
+  28% {
+    transform: skewX(-8deg) scale(1);
+  }
+  75% {
+    opacity: 1;
+  }
+  100% {
+    transform: skewX(-8deg) translateY(-16px);
+    opacity: 0;
+  }
+}
+.move-toast {
+  animation: move-toast 1.05s ease-out forwards;
+}
+
+/* 血条掉血拖尾(白色残影延迟收缩) */
+.hp-ghost {
+  background: rgba(255, 255, 255, 0.85);
+  transition: width 0.55s ease 0.2s;
+}
+
+/* 樱花花瓣飘落 */
+@keyframes petal-fall {
+  0% {
+    transform: translate(0, -10px) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-70px, 340px) rotate(230deg);
+    opacity: 0;
+  }
+}
+.petal-fall {
+  animation: petal-fall 7.5s linear infinite;
+}

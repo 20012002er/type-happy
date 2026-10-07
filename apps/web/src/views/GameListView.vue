@@ -31,6 +31,14 @@ const list: GameMeta[] = [
     gradient: 'from-lime-400 to-emerald-500',
     badge: '🦆',
   },
+  {
+    id: 'fighter',
+    title: '打字街霸',
+    desc: '隆 VS 肯!限时打出随机英文单词即可出招:短词波动拳、中词龙卷旋风脚、长词升龙拳;打错或超时会被反击。先打空对方血量获胜!',
+    to: '/games/fighter',
+    gradient: 'from-orange-400 to-rose-500',
+    badge: '🥋',
+  },
 ]
 
 const records = computed(() => list.map((g) => ({ ...g, best: games.bestOf(g.id) })))

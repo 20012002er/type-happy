@@ -47,6 +47,12 @@ const router = createRouter({
       component: () => import('../views/DuckGameView.vue'),
       meta: { title: '打字打鸭子' },
     },
+    {
+      path: '/games/fighter',
+      name: 'game-fighter',
+      component: () => import('../views/FighterGameView.vue'),
+      meta: { title: '打字街霸' },
+    },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
   scrollBehavior: () => ({ top: 0 }),
