@@ -54,9 +54,9 @@ export const MOVE_LABEL: Record<Move, { zh: string; en: string }> = {
 }
 
 /** 难度档 → 玩家招式 */
-const PLAYER_MOVES: Move[] = ['hadouken', 'tatsumaki', 'shoryuken']
+export const PLAYER_MOVES: Move[] = ['hadouken', 'tatsumaki', 'shoryuken']
 /** 招式基础伤害:单词越长越难,伤害越高 */
-const PLAYER_DMG: Record<Move, number> = { hadouken: 8, tatsumaki: 12, shoryuken: 16 }
+export const PLAYER_DMG: Record<Move, number> = { hadouken: 8, tatsumaki: 12, shoryuken: 16 }
 /** 肯反击伤害(按单词难度档) */
 const KEN_DMG = [7, 9, 11]
 /** 连击加成上限 */
@@ -150,7 +150,7 @@ export function useFightGame(opts: FightGameOptions = {}) {
     phase.value = 'ko'
     koWinner.value = winner
     showBanner('K.O.')
-    addTimer(2100, gameOver)
+    addTimer(2600, gameOver)
   }
 
   function gameOver(): void {
@@ -172,8 +172,8 @@ export function useFightGame(opts: FightGameOptions = {}) {
   function launchAttack(by: FighterID, move: Move, dmg: number, success: boolean): void {
     phase.value = 'attack'
     attack.value = { id: ++seq, by, move, dmg, word: word.value, success }
-    // 出招到命中的间隔(波动拳有飞行时间)
-    const hitDelay = move === 'hadouken' ? 430 : move === 'shoryuken' ? 360 : 470
+    // 出招到命中的间隔(与动画前摇/气功弹飞行时间对齐)
+    const hitDelay = move === 'hadouken' ? 470 : move === 'shoryuken' ? 420 : 540
     addTimer(hitDelay, () => {
       if (by === 'ryu') {
         hpKen.value = Math.max(0, hpKen.value - dmg)
@@ -185,7 +185,7 @@ export function useFightGame(opts: FightGameOptions = {}) {
       hurt.value = { id: ++seq, who: by === 'ryu' ? 'ken' : 'ryu', dmg }
       const winner: FighterID | null = hpKen.value <= 0 ? 'ryu' : hpRyu.value <= 0 ? 'ken' : null
       if (winner) addTimer(550, () => koSequence(winner))
-      else addTimer(700, () => nextWord())
+      else addTimer(780, () => nextWord())
     })
   }
 

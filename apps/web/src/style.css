@@ -206,122 +206,253 @@
   animation: cloud-drift linear infinite;
 }
 
-/* ===== 打字街霸动画 ===== */
+/* ===== 打字街霸动画 v2 =====
+   全部只用 transform/opacity(GPU 合成),位移距离以 --u(竞技场宽度的 1%)为单位,
+   随容器尺寸等比缩放,保证不同窗口大小下动作比例一致、动画流畅。 */
 
 /* 待机呼吸浮动 */
-@keyframes fighter-breathe {
+@keyframes fig-breathe {
   0%,
   100% {
     transform: translateY(0);
   }
   50% {
-    transform: translateY(-2.5px);
+    transform: translateY(-3px);
   }
 }
-.fighter-breathe {
-  animation: fighter-breathe 1.7s ease-in-out infinite;
+.fig-breathe {
+  animation: fig-breathe 1.8s ease-in-out infinite;
+  will-change: transform;
 }
 
-/* 波动拳:向前垫步 */
-@keyframes anim-lunge {
+/* 波动拳:后引蓄力 → 弓步前推 → 收回 */
+@keyframes atk-hadouken {
   0% {
     transform: translateX(0);
   }
-  30% {
-    transform: translateX(16px);
+  16% {
+    transform: translateX(calc(var(--u, 7px) * -1.2));
+  }
+  42% {
+    transform: translateX(calc(var(--u, 7px) * 2.6));
+  }
+  64% {
+    transform: translateX(calc(var(--u, 7px) * 2.2));
   }
   100% {
     transform: translateX(0);
   }
 }
-.anim-lunge {
-  animation: anim-lunge 0.5s ease-out;
+.atk-hadouken {
+  animation: atk-hadouken 0.62s cubic-bezier(0.25, 0.8, 0.35, 1);
+  will-change: transform;
 }
 
-/* 升龙拳:跃起上冲再落地 */
-@keyframes anim-shoryu {
+/* 升龙拳:下蹲蓄力 → 斜上跃起 → 悬停 → 快速落地 → 缓冲 */
+@keyframes atk-shoryu {
   0% {
-    transform: translate(0, 0);
+    transform: translate(0, 0) scaleY(1);
   }
-  32% {
-    transform: translate(30px, -46px) rotate(-6deg);
+  12% {
+    transform: translate(calc(var(--u, 7px) * -0.8), calc(var(--u, 7px) * 0.8)) scaleY(0.93);
   }
-  58% {
-    transform: translate(20px, -30px) rotate(-3deg);
+  38% {
+    transform: translate(calc(var(--u, 7px) * 4), calc(var(--u, 7px) * -10)) rotate(-9deg);
+  }
+  52% {
+    transform: translate(calc(var(--u, 7px) * 4.8), calc(var(--u, 7px) * -10.6)) rotate(-5deg);
+  }
+  76% {
+    transform: translate(calc(var(--u, 7px) * 1.8), calc(var(--u, 7px) * -0.4)) rotate(0deg);
+  }
+  88% {
+    transform: translate(calc(var(--u, 7px) * 1), calc(var(--u, 7px) * 0.3)) scaleY(0.95);
   }
   100% {
-    transform: translate(0, 0) rotate(0deg);
+    transform: translate(0, 0) scaleY(1);
   }
 }
-.anim-shoryu {
-  animation: anim-shoryu 0.75s ease-out;
+.atk-shoryu {
+  animation: atk-shoryu 0.95s cubic-bezier(0.3, 0.65, 0.35, 1);
+  transform-origin: 50% 100%;
+  will-change: transform;
 }
 
-/* 龙卷旋风脚:前冲 + 720° 旋转 */
-@keyframes anim-tatsu {
+/* 龙卷旋风脚:回旋前冲 720° */
+@keyframes atk-tatsu {
   0% {
     transform: translateX(0) rotate(0deg);
   }
-  50% {
-    transform: translateX(72px) rotate(360deg);
+  12% {
+    transform: translateX(calc(var(--u, 7px) * -1)) rotate(-30deg);
   }
-  75% {
-    transform: translateX(54px) rotate(620deg);
+  48% {
+    transform: translateX(calc(var(--u, 7px) * 7.5)) rotate(360deg);
+  }
+  72% {
+    transform: translateX(calc(var(--u, 7px) * 6)) rotate(600deg);
   }
   100% {
     transform: translateX(0) rotate(720deg);
   }
 }
-.anim-tatsu {
-  animation: anim-tatsu 0.8s ease-in-out;
+.atk-tatsu {
+  animation: atk-tatsu 0.92s ease-in-out;
+  will-change: transform;
 }
 
-/* 气功弹:隆(左→右) */
-@keyframes proj-ryu {
+/* 旋风脚残影(延迟跟随的半透明副本) */
+.tatsu-after {
+  position: absolute;
+  inset: 0;
+  animation: atk-tatsu 0.92s ease-in-out both;
+  filter: blur(1px) saturate(1.6) brightness(1.15);
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* 气功弹飞行:纯 transform,距离由 --fly-dist 注入 */
+@keyframes proj-fly {
   0% {
-    left: 21%;
+    transform: translate(-50%, -50%) scale(0.2);
     opacity: 0;
-    transform: translate(-50%, 50%) scale(0.4);
   }
-  14% {
+  10% {
+    transform: translate(-50%, -50%) scale(1);
     opacity: 1;
-    transform: translate(-50%, 50%) scale(1);
   }
-  86% {
+  50% {
+    transform: translate(calc(-50% + var(--fly-dist) * 0.52), calc(-50% - var(--u, 7px) * 0.5))
+      scale(1.06);
+  }
+  88% {
     opacity: 1;
   }
   100% {
-    left: 75%;
+    transform: translate(calc(-50% + var(--fly-dist)), -50%) scale(1.22);
     opacity: 0.15;
-    transform: translate(-50%, 50%) scale(1.3);
   }
 }
-.proj-ryu {
-  animation: proj-ryu 0.45s linear forwards;
+.proj-fly {
+  animation: proj-fly 0.47s linear forwards;
+  will-change: transform, opacity;
 }
 
-/* 气功弹:肯(右→左) */
-@keyframes proj-ken {
+/* 气功弹核心脉动 */
+@keyframes proj-core {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.16);
+  }
+}
+.proj-core {
+  animation: proj-core 0.14s ease-in-out infinite;
+}
+
+/* 命中星芒火花 */
+@keyframes imp-spark {
   0% {
-    left: 79%;
+    transform: translate(-50%, -50%) scale(0.2) rotate(0deg);
     opacity: 0;
-    transform: translate(-50%, 50%) scale(0.4);
   }
-  14% {
-    opacity: 1;
-    transform: translate(-50%, 50%) scale(1);
-  }
-  86% {
+  18% {
+    transform: translate(-50%, -50%) scale(1.15) rotate(14deg);
     opacity: 1;
   }
   100% {
-    left: 25%;
-    opacity: 0.15;
-    transform: translate(-50%, 50%) scale(1.3);
+    transform: translate(-50%, -50%) scale(1.5) rotate(26deg);
+    opacity: 0;
   }
 }
-.proj-ken {
-  animation: proj-ken 0.45s linear forwards;
+.imp-spark {
+  animation: imp-spark 0.38s ease-out forwards;
+}
+
+/* 命中冲击环 */
+@keyframes imp-ring {
+  0% {
+    transform: translate(-50%, -50%) scale(0.25);
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.3);
+    opacity: 0;
+  }
+}
+.imp-ring {
+  animation: imp-ring 0.45s ease-out forwards;
+}
+
+/* 命中飞散粒子 */
+@keyframes spark-p {
+  0% {
+    transform: translate(-50%, -50%) translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(var(--dx), var(--dy)) scale(0.2);
+    opacity: 0;
+  }
+}
+.spark-p {
+  animation: spark-p 0.42s ease-out forwards;
+}
+
+/* 伤害数字弹出上浮 */
+@keyframes dmg-pop {
+  0% {
+    transform: translate(-50%, -50%) scale(0.3);
+    opacity: 0;
+  }
+  16% {
+    transform: translate(-50%, -62%) scale(1.3);
+    opacity: 1;
+  }
+  30% {
+    transform: translate(-50%, -64%) scale(1);
+  }
+  70% {
+    transform: translate(-50%, -84%);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -135%);
+    opacity: 0;
+  }
+}
+.dmg-pop {
+  animation: dmg-pop 0.85s ease-out forwards;
+}
+
+/* 蹬地/落地烟尘 */
+@keyframes dust-puff {
+  0% {
+    transform: translate(-50%, 0) scale(0.4);
+    opacity: 0.75;
+  }
+  100% {
+    transform: translate(calc(-50% + var(--dx)), var(--dy)) scale(1.8);
+    opacity: 0;
+  }
+}
+.dust-puff {
+  animation: dust-puff 0.55s ease-out forwards;
+}
+
+/* 命中顿帧白闪 */
+@keyframes hitstop {
+  0% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+.hitstop {
+  animation: hitstop 0.11s ease-out forwards;
 }
 
 /* 受击红闪 */
@@ -343,39 +474,233 @@
   animation: hurt-flash 0.48s linear;
 }
 
-/* K.O. 倒地(以脚底为轴向后倒) */
-.fighter-stand {
-  transform: none;
-  transform-origin: 50% 100%;
-  transition: transform 0.3s ease;
+/* 轻/重震屏 */
+@keyframes shake-soft {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(-4px, 1px);
+  }
+  50% {
+    transform: translate(3px, -1px);
+  }
+  75% {
+    transform: translate(-2px, 0);
+  }
 }
-.fighter-ko {
-  transform: rotate(-88deg) translateY(-4px);
-  transform-origin: 50% 100%;
-  transition: transform 0.7s ease-in;
+.shake-soft {
+  animation: shake-soft 0.26s ease-in-out;
+}
+@keyframes shake-hard {
+  0%,
+  100% {
+    transform: translate(0, 0) rotate(0deg);
+  }
+  15% {
+    transform: translate(-8px, 2px) rotate(-0.5deg);
+  }
+  30% {
+    transform: translate(7px, -2px) rotate(0.5deg);
+  }
+  45% {
+    transform: translate(-6px, 1px) rotate(0deg);
+  }
+  60% {
+    transform: translate(5px, -1px);
+  }
+  80% {
+    transform: translate(-3px, 0);
+  }
+}
+.shake-hard {
+  animation: shake-hard 0.4s ease-in-out;
 }
 
-/* ROUND/FIGHT/K.O. 横幅 */
-@keyframes fight-banner {
+/* K.O. 击飞倒地(以脚底为轴,负方向=远离对手;镜像侧自动反向) */
+@keyframes ko-fly {
   0% {
-    transform: scale(2.4);
+    transform: translate(0, 0) rotate(0deg);
+  }
+  14% {
+    transform: translate(calc(var(--u, 7px) * -1.4), 0) rotate(-6deg);
+  }
+  44% {
+    transform: translate(calc(var(--u, 7px) * -4), calc(var(--u, 7px) * -3.4)) rotate(-30deg);
+  }
+  70% {
+    transform: translate(calc(var(--u, 7px) * -6), calc(var(--u, 7px) * -0.6)) rotate(-62deg);
+  }
+  86% {
+    transform: translate(calc(var(--u, 7px) * -6.8), 0) rotate(-84deg);
+  }
+  93% {
+    transform: translate(calc(var(--u, 7px) * -7), calc(var(--u, 7px) * -0.5)) rotate(-93deg);
+  }
+  100% {
+    transform: translate(calc(var(--u, 7px) * -7), 0) rotate(-90deg);
+  }
+}
+.ko-fly {
+  animation: ko-fly 0.95s cubic-bezier(0.25, 0.6, 0.4, 1) forwards;
+  transform-origin: 50% 100%;
+  will-change: transform;
+}
+
+/* 胜者庆祝小跳 */
+@keyframes win-bounce {
+  0%,
+  100% {
+    transform: translateY(0) scaleY(1);
+  }
+  22% {
+    transform: translateY(calc(var(--u, 7px) * -2.2)) scaleY(1.03);
+  }
+  44% {
+    transform: translateY(0) scaleY(0.96);
+  }
+  64% {
+    transform: translateY(calc(var(--u, 7px) * -1.2)) scaleY(1.01);
+  }
+  84% {
+    transform: translateY(0) scaleY(1);
+  }
+}
+.win-bounce {
+  animation: win-bounce 0.95s ease-out;
+  transform-origin: 50% 100%;
+}
+
+/* 跳跃时影子收缩 */
+@keyframes shadow-jump {
+  0%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.45;
+  }
+  45% {
+    transform: scaleX(0.55);
+    opacity: 0.2;
+  }
+}
+.shadow-jump {
+  animation: shadow-jump 0.95s ease-out;
+}
+
+/* ROUND 横幅 */
+@keyframes banner-round {
+  0% {
+    transform: scale(1.8);
     opacity: 0;
   }
-  18% {
+  15% {
     transform: scale(1);
     opacity: 1;
   }
-  75% {
-    transform: scale(1);
+  80% {
     opacity: 1;
   }
   100% {
-    transform: scale(0.85);
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+.banner-round {
+  animation: banner-round 1.05s ease-out forwards;
+}
+
+/* FIGHT! 横幅:重拳砸入 */
+@keyframes banner-fight {
+  0% {
+    transform: scale(3.4) rotate(-6deg);
+    opacity: 0;
+  }
+  12% {
+    transform: scale(0.92) rotate(-3deg);
+    opacity: 1;
+  }
+  20% {
+    transform: scale(1.06) rotate(-3deg);
+  }
+  28% {
+    transform: scale(1) rotate(-3deg);
+  }
+  78% {
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.15) rotate(-3deg);
     opacity: 0;
   }
 }
-.fight-banner {
-  animation: fight-banner 0.95s ease-out forwards;
+.banner-fight {
+  animation: banner-fight 0.85s cubic-bezier(0.2, 0.9, 0.3, 1) forwards;
+}
+
+/* K.O. 横幅:长时间停留 + 高亮闪现 */
+@keyframes banner-ko {
+  0% {
+    transform: scale(5);
+    opacity: 0;
+    filter: brightness(3);
+  }
+  6% {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+  10% {
+    transform: scale(1.08);
+    filter: brightness(1.6);
+  }
+  14% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  88% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+.banner-ko {
+  animation: banner-ko 2.3s ease-out forwards;
+}
+
+/* 横幅背后的旋转星芒 */
+@keyframes burst-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.burst-spin {
+  animation: burst-spin 9s linear infinite;
+  mask-image: radial-gradient(circle, #000 30%, transparent 72%);
+  -webkit-mask-image: radial-gradient(circle, #000 30%, transparent 72%);
+}
+
+/* 连击弹出 */
+@keyframes combo-pop {
+  0% {
+    transform: scale(0.4) skewX(-10deg);
+    opacity: 0;
+  }
+  22% {
+    transform: scale(1.18) skewX(-10deg);
+    opacity: 1;
+  }
+  35% {
+    transform: scale(1) skewX(-10deg);
+  }
+  100% {
+    transform: scale(1) skewX(-10deg);
+    opacity: 0.95;
+  }
+}
+.combo-pop {
+  animation: combo-pop 0.4s ease-out;
 }
 
 /* 招式名提示(斜体冲入后上浮消失) */
@@ -400,13 +725,174 @@
   }
 }
 .move-toast {
-  animation: move-toast 1.05s ease-out forwards;
+  animation: move-toast 1.15s ease-out forwards;
+}
+
+/* 升龙拳火焰轨迹 */
+@keyframes flame-rise {
+  0% {
+    transform: translateY(24%) scale(0.45);
+    opacity: 0;
+  }
+  18% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translateY(-95%) scale(1.15);
+    opacity: 0;
+  }
+}
+.flame {
+  position: absolute;
+  bottom: 0;
+  border-radius: 50% 50% 46% 54% / 62% 60% 40% 38%;
+  background: radial-gradient(
+    circle at 50% 72%,
+    #fff7cc 0%,
+    #ffd166 30%,
+    #fb923c 55%,
+    #ef4444 78%,
+    rgba(239, 68, 68, 0) 100%
+  );
+  filter: blur(0.5px);
+  animation: flame-rise 0.62s ease-out infinite;
+  will-change: transform, opacity;
+}
+.flame.f1 {
+  left: 6%;
+  width: 38%;
+  height: 62%;
+}
+.flame.f2 {
+  left: 34%;
+  width: 46%;
+  height: 92%;
+  animation-delay: 0.14s;
+}
+.flame.f3 {
+  left: 66%;
+  width: 34%;
+  height: 56%;
+  animation-delay: 0.3s;
 }
 
 /* 血条掉血拖尾(白色残影延迟收缩) */
 .hp-ghost {
   background: rgba(255, 255, 255, 0.85);
-  transition: width 0.55s ease 0.2s;
+  transition: width 0.5s ease 0.15s;
+}
+
+/* 低血量红闪 */
+@keyframes hp-danger {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+.hp-danger {
+  animation: hp-danger 0.7s ease-in-out infinite;
+}
+
+/* 单词字母打对:弹一下 */
+@keyframes chip-pop {
+  0% {
+    transform: scale(1.28);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+.chip-ok {
+  animation: chip-pop 0.18s ease-out;
+}
+
+/* 当前待打字母:琥珀色呼吸描边 */
+@keyframes caret-ring {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 2px rgba(251, 191, 36, 0.9),
+      0 0 12px rgba(251, 191, 36, 0.55);
+  }
+  50% {
+    box-shadow:
+      0 0 0 2px rgba(251, 191, 36, 0.5),
+      0 0 4px rgba(251, 191, 36, 0.2);
+  }
+}
+.chip-cur {
+  animation: caret-ring 1s ease-in-out infinite;
+}
+
+/* 舞台氛围:灯笼摇摆 / 观众起伏 / 星星闪烁 / 飞鸟掠过 / 太阳光晕 */
+@keyframes lantern-sway {
+  0%,
+  100% {
+    transform: rotate(-3.5deg);
+  }
+  50% {
+    transform: rotate(3.5deg);
+  }
+}
+.lantern-sway {
+  animation: lantern-sway 3.4s ease-in-out infinite;
+  transform-origin: 50% 0;
+}
+
+@keyframes crowd-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-3px);
+  }
+}
+.crowd-bob {
+  animation: crowd-bob 1.9s ease-in-out infinite;
+}
+
+@keyframes star-twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 0.95;
+  }
+}
+.star-twinkle {
+  animation: star-twinkle 2.6s ease-in-out infinite;
+}
+
+@keyframes bird-fly {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-115vw);
+  }
+}
+.bird-fly {
+  animation: bird-fly 18s linear infinite;
+}
+
+@keyframes sun-glow {
+  0%,
+  100% {
+    opacity: 0.8;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.045);
+  }
+}
+.sun-glow {
+  animation: sun-glow 5s ease-in-out infinite;
 }
 
 /* 樱花花瓣飘落 */
