@@ -53,6 +53,12 @@ const router = createRouter({
       component: () => import('../views/FighterGameView.vue'),
       meta: { title: '打字街霸' },
     },
+    {
+      path: '/games/idle',
+      name: 'game-idle',
+      component: () => import('../views/IdleGameView.vue'),
+      meta: { title: '放置刷装备' },
+    },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
   scrollBehavior: () => ({ top: 0 }),

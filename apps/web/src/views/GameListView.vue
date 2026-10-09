@@ -39,6 +39,14 @@ const list: GameMeta[] = [
     gradient: 'from-orange-400 to-rose-500',
     badge: '🥋',
   },
+  {
+    id: 'idle',
+    title: '放置刷装备',
+    desc: '全随机的放置类刷装备小游戏:挂机打怪、掉落随机词条装备、强化升级,看看你能刷出什么样的极品!(开源游戏 vue-idle-game)',
+    to: '/games/idle',
+    gradient: 'from-violet-400 to-fuchsia-500',
+    badge: '⚔️',
+  },
 ]
 
 const records = computed(() => list.map((g) => ({ ...g, best: games.bestOf(g.id) })))

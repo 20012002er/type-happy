@@ -1,6 +1,6 @@
 # 打字乐园(type-happy)
 
-一个纯打字练习网站:三大课程(**标准指法练习 / 英文练习 / 中文练习**),SVG 虚拟键盘指法引导,中文 IME 拼音逐音节判分,成绩保存在浏览器本地。无账号、无排行榜、无数据库。
+一个纯打字练习网站:三大课程(**标准指法练习 / 英文练习 / 中文练习**),SVG 虚拟键盘指法引导,中文 IME 拼音逐音节判分;另含**打字游戏模块**(消气球 / 打鸭子 / 街霸 / 放置刷装备)。成绩与游戏进度均保存在浏览器本地。无账号、无排行榜、无数据库。
 
 ## 快速开始
 
@@ -30,7 +30,7 @@ pnpm dev          # 同时启动后端(:3001)与前端(:5173),浏览器访问 ht
 docker compose up -d --build
 ```
 
-启动后访问 **http://localhost:8080**。`web` 容器内的 nginx 托管前端静态产物,并把 `/api` 与 `/health` 反向代理到 `server` 容器的 3001 端口;`server` 通过健康检查(`/health`)就绪后 `web` 才会启动。
+启动后访问 **http://localhost:8088**。`web` 容器内的 nginx 托管前端静态产物,并把 `/api` 与 `/health` 反向代理到 `server` 容器的 3001 端口;`server` 通过健康检查(`/health`)就绪后 `web` 才会启动。
 
 | 操作                     | 命令                        |
 | ------------------------ | --------------------------- |
@@ -40,7 +40,7 @@ docker compose up -d --build
 
 说明:
 
-- 对外端口在 `docker-compose.yml` 的 `web.ports`(默认 `8080:80`)中修改;
+- 对外端口在 `docker-compose.yml` 的 `web.ports`(默认 `8088:80`)中修改;
 - `server` 的 3001 端口默认只在 compose 内部网络可达,需要从宿主机直连 API 时取消该服务 `ports` 的注释;
 - 两个 Dockerfile(`apps/server/Dockerfile`、`apps/web/Dockerfile`)均以**仓库根目录**为构建上下文的多阶段构建,单独构建示例:`docker build -f apps/server/Dockerfile .`;
 - nginx 反代地址写死为 compose 服务名 `server:3001`(`apps/web/nginx.conf`),改服务名需同步修改。
@@ -59,14 +59,17 @@ type-happy/
 │   │   ├── scripts/gen-content.mjs # 内容生成器
 │   │   └── Dockerfile            # 后端 API 生产镜像(Node 运行时,多阶段构建)
 │   └── web/                  # @type-happy/web:Vue 3 SPA
-│       ├── src/composables/      # useTypingEngine / useChineseEngine / useStats
+│       ├── src/composables/      # useTypingEngine / useChineseEngine / useKeyGame / useFightGame / useStats
 │       ├── src/components/       # 虚拟键盘、打字区、拼音打字区、统计、结算
-│       ├── src/stores/progress.ts# Pinia + localStorage 进度
+│       │   └── games/            # 小游戏组件(BalloonGame / DuckGame / FighterGame 及 HUD、Overlay)
+│       ├── src/stores/           # progress.ts(练习进度)+ games.ts(游戏最高分),均为 Pinia + localStorage
 │       ├── src/utils/            # fingerMap / keyboardLayout / format
-│       ├── src/views/            # Home / CourseList / CourseDetail / Practice
+│       ├── src/views/            # Home / CourseList / CourseDetail / Practice / GameList + 各游戏页
+│       ├── games/vue-idle-game/  # 放置刷装备源码(vendored,Vue 2 独立构建,见「游戏模块」)
+│       ├── public/games/idle/    # vue-idle-game 构建产物,由 vite 原样托管在 /games/idle/
 │       ├── nginx.conf            # 前端容器 nginx:SPA 回退 + /api 反代
 │       └── Dockerfile            # 前端镜像(vite 产物 + nginx)
-├── docker-compose.yml        # 一键启动 web(nginx,:8080)+ server(API,:3001)
+├── docker-compose.yml        # 一键启动 web(nginx,:8088)+ server(API,:3001)
 ├── .dockerignore
 └── README.md
 ```
@@ -110,6 +113,33 @@ courseId:`fingering` / `english` / `chinese`。非法 id 返回 404。
 - 每关记录 `{ best, attempts, history(≤20) }`;最佳按 WPM(同分比准确率);
 - 关卡**线性解锁**:完成第 N 关解锁第 N+1 关;
 - 练习中途离开页面不保存本次成绩;localStorage 损坏时自动重置损坏条目。
+
+## 游戏模块
+
+入口 `/games`,四个小游戏,成绩均只保存在本机浏览器:
+
+| 游戏 | 路由 | 实现 |
+| ---- | ---- | ---- |
+| 🎈 打字消气球 | `/games/balloon` | 原生 Vue 3 组件(`useKeyGame` 共享引擎) |
+| 🦆 打字打鸭子 | `/games/duck` | 同上 |
+| 🥋 打字街霸 | `/games/fighter` | 原生 Vue 3 组件(`useFightGame`,限时打单词出招) |
+| ⚔️ 放置刷装备 | `/games/idle` | vendored 开源游戏 [vue-idle-game](https://github.com/Couy69/vue-idle-game)(MIT),iframe 嵌入 |
+
+打字类游戏的最高分/连击/局数记录在 localStorage key `type-happy:games:v1`(`stores/games.ts`)。
+
+### 放置刷装备(vue-idle-game)
+
+- 源码位于 `apps/web/games/vue-idle-game/`(Vue 2 + vue-cli 独立子项目,**不在** pnpm workspace 与 ESLint/tsconfig 范围内,自带 `node_modules` 与 npm 脚本);
+- 已做本地化改造:移除云端接口(couy.xyz 建议提交/拉取)与百度统计,**无任何外部请求**,存档仅用浏览器 localStorage(游戏内支持导出/导入存档文本);
+- 构建产物提交在 `apps/web/public/games/idle/`,由 vite 作为静态资源托管在 `/games/idle/`,主站页面 `IdleGameView.vue` 以 iframe 嵌入;
+- 修改源码后重新构建并同步产物:
+
+```bash
+cd apps/web/games/vue-idle-game
+npm install --legacy-peer-deps   # 首次
+npm run build                    # 内置 --openssl-legacy-provider,兼容新版 Node
+rsync -a --delete dist/ ../../public/games/idle/
+```
 
 ## 内容扩充指南
 
