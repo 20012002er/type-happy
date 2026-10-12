@@ -8,13 +8,10 @@ const FILES: Record<string, string> = {
   springshoes: 'springshoes.ogg',
   jetpack: 'jetpack1.ogg',
   propeller: 'propeller1.ogg',
-  rocket: 'rocket.ogg',
   ufo: 'ufo.ogg',
-  monsterNear: 'monsterblizu.ogg',
   monsterCrash: 'monstercrash.ogg',
   shoot: 'pucanje.ogg',
   collect: 'collect.ogg',
-  win: 'win.ogg',
   start: 'start.ogg',
 }
 

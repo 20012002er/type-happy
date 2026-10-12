@@ -213,7 +213,7 @@ if (mode === 'detect') {
     meta: {
       app: 'doodle-atlas',
       version: '1.0',
-      image: src.split('/').pop(),
+      image: '../img/' + src.split('/').pop(),
       format: 'RGBA8888',
       size: { w: img.width, h: img.height },
       scale: '1',

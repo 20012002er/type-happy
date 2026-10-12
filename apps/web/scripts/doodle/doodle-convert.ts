@@ -67,8 +67,6 @@ const simple = [
   'achs_strings.plist',
   'mission_strings.plist',
   'tutorial_strings.plist',
-  'store_strings.plist',
-  'message_strings.plist',
   'missions_data/game_missions.plist',
 ]
 for (const f of simple) {

@@ -18,7 +18,6 @@ export const SCORE_PER_PX = 0.1
 
 export const JETPACK_TIME = 3.2
 export const PROPELLER_TIME = 4.0
-export const SHIELD_FLASH = 0.6
 
 export type PlatformKind = 'static' | 'moving' | 'vanish' | 'breakable'
 export type MonsterKind = 'walker' | 'flyer' | 'oneeye' | 'chomp'
@@ -39,16 +38,9 @@ export interface GameEvent {
     | 'use-powerup'
     | 'use-bonus'
     | 'propeller-kill'
-    | 'score'
-    | 'death'
-    | 'jump'
-    | 'static-jump'
-    | 'moving-jump'
-    | 'shoot'
   monster?: MonsterKind
   platform?: PlatformKind
   powerup?: PowerupKind | 'trampoline' | 'spring'
   cause?: DeathCause
-  score?: number
   moving?: boolean
 }

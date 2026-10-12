@@ -5,6 +5,7 @@ import { emptyThemeStats, type DoodleSave } from './save'
 export interface MissionDef {
   id: string
   type: string
+  descriptions: string
   data: Record<string, unknown>
 }
 
@@ -32,18 +33,53 @@ const ITEM_MAP: Record<string, string> = {
   'Any.Trampoline': 'trampoline',
 }
 
+const SPAWNABLE_MONSTER = /^(Any|Original)\./
+
+function resolveEvent(name: string): GameEvent['type'] | undefined {
+  const suffix = name.includes('.') ? (name.split('.').pop() as string) : name
+  return EVENT_MAP[suffix]
+}
+
+function monstersSpawnable(m: MissionDef): boolean {
+  const raw = m.data['monster-id']
+  if (raw === undefined || String(raw).trim() === '' || String(raw).trim() === 'Any.Any') return true
+  return String(raw)
+    .split(',')
+    .every((id) => SPAWNABLE_MONSTER.test(id.trim()))
+}
+
+export function missionRequired(m: MissionDef): number {
+  const d = m.data
+  const v =
+    d['required-actions'] ??
+    d['required-use'] ??
+    d['required-completions'] ??
+    d['required-collection'] ??
+    d['required-score']
+  return typeof v === 'number' ? v : 1
+}
+
 function missionApplicable(m: MissionDef): boolean {
   const d = m.data
   if (m.type === 'get-score') return true
   if (m.type === 'monster-action' || m.type === 'custom-action') {
-    const events = String(d['allowed-events'] ?? '').split(',')
-    return events.every((e) => EVENT_MAP[e.trim()] !== undefined) && events.length > 0
+    const events = String(d['allowed-events'] ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+    return events.length > 0 && events.every((e) => resolveEvent(e) !== undefined) && monstersSpawnable(m)
   }
   if (m.type === 'use-powerup' || m.type === 'use-bonus') {
     const items = String(d['item-id'] ?? '').split(',')
     return items.some((i) => ITEM_MAP[i.trim()] !== undefined)
   }
-  if (m.type === 'platform-action') return String(d['allowed-events'] ?? '') === 'BouncePlatform'
+  if (m.type === 'platform-action') {
+    const events = String(d['allowed-events'] ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean)
+    return events.length > 0 && events.every((e) => resolveEvent(e) === 'bounce-platform')
+  }
   return false
 }
 
@@ -51,21 +87,18 @@ function missionTarget(m: MissionDef): string | null {
   const d = m.data
   if (m.type === 'monster-action' || m.type === 'custom-action') {
     const ev = String(d['allowed-events'] ?? '').split(',')[0]?.trim()
-    return ev ? (EVENT_MAP[ev] ?? null) : null
+    return ev ? (resolveEvent(ev) ?? null) : null
   }
   if (m.type === 'use-powerup' || m.type === 'use-bonus') {
-    const item = String(d['item-id'] ?? '').split(',').map((s) => s.trim()).find((i) => ITEM_MAP[i])
+    const item = String(d['item-id'] ?? '')
+      .split(',')
+      .map((s) => s.trim())
+      .find((i) => ITEM_MAP[i])
     return item ? ITEM_MAP[item] : null
   }
   if (m.type === 'platform-action') return 'bounce-platform'
   if (m.type === 'get-score') return 'score'
   return null
-}
-
-function missionRequired(m: MissionDef): number {
-  const d = m.data
-  const v = d['required-actions'] ?? d['required-use'] ?? d['required-completions'] ?? d['required-actions']
-  return typeof v === 'number' ? v : 1
 }
 
 export function selectMissions(all: MissionDef[], save: DoodleSave, count = 3): string[] {
@@ -97,14 +130,17 @@ export class RunTracker {
     propellerKills: 0,
     ufoAbducted: 0,
     ufoBounced: 0,
-    jetpackSeenUntaken: 0,
   }
+
+  private base: Map<string, number>
 
   constructor(
     private save: DoodleSave,
     private missions: MissionDef[],
     private onChanged: () => void,
-  ) {}
+  ) {
+    this.base = new Map(save.activeMissions.map((id) => [id, save.missions[id]?.progress ?? 0]))
+  }
 
   event(e: GameEvent, score: number): void {
     const r = this.run
@@ -143,7 +179,6 @@ export class RunTracker {
       case 'use-powerup':
         if (e.powerup === 'jetpack') r.jetpacks += 1
         if (e.powerup === 'propeller') r.propellers += 1
-        if (e.powerup === 'shield') void 0
         break
       case 'use-bonus':
         if (e.powerup === 'springshoes') r.springshoes += 1
@@ -205,18 +240,17 @@ export class RunTracker {
       const m = this.missions.find((x) => x.id === id)
       if (!m || this.save.missions[id]?.done) continue
       const st = (this.save.missions[id] ??= { progress: 0, done: false })
-      const reset = m.data['reset-between-games'] === true
-      if (reset && st.progress === -1) continue
-      let cur: number
-      if (m.type === 'get-score') cur = score >= (m.data['required-score'] as number) ? 1 : 0
-      else cur = this.missionCount(m) ?? 0
-      if (cur > st.progress) {
-        st.progress = cur
+      const resets = m.data['reset-between-games'] === true
+      const runCount = m.type === 'get-score' ? (score >= (m.data['required-score'] as number) ? 1 : 0) : (this.missionCount(m) ?? 0)
+      const total = resets ? runCount : (this.base.get(id) ?? 0) + runCount
+      if (total > st.progress) {
+        st.progress = total
         changed = true
       }
-      if (cur >= missionRequired(m)) {
+      const required = missionRequired(m)
+      if (total >= required) {
         st.done = true
-        st.progress = missionRequired(m)
+        st.progress = required
         changed = true
       }
     }

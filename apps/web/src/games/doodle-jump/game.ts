@@ -1,4 +1,4 @@
-import { Application, Assets, Container, Sprite } from 'pixi.js'
+import { Application, Assets, Container, Sprite, Texture } from 'pixi.js'
 import {
   ACCEL_X,
   DAMP_X,
@@ -57,6 +57,8 @@ interface Platform {
 interface Monster {
   container: Container
   kind: MonsterKind
+  frames: Texture[]
+  lastFrame: number
   x: number
   y: number
   vx: number
@@ -110,6 +112,9 @@ export class DoodleGame {
   private hazards: Hazard[] = []
 
   private doodler = new Sprite()
+  private texLeft: Texture
+  private texRight: Texture
+  private texShoot: Texture
   private facing = 1
   private vx = 0
   private vy = 0
@@ -134,12 +139,16 @@ export class DoodleGame {
   private springShoes = false
   private dying = false
   private deathCause: DeathCause = 'miss'
+  directional = false
   running = false
 
   constructor(app: Application, font: FontData, hooks: GameHooks) {
     this.app = app
     this.font = font
     this.hooks = hooks
+    this.texLeft = Assets.get('likleft_X.png')
+    this.texRight = Assets.get('likright_X.png')
+    this.texShoot = Assets.get('likpuca_X.png')
     app.stage.addChild(this.world)
     this.scoreText = new BitmapText(font, Assets.get('topscore_X.png'), 0.5)
     this.scoreText.x = WORLD_W - 12
@@ -160,6 +169,7 @@ export class DoodleGame {
     this.hazards = []
     this.vx = 0
     this.vy = -JUMP_V
+    this.axis = 0
     this.px = WORLD_W / 2
     this.py = 0
     this.cameraY = -WORLD_H + 120
@@ -213,11 +223,10 @@ export class DoodleGame {
       sprite,
       x: this.px,
       y: this.py - DOODLER_H / 2,
-      vx: 0,
+      vx: this.directional ? this.vx * 0.8 : 0,
       vy: -900,
       dead: false,
     })
-    this.hooks.onEvent({ type: 'shoot' })
     audio.play('shoot')
   }
 
@@ -288,9 +297,15 @@ export class DoodleGame {
 
   private spawnMonster(y: number): void {
     const kind = pick<MonsterKind>(['walker', 'flyer', 'oneeye', 'chomp'])
+    const count = kind === 'walker' || kind === 'oneeye' ? 2 : 5
+    const frames: Texture[] = []
+    for (let i = 0; i < count; i++) {
+      const key = `monsters/${kind}/${i}`
+      if (Assets.cache.has(key)) frames.push(Assets.get(key))
+    }
+    if (frames.length === 0) return
     const container = new Container()
-    const frame = `monsters/${kind}/0`
-    const s = new Sprite(Assets.get(frame))
+    const s = new Sprite(frames[0])
     s.anchor.set(0.5)
     container.addChild(s)
     const x = rand(30, WORLD_W - 30)
@@ -301,6 +316,8 @@ export class DoodleGame {
     this.monsters.push({
       container,
       kind,
+      frames,
+      lastFrame: 0,
       x,
       y,
       vx: fly ? rand(60, 110) * (Math.random() < 0.5 ? -1 : 1) : rand(15, 40) * (Math.random() < 0.5 ? -1 : 1),
@@ -390,23 +407,14 @@ export class DoodleGame {
     this.doodler.x = this.px
     this.doodler.y = this.py
     this.doodler.scale.x = this.facing
-    const tex =
-      this.shootPose > 0
-        ? 'likpuca_X.png'
-        : this.jetpackT > 0 || this.propellerT > 0
-          ? this.facing > 0
-            ? 'likleft_X.png'
-            : 'likright_X.png'
-          : this.facing > 0
-            ? 'likleft_X.png'
-            : 'likright_X.png'
-    this.doodler.texture = Assets.get(tex)
+    const tex = this.shootPose > 0 ? this.texShoot : this.facing > 0 ? this.texLeft : this.texRight
+    if (this.doodler.texture !== tex) this.doodler.texture = tex
     this.world.y = -this.cameraY
     this.world.x = 0
 
     const s = this.score
     this.scoreText.text = String(s)
-    this.scoreText.x = WORLD_W - 12 - this.scoreText.width
+    this.scoreText.x = WORLD_W - 12 - this.scoreText.measuredWidth
     this.hooks.onScore(s)
 
     if (!this.dying && this.py > this.cameraY + WORLD_H + 90) this.die('miss')
@@ -464,8 +472,6 @@ export class DoodleGame {
           platform: p.kind,
           moving: p.kind === 'moving',
         })
-        if (p.kind === 'moving') this.hooks.onEvent({ type: 'moving-jump' })
-        else this.hooks.onEvent({ type: 'static-jump' })
         return
       }
     }
@@ -474,7 +480,6 @@ export class DoodleGame {
   private bounce(v: number): void {
     this.vy = -v
     this.jumps += 1
-    this.hooks.onEvent({ type: 'jump' })
     if (this.springShoes) {
       this.springShoes = false
       this.vy = -SPRING_V * 1.1
@@ -554,10 +559,11 @@ export class DoodleGame {
       if (m.x < 20 || m.x > WORLD_W - 20) m.vx *= -1
       m.container.x = m.x
       m.container.y = m.y + (m.kind === 'flyer' ? Math.sin(m.t * 2) * 8 : 0)
-      const frames = m.kind === 'walker' || m.kind === 'oneeye' ? 2 : 5
-      const frame = `monsters/${m.kind}/${Math.floor(m.t * 6) % frames}`
-      const child = m.container.children[0] as Sprite
-      if (Assets.cache.has(frame)) child.texture = Assets.get(frame)
+      const idx = Math.floor(m.t * 6) % m.frames.length
+      if (idx !== m.lastFrame) {
+        m.lastFrame = idx
+        ;(m.container.children[0] as Sprite).texture = m.frames[idx]
+      }
 
       if (!this.dying && Math.abs(m.x - this.px) < (m.w + DOODLER_W) * 0.35 && Math.abs(m.container.y - this.py) < (m.h + DOODLER_H) * 0.35) {
         const feet = this.py + DOODLER_H / 2
@@ -602,9 +608,7 @@ export class DoodleGame {
           hz.done = true
           this.hooks.onEvent({ type: 'ufo-abducted' })
           audio.play('ufo')
-          this.py = hz.y - 260
-          this.vy = -JUMP_V
-          this.minY = Math.min(this.minY, this.py)
+          this.die('ufo')
         } else if (!this.dying && this.vy > 0 && Math.abs(hz.x - this.px) < 70 && Math.abs(hz.container.y - 30 - this.py - DOODLER_H / 2) < 20) {
           this.bounce(JUMP_V)
           this.hooks.onEvent({ type: 'ufo-bounced' })
@@ -653,7 +657,7 @@ export class DoodleGame {
 
   private cleanup(): void {
     const bottom = this.cameraY + WORLD_H + 200
-    this.platforms = this.platforms.filter((p) => {
+    this.platforms = this.compact(this.platforms, (p) => {
       if (p.y > bottom) {
         p.sprite.destroy()
         p.springSprite?.destroy()
@@ -661,7 +665,7 @@ export class DoodleGame {
       }
       return true
     })
-    this.monsters = this.monsters.filter((m) => {
+    this.monsters = this.compact(this.monsters, (m) => {
       if (m.dead) {
         m.container.destroy()
         return false
@@ -673,27 +677,37 @@ export class DoodleGame {
       }
       return true
     })
-    this.powerups = this.powerups.filter((p) => {
+    this.powerups = this.compact(this.powerups, (p) => {
       if (p.y > bottom || p.taken) {
         p.sprite.destroy()
         return false
       }
       return true
     })
-    this.projectiles = this.projectiles.filter((p) => {
+    this.projectiles = this.compact(this.projectiles, (p) => {
       if (p.dead) {
         p.sprite.destroy()
         return false
       }
       return true
     })
-    this.hazards = this.hazards.filter((h) => {
+    this.hazards = this.compact(this.hazards, (h) => {
       if (h.y > bottom || h.done) {
         h.container.destroy()
         return false
       }
       return true
     })
+  }
+
+  private compact<T>(arr: T[], keep: (item: T) => boolean): T[] {
+    let w = 0
+    for (let i = 0; i < arr.length; i++) {
+      if (keep(arr[i])) arr[w++] = arr[i]
+    }
+    if (w === arr.length) return arr
+    arr.length = w
+    return arr
   }
 
   private die(cause: DeathCause): void {
@@ -705,7 +719,6 @@ export class DoodleGame {
     }
     this.dying = true
     this.deathCause = cause
-    this.hooks.onEvent({ type: 'death', cause })
     audio.play('fall')
   }
 

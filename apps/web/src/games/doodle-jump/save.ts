@@ -27,7 +27,6 @@ export interface DoodleSave {
   settings: {
     sound: boolean
     directionalShooting: boolean
-    controls: 'keys' | 'pointer'
   }
   unlockedThemes: string[]
   activeTheme: string
@@ -65,7 +64,7 @@ export function defaultSave(): DoodleSave {
   return {
     version: 1,
     name: 'doodler',
-    settings: { sound: true, directionalShooting: false, controls: 'keys' },
+    settings: { sound: true, directionalShooting: false },
     unlockedThemes: ['original'],
     activeTheme: 'original',
     stats: { original: emptyThemeStats() },
@@ -82,11 +81,15 @@ export function loadSave(): DoodleSave {
     if (!raw) return defaultSave()
     const parsed = JSON.parse(raw) as Partial<DoodleSave>
     const base = defaultSave()
+    const stats: Record<string, ThemeStats> = {}
+    for (const key of new Set([...Object.keys(base.stats), ...Object.keys(parsed.stats ?? {})])) {
+      stats[key] = { ...emptyThemeStats(), ...(parsed.stats?.[key] ?? {}) }
+    }
     return {
       ...base,
       ...parsed,
       settings: { ...base.settings, ...(parsed.settings ?? {}) },
-      stats: { original: { ...emptyThemeStats(), ...(parsed.stats?.original ?? {}) } },
+      stats,
       achievements: { ...(parsed.achievements ?? {}) },
       missions: { ...(parsed.missions ?? {}) },
       activeMissions: parsed.activeMissions ?? [],

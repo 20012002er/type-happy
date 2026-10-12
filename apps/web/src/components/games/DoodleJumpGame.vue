@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, reactive, ref, shallowRef } from 'vue'
+import { onBeforeUnmount, onMounted, computed, reactive, ref, shallowRef } from 'vue'
 import { Application, Assets } from 'pixi.js'
 import { DoodleGame, type GameResult } from '../../games/doodle-jump/game'
-import { RunTracker, selectMissions, type MissionDef } from '../../games/doodle-jump/trackers'
+import { RunTracker, missionRequired, selectMissions, type MissionDef } from '../../games/doodle-jump/trackers'
 import { loadSave, persistSave, type DoodleSave } from '../../games/doodle-jump/save'
 import { audio } from '../../games/doodle-jump/audio'
 import { WORLD_H, WORLD_W, type GameEvent } from '../../games/doodle-jump/constants'
@@ -37,23 +37,26 @@ function missionDefs(raw: { missions: (string | Record<string, unknown>)[] }): M
     const id = raw.missions[i]
     const def = raw.missions[i + 1] as Record<string, unknown>
     if (typeof id === 'string' && def) {
-      out.push({ id, type: String(def.type), data: (def.data as Record<string, unknown>) ?? {} })
+      out.push({
+        id,
+        type: String(def.type),
+        descriptions: String(def.descriptions ?? ''),
+        data: (def.data as Record<string, unknown>) ?? {},
+      })
     }
   }
   return out
 }
 
+function missionById(id: string): MissionDef | undefined {
+  return missions.find((m) => m.id === id)
+}
+
 function missionLabel(id: string): string {
-  const def = missions.find((m) => m.id === id)
+  const def = missionById(id)
   if (!def) return id
-  const key = String((def as unknown as { descriptions?: string }).descriptions ?? '')
-  const tpl = missionStrings[key]?.[0] ?? key
-  const req =
-    (def.data['required-actions'] as number) ??
-    (def.data['required-use'] as number) ??
-    (def.data['required-collection'] as number) ??
-    (def.data['required-score'] as number) ??
-    1
+  const tpl = missionStrings[def.descriptions]?.[0] ?? def.descriptions
+  const req = missionRequired(def)
   return tpl.replace('%d', String(req)).replace('{s}', req > 1 ? 's' : '')
 }
 
@@ -77,8 +80,6 @@ async function boot(): Promise<void> {
   await Assets.load([
     { alias: 'gametiles', url: BASE + 'atlas/gametiles.json' },
     { alias: 'projectiles', url: BASE + 'atlas/projectiles.json' },
-    { alias: 'screens', url: BASE + 'atlas/screens.json' },
-    { alias: 'ui', url: BASE + 'atlas/ui.json' },
     { alias: 'topscore_X.png', url: BASE + 'img/topscore_X.png' },
     { alias: 'likleft_X.png', url: BASE + 'img/likleft_X.png' },
     { alias: 'likright_X.png', url: BASE + 'img/likright_X.png' },
@@ -122,6 +123,7 @@ async function boot(): Promise<void> {
 
 function startRun(): void {
   audio.enabled = save.settings.sound
+  if (game.value) game.value.directional = save.settings.directionalShooting
   tracker = new RunTracker(save, missions, persist)
   screen.value = 'playing'
   result.value = null
@@ -137,6 +139,8 @@ function startRun(): void {
 }
 
 function finishRun(r: GameResult): void {
+  tutorialTimers.forEach((t) => window.clearTimeout(t))
+  tutorialTimers = []
   tracker?.endRun(r)
   save.tutorialSeen = true
   tutorialStep.value = -1
@@ -167,13 +171,22 @@ function bindInput(application: Application): void {
     pointerMoved = Math.max(pointerMoved, Math.abs(dx))
     game.value?.setAxis(dx / 40)
   })
-  canvas.addEventListener('pointerup', () => {
-    if (pointerDown && pointerMoved < 8) game.value?.shoot()
-    pointerDown = false
-    game.value?.setAxis(0)
-  })
+  canvas.addEventListener('pointerup', onPointerUp)
+  window.addEventListener('pointerup', onPointerUp)
+  window.addEventListener('pointercancel', onPointerUp)
   window.addEventListener('keydown', onKey)
   window.addEventListener('keyup', onKeyUp)
+}
+
+function onPointerUp(): void {
+  if (pointerDown && pointerMoved < 8) game.value?.shoot()
+  pointerDown = false
+  game.value?.setAxis(0)
+}
+
+function onDirectionalChange(): void {
+  persist()
+  if (game.value) game.value.directional = save.settings.directionalShooting
 }
 
 function onKey(e: KeyboardEvent): void {
@@ -197,6 +210,8 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   tutorialTimers.forEach((t) => window.clearTimeout(t))
+  window.removeEventListener('pointerup', onPointerUp)
+  window.removeEventListener('pointercancel', onPointerUp)
   window.removeEventListener('keydown', onKey)
   window.removeEventListener('keyup', onKeyUp)
   game.value?.destroy()
@@ -204,7 +219,7 @@ onBeforeUnmount(() => {
 })
 
 const stats = save.stats.original
-const unlockedAchs = Object.keys(save.achievements).filter((k) => save.achievements[k])
+const unlockedAchs = computed(() => Object.keys(save.achievements).filter((k) => save.achievements[k]))
 </script>
 
 <template>
@@ -254,7 +269,7 @@ const unlockedAchs = Object.keys(save.achievements).filter((k) => save.achieveme
       </label>
       <label class="flex items-center justify-between">
         <span>{{ genericStrings.DIRECTIONAL ?? 'directional shooting' }}</span>
-        <input v-model="save.settings.directionalShooting" type="checkbox" @change="persist" />
+        <input v-model="save.settings.directionalShooting" type="checkbox" @change="onDirectionalChange" />
       </label>
       <label class="flex items-center justify-between gap-2">
         <span>{{ genericStrings.GAMEOVER_NAME ?? 'your name:' }}</span>
@@ -269,9 +284,12 @@ const unlockedAchs = Object.keys(save.achievements).filter((k) => save.achieveme
       <h3 class="text-lg font-bold text-slate-800">{{ statsStrings.HIGHSCORES_TITLE ?? 'scores & stats' }}</h3>
       <div v-if="stats" class="grid grid-cols-2 gap-x-4 gap-y-1 text-slate-600">
         <span>{{ statsStrings.HIGH_SCORE }}</span><span class="text-right font-semibold">{{ stats.highScore }}</span>
+        <span>{{ statsStrings.LAST_SCORE }}</span><span class="text-right font-semibold">{{ stats.lastScore }}</span>
         <span>{{ statsStrings.TOTAL_GAMES }}</span><span class="text-right font-semibold">{{ stats.plays }}</span>
         <span>{{ statsStrings.AVG_SCORE }}</span><span class="text-right font-semibold">{{ stats.plays ? Math.round(stats.totalScore / stats.plays) : 0 }}</span>
         <span>{{ statsStrings.TOTAL_JUMP }}</span><span class="text-right font-semibold">{{ stats.totalJumps }}</span>
+        <span>{{ statsStrings.MAX_JUMP }}</span><span class="text-right font-semibold">{{ stats.maxJumps }}</span>
+        <span>{{ statsStrings.LONG_TIME }}</span><span class="text-right font-semibold">{{ stats.longestTime.toFixed(0) }}s</span>
         <span>{{ statsStrings.MONS_SHOT }}</span><span class="text-right font-semibold">{{ stats.monstersShot }}</span>
         <span>{{ statsStrings.MONS_JUMP }}</span><span class="text-right font-semibold">{{ stats.monstersJumped }}</span>
         <span>{{ statsStrings.JETPACK }}</span><span class="text-right font-semibold">{{ stats.jetpackFlights }}</span>
@@ -296,7 +314,7 @@ const unlockedAchs = Object.keys(save.achievements).filter((k) => save.achieveme
       <div v-for="id in save.activeMissions" :key="id" class="rounded-lg border border-slate-200 bg-white p-2">
         <p class="font-semibold text-slate-700">{{ missionLabel(id) }}</p>
         <p class="text-slate-500">
-          {{ save.missions[id]?.done ? 'done!' : `${save.missions[id]?.progress ?? 0} / ${missions.find((m) => m.id === id)?.data['required-actions'] ?? missions.find((m) => m.id === id)?.data['required-use'] ?? 1}` }}
+          {{ save.missions[id]?.done ? 'done!' : `${save.missions[id]?.progress ?? 0} / ${missionRequired(missionById(id)!)}` }}
         </p>
       </div>
       <button class="mt-auto rounded-lg bg-slate-200 py-2 text-slate-700 hover:bg-slate-300" @click="screen = 'menu'">
