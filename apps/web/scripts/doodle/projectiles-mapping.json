@@ -1,0 +1,8 @@
+{
+  "projectiles/nose": [1, 2, 22, 22],
+  "projectiles/coconut": [26, 2, 37, 40],
+  "projectiles/shuriken": [70, 37, 26, 24],
+  "projectiles/soccer": [3, 66, 39, 40],
+  "projectiles/laser": [2, 50, 63, 13],
+  "projectiles/stone": [99, 3, 27, 22]
+}

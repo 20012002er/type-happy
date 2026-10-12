@@ -59,6 +59,12 @@ const router = createRouter({
       component: () => import('../views/IdleGameView.vue'),
       meta: { title: '放置刷装备' },
     },
+    {
+      path: '/games/doodle',
+      name: 'game-doodle',
+      component: () => import('../views/DoodleGameView.vue'),
+      meta: { title: '涂鸦跳跃' },
+    },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
   scrollBehavior: () => ({ top: 0 }),

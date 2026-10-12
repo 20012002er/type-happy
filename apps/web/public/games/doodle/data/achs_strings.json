@@ -1,0 +1,172 @@
+{
+ "achtwitter": [
+  "twitter connector",
+  "tweet your score",
+  "tweeted score"
+ ],
+ "achfacebook": [
+  "facebook connector",
+  "post your score on facebook",
+  "posted score on facebook"
+ ],
+ "achspring": [
+  "spring shoes jumper",
+  "jump with spring shoes without falling",
+  "jumped with spring shoes without falling"
+ ],
+ "achspringer": [
+  "serial springer",
+  "jump on 3 springs in a row",
+  "jumped on 3 springs in a row"
+ ],
+ "achsuperspringer": [
+  "super serial springer",
+  "jump on 5 springs in a row",
+  "jumped on 5 springs in a row"
+ ],
+ "achbouncer": [
+  "monster bouncer",
+  "jump on 10 monsters in one game",
+  "jumped on 10 monsters in one game"
+ ],
+ "achsuperbouncer": [
+  "super monster bouncer",
+  "jump on 30 monsters in one game",
+  "jumped on 30 monsters in one game"
+ ],
+ "achconflict": [
+  "conflict avoider",
+  "jump past 10 monsters in one game",
+  "jumped past 10 monsters in one game"
+ ],
+ "achsuperconflict": [
+  "super conflict avoider",
+  "jump past 30 monsters in one game",
+  "jumped past 30 monsters in one game"
+ ],
+ "achsharp": [
+  "sharp shooter",
+  "shoot 5 monsters in a row without missing",
+  "shot 5 monsters in a row without missing"
+ ],
+ "achsupersharp": [
+  "super sharp shooter",
+  "shoot 10 monsters in a row without missing",
+  "shot 10 monsters in a row without missing"
+ ],
+ "achpropeller": [
+  "propellerhead",
+  "fly 3 propellerhats in one game",
+  "flew 3 propellerhats in one game"
+ ],
+ "achjetpack": [
+  "jetpack rider",
+  "fly 3 jetpacks in one game",
+  "flew 3 jetpacks in one game"
+ ],
+ "achold": [
+  "old-fashioned jumper",
+  "jump past 3 jetpacks without picking them",
+  "jumped past 3 jetpacks without picking them"
+ ],
+ "achufo": [
+  "UFO abduction survivor",
+  "survive UFO abduction",
+  "survived UFO abduction"
+ ],
+ "achracechamp": [
+  "racing champ",
+  "win 100 multiplayer races",
+  "won 100 multiplayer races"
+ ],
+ "achracehero": [
+  "racing hero",
+  "win 500 multiplayer races",
+  "won 500 multiplayer races"
+ ],
+ "achracelegend": [
+  "racing legend",
+  "win 1000 multiplayer races",
+  "won 1000 multiplayer races"
+ ],
+ "achendurancejumper": [
+  "endurance jumper",
+  "jump 200 times on a static platform",
+  "jumped 200 times on a static platform"
+ ],
+ "achfocusedendurancejumper": [
+  "focused endurance jumper",
+  "jump 100 times on a moving platform",
+  "jumped 100 times on a moving platform"
+ ],
+ "achepicfail": [
+  "epic fail",
+  "break 50 platforms in one game",
+  "broke 50 platforms in one game"
+ ],
+ "achepicfailftw": [
+  "epic fail FTW",
+  "break a total of 1000 platforms",
+  "broke a total of 1000 platforms"
+ ],
+ "achdoodlejumpexplorer": [
+  "doodle jump explorer",
+  "play each theme at least 5 times",
+  "played each theme at least 5 times"
+ ],
+ "achmonsterchopper": [
+  "monster chopper",
+  "fly into a monster with a propellerhat",
+  "flew into a monster with a propellerhat"
+ ],
+ "achufobouncer": [
+  "UFO bouncer",
+  "jump on a UFO",
+  "jumped on a UFO"
+ ],
+ "achhundredthousand": [
+  "100,000",
+  "jump to over 100,000",
+  "jumped past 100,000"
+ ],
+ "achpocketgod": [
+  "pocket god",
+  "throw some coconuts",
+  "thrown some coconuts"
+ ],
+ "achegghunter50": [
+  "egg hunter",
+  "collect 50 easter eggs in one game",
+  "collected 50 easter eggs in one game"
+ ],
+ "achegghunter1000": [
+  "egg hunter extraordinaire",
+  "collect 1000 easter eggs",
+  "collected 1000 easter eggs"
+ ],
+ "acharachnophobia": [
+  "arachnophobia",
+  "avoid 50 spiders",
+  "avoided 50 spiders"
+ ],
+ "achgorillathrilla": [
+  "gorilla thrilla",
+  "defeat angry ape 25 times",
+  "defeated 25 angry apes"
+ ],
+ "achnodivingallowed": [
+  "no diving allowed",
+  "blast dive bomber 50 times",
+  "blasted 50 dive bombers"
+ ],
+ "achinvaderterminator": [
+  "invader terminator",
+  "destroy complete block of invaders 25 times",
+  "destroyed 25 complete blocks of invaders"
+ ],
+ "achhealthyeater": [
+  "healthy eater",
+  "eat 100 cherries",
+  "had eaten 100 cherries"
+ ]
+}

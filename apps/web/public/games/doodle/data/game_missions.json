@@ -1,0 +1,1867 @@
+{
+ "missionsVersion": "1.3",
+ "missions": [
+  "dj.mission.n001.collect_X_gold",
+  {
+   "data": {
+    "required-collection": 250,
+    "collectible-theme": "Pirate",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_GOLD",
+   "type": "collect-items"
+  },
+  "dj.mission.n002.blast_X_mosters",
+  {
+   "data": {
+    "required-actions": 5,
+    "monster-id": "Any.Any",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_BLAST_X_MONSTERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n003.beat_colombia",
+  {
+   "data": {
+    "required-completions": 1,
+    "task-id": "Soccer.Colombia"
+   },
+   "descriptions": "STRING_ID_BEAT_COLOMBIA",
+   "type": "task-completion"
+  },
+  "dj.mission.n004.stomp_on_X_mosters",
+  {
+   "data": {
+    "required-actions": 5,
+    "monster-id": "Any.Any",
+    "allowed-events": "Bounce"
+   },
+   "descriptions": "STRING_ID_STOMP_X_MONSTERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n005.dodge_X_cannonballs",
+  {
+   "data": {
+    "required-actions": 5,
+    "allowed-events": "Pirate.AvoidCannonBall",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_DODGE_X_CANNONBALLS",
+   "type": "custom-action"
+  },
+  "dj.mission.n006.collect_X_coins",
+  {
+   "data": {
+    "required-collection": 200,
+    "collectible-theme": "Ninja",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_COINS",
+   "type": "collect-items"
+  },
+  "dj.mission.n007_holiday2016.v7.ride_X_rocketsleds",
+  {
+   "data": {
+    "required-use": 1,
+    "item-id": "Winter.Rocket",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_RIDE_X_ROCKETSLEDS",
+   "type": "use-powerup"
+  },
+  "dj.mission.n007.jump_on_X_springs",
+  {
+   "data": {
+    "required-actions": 10,
+    "allowed-events": "Any.JumpSpring",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_JUMP_ON_X_SPRINGS",
+   "type": "custom-action"
+  },
+  "dj.mission.n008.blast_X_mosters_one_game",
+  {
+   "data": {
+    "required-actions": 5,
+    "monster-id": "Any.Any",
+    "allowed-events": "Kill",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_BLAST_X_MONSTERS_IN_GAME",
+   "type": "monster-action"
+  },
+  "dj.mission.n009.defeat_monsters",
+  {
+   "data": {
+    "required-actions": 1,
+    "count-per-monster": true,
+    "monster-id": "Halloween.Wolfman,Halloween.Frankenstein",
+    "allowed-events": "Kill,Bounce,FlyIntoWithPropeller",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_DEFEAT_FRANKENSTEIN_WOLFMAN",
+   "type": "monster-action"
+  },
+  "dj.mission.n011_holiday2016.v7.composite_use_X_bonuspowerup",
+  {
+   "data": {
+    "linked-missions": [
+     {
+      "type": "use-powerup",
+      "data": {
+       "required-use": 1,
+       "item-id": "Winter.JetPack"
+      }
+     },
+     {
+      "type": "use-bonus",
+      "data": {
+       "required-use": 1,
+       "item-id": "Winter.SpringShoes"
+      }
+     }
+    ],
+    "count-per-mission": false
+   },
+   "descriptions": "STRING_ID_USE_GIFTBOX_X_TIMES",
+   "type": "composite-mission"
+  },
+  "dj.mission.n010.fly_into_X_mosters_with_propeller",
+  {
+   "data": {
+    "required-actions": 1,
+    "monster-id": "Original.Any,Ninja.Any,Bunny.Any,Halloween.Any,Space.Any,Underwater.Any",
+    "allowed-events": "FlyIntoWithPropeller",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_FLY_INTO_X_MONSTERS_PROPELLER",
+   "type": "monster-action"
+  },
+  "dj.mission.n011.v5.bounce_X_moving_platforms",
+  {
+   "data": {
+    "required-actions": 25,
+    "platform-id": "Any.PlatformHMove,Any.PlatformVMove,Any.PlatformFastDragging,Any.PlatformSlowDragging",
+    "allowed-events": "BouncePlatform"
+   },
+   "descriptions": "STRING_ID_BOUNCE_X_MOVING_PLATFORMS",
+   "type": "platform-action"
+  },
+  "dj.mission.n011.use_X_springshoes",
+  {
+   "data": {
+    "required-use": 2,
+    "item-id": "Original.SpringShoes,Bunny.SpringShoes,Winter.SpringShoes,Winter.FrozenSpringShoes",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_USE_SPRINGSHOES_X_TIMES",
+   "type": "use-bonus"
+  },
+  "dj.mission.n012.destroy_X_iceblocks",
+  {
+   "data": {
+    "required-actions": 10,
+    "allowed-events": "Winter.IceblockBreak",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_DESTROY_X_ICEBLOCKS",
+   "type": "custom-action"
+  },
+  "dj.mission.n013.open_X_treasure_chests",
+  {
+   "data": {
+    "required-actions": 3,
+    "allowed-events": "Pirate.OpenTreasureChest",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_OPEN_X_TREASURECHESTS",
+   "type": "custom-action"
+  },
+  "dj.mission.n014.share_score_X_times",
+  {
+   "data": {
+    "required-actions": 1,
+    "allowed-events": "Any.ShareScore",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_SHARE_X_TIMES",
+   "available-skus": "GOOGLE_SKU,SAMSUNG_SKU",
+   "type": "custom-action"
+  },
+  "dj.mission.n016.v5.blast_X_mosters_precisely",
+  {
+   "data": {
+    "precision-enabled": true,
+    "required-actions": 5,
+    "monster-id": "Any.Any",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_BLAST_X_MONSTERS_PRECISE",
+   "type": "monster-action"
+  },
+  "dj.mission.n019_holiday2016.v9.stomp_X_yeti",
+  {
+   "data": {
+    "required-actions": 1,
+    "monster-id": "Winter.YetiWhite,Winter.YetiGray",
+    "allowed-events": "Bounce"
+   },
+   "descriptions": "STRING_ID_STOMP_X_YETI",
+   "type": "monster-action"
+  },
+  "dj.mission.n015.stomp_on_X_mosters_one_game",
+  {
+   "data": {
+    "required-actions": 3,
+    "monster-id": "Any.Any",
+    "allowed-events": "Bounce",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_STOMP_X_MONSTERS_IN_GAME",
+   "type": "monster-action"
+  },
+  "dj.mission.n016.unlock_X_items",
+  {
+   "data": {
+    "required-amount": 1,
+    "item-id": "Bunny.Costume,Ninja.Costume,Pirate.Costume,Halloween.Costume"
+   },
+   "descriptions": "STRING_ID_UNLOCK_X_COSTUMES",
+   "type": "unlock-item"
+  },
+  "dj.mission.n019.v5.stomp_on_X_referee",
+  {
+   "data": {
+    "required-actions": 1,
+    "monster-id": "Soccer.RefereeCrab,Soccer.RefereeStrippedHead,Soccer.RefereeMosquito,Soccer.RefereeWithFlag",
+    "allowed-events": "Bounce"
+   },
+   "descriptions": "STRING_ID_STOMP_X_REFEREES",
+   "type": "monster-action"
+  },
+  "dj.mission.n017.bounce_on_X_trampolines",
+  {
+   "data": {
+    "required-use": 10,
+    "item-id": "Original.Trampoline,Ninja.Trampoline,Bunny.Trampoline,Halloween.Trampoline,Space.Trampoline,Soccer.Trampoline,Underwater.Trampoline,Jungle.Trampoline,8Bit.Trampoline",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_BOUNCE_ON_X_TRAMPOLINES",
+   "type": "use-bonus"
+  },
+  "dj.mission.n018.ride_X_spaceships",
+  {
+   "data": {
+    "required-use": 2,
+    "item-id": "Space.Rocket",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_RIDE_X_SPACESHIPS",
+   "type": "use-powerup"
+  },
+  "dj.mission.n025_arcade.v10.ride_X_8bitspacerockets",
+  {
+   "data": {
+    "required-use": 3,
+    "count-differently": true,
+    "item-id": "8Bit.8BitRocket1,8Bit.8BitRocket2,8Bit.8BitRocket3,8Bit.8BitRocket4,8Bit.8BitRocket5",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_RIDE_X_8BITROCKETS",
+   "type": "use-powerup"
+  },
+  "dj.mission.n019.hide_in_X_bushes",
+  {
+   "data": {
+    "required-use": 3,
+    "item-id": "Ninja.Bush",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_HIDE_IN_BUSHES_X_TIMES",
+   "type": "use-powerup"
+  },
+  "dj.mission.n020.collect_X_eggs",
+  {
+   "data": {
+    "required-collection": 100,
+    "collectible-theme": "Bunny",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_EGGS",
+   "type": "collect-items"
+  },
+  "dj.mission.n027_holiday2016.v9.blast_X_snowflakes",
+  {
+   "data": {
+    "required-actions": 1,
+    "monster-id": "Winter.SnowFlake",
+    "allowed-events": "Kill",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_BLAST_X_SNOWFLAKES",
+   "type": "monster-action"
+  },
+  "dj.mission.n029_arcade.v10.tag_X_ghosts",
+  {
+   "data": {
+    "required-actions": 5,
+    "monster-id": "8Bit.Any",
+    "allowed-events": "Tag"
+   },
+   "descriptions": "STRING_ID_TAG_X_GHOSTS",
+   "type": "monster-action"
+  },
+  "dj.mission.n024.v5.miss_X_hits",
+  {
+   "data": {
+    "required-actions": 50,
+    "monster-id": "Any.Any",
+    "allowed-events": "HitMissing"
+   },
+   "descriptions": "STRING_ID_MISS_X_HITS",
+   "type": "monster-action"
+  },
+  "dj.mission.n031_arcade.v10.eliminate_X_chompmonsters",
+  {
+   "data": {
+    "required-actions": 5,
+    "monster-id": "8Bit.Chomp",
+    "allowed-events": "Kill,Bounce",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_ELIMINATE_CHOMP_MONSTERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n032_arcade.v10.wear_X_springsuits",
+  {
+   "data": {
+    "required-use": 2,
+    "item-id": "8Bit.SpringShoes",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_WEAR_SPRINGSUIT_X_TIMES",
+   "type": "use-bonus"
+  },
+  "dj.mission.n021.play_all_themes",
+  {
+   "data": {
+    "required-themes": "All"
+   },
+   "descriptions": "STRING_ID_PLAY_ALL_THEMES",
+   "type": "play-themes"
+  },
+  "dj.mission.n022.resurrect_X_times",
+  {
+   "data": {
+    "required-actions": 3,
+    "allowed-events": "Pirate.Resurrect,Ninja.Resurrect,Bunny.Resurrect,Halloween.Resurrect",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_RESURRECT_X_TIMES",
+   "type": "custom-action"
+  },
+  "dj.mission.n023.blast_X_mosters_one_game",
+  {
+   "data": {
+    "required-actions": 10,
+    "monster-id": "Any.Any",
+    "allowed-events": "Kill",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_BLAST_X_MONSTERS_IN_GAME",
+   "type": "monster-action"
+  },
+  "dj.mission.n024.wear_propeller_X_times",
+  {
+   "data": {
+    "required-use": 3,
+    "item-id": "Original.Propeller,Ninja.Propeller,Bunny.Propeller,Halloween.Propeller,Space.Propeller,Underwater.Propeller",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_WEAR_X_PROPELLERS",
+   "type": "use-powerup"
+  },
+  "dj.mission.n037_arcade.v10.blast_X_siblocks",
+  {
+   "data": {
+    "required-actions": 1,
+    "monster-id": "8Bit.Block",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_BLAST_X_SIBLOCKS",
+   "type": "monster-action"
+  },
+  "dj.mission.n025.avoid_X_mosters_one_game",
+  {
+   "data": {
+    "required-actions": 5,
+    "monster-id": "Any.Any",
+    "allowed-events": "Avoid",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_AVOID_X_MONSTERS_IN_GAME",
+   "type": "monster-action"
+  },
+  "dj.mission.n026.get_X_score",
+  {
+   "data": {
+    "required-actions": 1,
+    "action-theme": "Any",
+    "required-score": 10000
+   },
+   "descriptions": "STRING_ID_SCORE_X_Y_TIMES",
+   "type": "get-score"
+  },
+  "dj.mission.n027.sneak_X_arctic_blasts",
+  {
+   "data": {
+    "required-actions": 3,
+    "allowed-events": "Ice.AvoidChillCloud",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_AVOID_X_ARCTIC_BLASTS",
+   "type": "custom-action"
+  },
+  "dj.mission.n028.stomp_on_X_mosters",
+  {
+   "data": {
+    "required-actions": 3,
+    "monster-id": "Underwater.PufferFish",
+    "allowed-events": "Bounce",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_STOMP_ON_X_PUFFERFISH",
+   "type": "monster-action"
+  },
+  "dj.mission.n042_arcade.v10.blast_X_spiders",
+  {
+   "data": {
+    "required-actions": 3,
+    "monster-id": "8Bit.Spider",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_BLAST_X_SPIDERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n029.jump_on_X_springs",
+  {
+   "data": {
+    "required-actions": 25,
+    "allowed-events": "Any.JumpSpring",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_JUMP_ON_X_SPRINGS",
+   "type": "custom-action"
+  },
+  "dj.mission.n038_holiday2016.v7.chop_X_trees",
+  {
+   "data": {
+    "required-actions": 1,
+    "monster-id": "Winter.Tree",
+    "allowed-events": "Kill,Bounce,FlyIntoWithPropeller",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_CHOP_TREE_IN_A_GAME",
+   "type": "monster-action"
+  },
+  "dj.mission.n039_holiday2016.v7.share_snowscore_X_times",
+  {
+   "data": {
+    "required-actions": 1,
+    "allowed-events": "Winter.ShareScore",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_SHARE_SNOW_X_TIMES",
+   "available-skus": "GOOGLE_SKU,SAMSUNG_SKU",
+   "type": "custom-action"
+  },
+  "dj.mission.n046_arcade.v10.avoid_X_divebombers",
+  {
+   "data": {
+    "required-actions": 2,
+    "monster-id": "8Bit.DiveBomber",
+    "allowed-events": "Avoid"
+   },
+   "descriptions": "STRING_ID_AVOID_X_DIVEBOMBERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n030.stomp_on_X_mosters_one_game",
+  {
+   "data": {
+    "required-actions": 5,
+    "monster-id": "Any.Any",
+    "allowed-events": "Bounce",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_STOMP_X_MONSTERS_IN_GAME",
+   "type": "monster-action"
+  },
+  "dj.mission.n048_arcade.v10.banish_X_space_apes",
+  {
+   "data": {
+    "required-actions": 1,
+    "monster-id": "8Bit.DonkeyKong",
+    "allowed-events": "Kill,Bounce"
+   },
+   "descriptions": "STRING_ID_KILL_X_SPACEAPES",
+   "type": "monster-action"
+  },
+  "dj.mission.n031.abducted_X_times_by_ufo",
+  {
+   "data": {
+    "required-actions": 1,
+    "allowed-events": "Original.UfoAbducted,Ninja.UfoAbducted,Bunny.UfoAbducted,Space.UfoAbducted,Underwater.UfoAbducted,Jungle.UfoAbducted,Winter.UfoAbducted,Ice.UfoAbducted,8Bit.UfoAbducted",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_GET_ABDUCTED_X_TIMES",
+   "type": "custom-action"
+  },
+  "dj.mission.n032.take_X_rides_broom",
+  {
+   "data": {
+    "required-use": 2,
+    "item-id": "Halloween.Broom",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_RIDE_X_BROOMS",
+   "type": "use-powerup"
+  },
+  "dj.mission.n033.use_X_headstarts",
+  {
+   "data": {
+    "required-actions": 1,
+    "allowed-events": "Ninja.HeadStart,Pirate.HeadStart",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_USE_X_HEADSTARTS",
+   "type": "custom-action"
+  },
+  "dj.mission.n034.blast_X_mosters",
+  {
+   "data": {
+    "required-actions": 25,
+    "monster-id": "Any.Any",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_BLAST_X_MONSTERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n035.collect_X_candies",
+  {
+   "data": {
+    "required-collection": 100,
+    "collectible-theme": "Halloween",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_CANDIES",
+   "type": "collect-items"
+  },
+  "dj.mission.n036.caught_X_times_by_beartraps",
+  {
+   "data": {
+    "required-actions": 3,
+    "allowed-events": "Ninja.Trap",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_GET_CAUGHT_X_BEARTRAPS",
+   "type": "custom-action"
+  },
+  "dj.mission.n056_arcade.v10.destroy_X_spacebarrels",
+  {
+   "data": {
+    "required-actions": 2,
+    "monster-id": "8Bit.SpaceBarrel",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_DESTROY_X_SPACEBARRELS",
+   "type": "monster-action"
+  },
+  "dj.mission.n037.break_X_platforms",
+  {
+   "data": {
+    "required-actions": 50,
+    "allowed-events": "Any.BreakPlatform",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_BREAK_X_PLATFORMS",
+   "type": "custom-action"
+  },
+  "dj.mission.n038.ride_X_spaceships",
+  {
+   "data": {
+    "required-use": 3,
+    "item-id": "Space.Rocket",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_RIDE_X_SPACESHIPS",
+   "type": "use-powerup"
+  },
+  "dj.mission.n039.survive_X_rainstorms",
+  {
+   "data": {
+    "required-completions": 3,
+    "task-id": "Jungle.Rainstorm"
+   },
+   "descriptions": "STRING_ID_SURVIVE_X_RAINSTORMS",
+   "type": "task-completion"
+  },
+  "dj.mission.n040.collect_X_gold",
+  {
+   "data": {
+    "required-collection": 500,
+    "collectible-theme": "Pirate",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_GOLD",
+   "type": "collect-items"
+  },
+  "dj.mission.n041.get_X_score",
+  {
+   "data": {
+    "required-actions": 1,
+    "action-theme": "Underwater",
+    "required-score": 10000
+   },
+   "descriptions": "STRING_ID_SCORE_X_Y_TIMES",
+   "type": "get-score"
+  },
+  "dj.mission.n042.bounce_X_times_on_ufo",
+  {
+   "data": {
+    "required-actions": 1,
+    "allowed-events": "Original.UfoBounced,Ninja.UfoBounced,Bunny.UfoBounced,Space.UfoBounced,Underwater.UfoBounced,Jungle.UfoBounced,Winter.UfoBounced,Ice.UfoBounced,8Bit.UfoBounced",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_BOUNCE_X_TIMES_UFO",
+   "type": "custom-action"
+  },
+  "dj.mission.n043.use_X_springshoes",
+  {
+   "data": {
+    "required-use": 3,
+    "item-id": "Original.SpringShoes,Bunny.SpringShoes,Winter.SpringShoes,Winter.FrozenSpringShoes",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_USE_SPRINGSHOES_X_TIMES",
+   "type": "use-bonus"
+  },
+  "dj.mission.n044.stomp_on_X_mosters",
+  {
+   "data": {
+    "required-actions": 25,
+    "monster-id": "Any.Any",
+    "allowed-events": "Bounce",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_STOMP_X_MONSTERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n045.destroy_X_iceblocks",
+  {
+   "data": {
+    "required-actions": 25,
+    "allowed-events": "Winter.IceblockBreak",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_DESTROY_X_ICEBLOCKS",
+   "type": "custom-action"
+  },
+  "dj.mission.n051.v5.bounce_X_moving_platforms",
+  {
+   "data": {
+    "required-actions": 50,
+    "platform-id": "Any.PlatformHMove,Any.PlatformVMove,Any.PlatformFastDragging,Any.PlatformSlowDragging",
+    "allowed-events": "BouncePlatform"
+   },
+   "descriptions": "STRING_ID_BOUNCE_X_MOVING_PLATFORMS",
+   "type": "platform-action"
+  },
+  "dj.mission.n046.open_X_treasure_chests",
+  {
+   "data": {
+    "required-actions": 5,
+    "allowed-events": "Pirate.OpenTreasureChest",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_OPEN_X_TREASURECHESTS",
+   "type": "custom-action"
+  },
+  "dj.mission.n047.freeze_X_times",
+  {
+   "data": {
+    "required-actions": 1,
+    "allowed-events": "Ice.Freeze",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_FREEZE_X_TIMES",
+   "type": "custom-action"
+  },
+  "dj.mission.n048.unlock_X_items",
+  {
+   "data": {
+    "required-amount": 1,
+    "item-id": "Bunny.Costume,Ninja.Costume,Pirate.Costume,Halloween.Costume"
+   },
+   "descriptions": "STRING_ID_UNLOCK_X_COSTUMES",
+   "type": "unlock-item"
+  },
+  "dj.mission.n049.bounce_on_X_trampolines",
+  {
+   "data": {
+    "required-use": 20,
+    "item-id": "Original.Trampoline,Ninja.Trampoline,Bunny.Trampoline,Halloween.Trampoline,Space.Trampoline,Soccer.Trampoline,Underwater.Trampoline,Jungle.Trampoline,8Bit.Trampoline",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_BOUNCE_ON_X_TRAMPOLINES",
+   "type": "use-bonus"
+  },
+  "dj.mission.n050.fly_X_jetpacks_in_game",
+  {
+   "data": {
+    "required-use": 2,
+    "item-id": "Original.JetPack,Ninja.JetPack,Bunny.JetPack,Halloween.JetPack,Space.JetPack,Underwater.JetPack,Jungle.JetPack,Winter.JetPack,Winter.FrozenJetPack",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_FLY_X_JETPACKS_IN_GAME",
+   "type": "use-powerup"
+  },
+  "dj.mission.n063_holiday2016.v7.ride_X_rocketsleds",
+  {
+   "data": {
+    "required-use": 2,
+    "item-id": "Winter.Rocket",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_RIDE_X_ROCKETSLEDS",
+   "type": "use-powerup"
+  },
+  "dj.mission.n057.v5.blast_X_mosters_precisely",
+  {
+   "data": {
+    "precision-enabled": true,
+    "required-actions": 10,
+    "monster-id": "Any.Any",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_BLAST_X_MONSTERS_PRECISE",
+   "type": "monster-action"
+  },
+  "dj.mission.n051.stomp_on_X_mosters",
+  {
+   "data": {
+    "required-actions": 5,
+    "monster-id": "Underwater.PufferFish",
+    "allowed-events": "Bounce",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_STOMP_ON_X_PUFFERFISH",
+   "type": "monster-action"
+  },
+  "dj.mission.n075_arcade.v10.ride_X_8bitspacerockets",
+  {
+   "data": {
+    "required-use": 5,
+    "count-differently": true,
+    "item-id": "8Bit.8BitRocket1,8Bit.8BitRocket2,8Bit.8BitRocket3,8Bit.8BitRocket4,8Bit.8BitRocket5",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_RIDE_X_8BITROCKETS",
+   "type": "use-powerup"
+  },
+  "dj.mission.n052.avoid_X_mosters_one_game",
+  {
+   "data": {
+    "required-actions": 10,
+    "monster-id": "Any.Any",
+    "allowed-events": "Avoid",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_AVOID_X_MONSTERS_IN_GAME",
+   "type": "monster-action"
+  },
+  "dj.mission.n053.wear_propeller_X_times",
+  {
+   "data": {
+    "required-use": 7,
+    "item-id": "Original.Propeller,Ninja.Propeller,Bunny.Propeller,Halloween.Propeller,Space.Propeller,Underwater.Propeller",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_WEAR_X_PROPELLERS",
+   "type": "use-powerup"
+  },
+  "dj.mission.n054.collect_X_coins",
+  {
+   "data": {
+    "required-collection": 400,
+    "collectible-theme": "Ninja",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_COINS",
+   "type": "collect-items"
+  },
+  "dj.mission.n079_arcade.v10.wear_X_springsuits",
+  {
+   "data": {
+    "required-use": 4,
+    "item-id": "8Bit.SpringShoes",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_WEAR_SPRINGSUIT_X_TIMES",
+   "type": "use-bonus"
+  },
+  "dj.mission.n080_arcade.v10.tag_X_ghosts",
+  {
+   "data": {
+    "required-actions": 15,
+    "monster-id": "8Bit.Any",
+    "allowed-events": "Tag"
+   },
+   "descriptions": "STRING_ID_TAG_X_GHOSTS",
+   "type": "monster-action"
+  },
+  "dj.mission.n055.get_X_score",
+  {
+   "data": {
+    "required-actions": 3,
+    "action-theme": "Any",
+    "required-score": 10000
+   },
+   "descriptions": "STRING_ID_SCORE_X_Y_TIMES",
+   "type": "get-score"
+  },
+  "dj.mission.n070_holiday2016.v7.composite_use_X_bonuspowerup",
+  {
+   "data": {
+    "linked-missions": [
+     {
+      "type": "use-powerup",
+      "data": {
+       "required-use": 2,
+       "item-id": "Winter.JetPack"
+      }
+     },
+     {
+      "type": "use-bonus",
+      "data": {
+       "required-use": 1,
+       "item-id": "Winter.SpringShoes"
+      }
+     }
+    ],
+    "count-per-mission": false
+   },
+   "descriptions": "STRING_ID_USE_GIFTBOX_X_TIMES",
+   "type": "composite-mission"
+  },
+  "dj.mission.n056.beat_hungary",
+  {
+   "data": {
+    "required-completions": 1,
+    "task-id": "Soccer.Hungary"
+   },
+   "descriptions": "STRING_ID_BEAT_HUNGARY",
+   "type": "task-completion"
+  },
+  "dj.mission.n057.hide_in_X_bushes",
+  {
+   "data": {
+    "required-use": 4,
+    "item-id": "Ninja.Bush",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_HIDE_IN_BUSHES_X_TIMES",
+   "type": "use-powerup"
+  },
+  "dj.mission.n085_arcade.v10.eliminate_X_chompmonsters",
+  {
+   "data": {
+    "required-actions": 10,
+    "monster-id": "8Bit.Chomp",
+    "allowed-events": "Kill,Bounce",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_ELIMINATE_CHOMP_MONSTERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n058.share_score_X_times",
+  {
+   "data": {
+    "required-actions": 3,
+    "allowed-events": "Any.ShareScore",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_SHARE_X_TIMES",
+   "available-skus": "GOOGLE_SKU,SAMSUNG_SKU",
+   "type": "custom-action"
+  },
+  "dj.mission.n059.survive_X_blizzards",
+  {
+   "data": {
+    "required-completions": 1,
+    "task-id": "Ice.Blizzard"
+   },
+   "descriptions": "STRING_ID_SURVIVE_X_BLIZZARDS",
+   "type": "task-completion"
+  },
+  "dj.mission.n060.collect_X_eggs",
+  {
+   "data": {
+    "required-collection": 250,
+    "collectible-theme": "Bunny",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_EGGS",
+   "type": "collect-items"
+  },
+  "dj.mission.n061.jump_on_X_springs",
+  {
+   "data": {
+    "required-actions": 50,
+    "allowed-events": "Any.JumpSpring",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_JUMP_ON_X_SPRINGS",
+   "type": "custom-action"
+  },
+  "dj.mission.n062.sneak_X_arctic_blasts",
+  {
+   "data": {
+    "required-actions": 10,
+    "allowed-events": "Ice.AvoidChillCloud",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_AVOID_X_ARCTIC_BLASTS",
+   "type": "custom-action"
+  },
+  "dj.mission.n063.collect_X_candies",
+  {
+   "data": {
+    "required-collection": 250,
+    "collectible-theme": "Halloween",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_CANDIES",
+   "type": "collect-items"
+  },
+  "dj.mission.n064.get_X_score",
+  {
+   "data": {
+    "required-actions": 3,
+    "action-theme": "Underwater",
+    "required-score": 10000
+   },
+   "descriptions": "STRING_ID_SCORE_X_Y_TIMES",
+   "type": "get-score"
+  },
+  "dj.mission.n065.blast_X_mosters",
+  {
+   "data": {
+    "required-actions": 50,
+    "monster-id": "Any.Any",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_BLAST_X_MONSTERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n094_arcade.v10.blast_X_spiders",
+  {
+   "data": {
+    "required-actions": 5,
+    "monster-id": "8Bit.Spider",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_BLAST_X_SPIDERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n066.get_X_score",
+  {
+   "data": {
+    "required-actions": 1,
+    "action-theme": "Underwater",
+    "required-score": 20000
+   },
+   "descriptions": "STRING_ID_SCORE_X_Y_TIMES",
+   "type": "get-score"
+  },
+  "dj.mission.n082_holiday2016.v9.blast_X_snowmans",
+  {
+   "data": {
+    "required-actions": 1,
+    "monster-id": "Winter.Snowman",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_BLAST_X_SNOWMANS",
+   "type": "monster-action"
+  },
+  "dj.mission.n074.v5.stomp_on_X_referee",
+  {
+   "data": {
+    "required-actions": 2,
+    "monster-id": "Soccer.RefereeCrab,Soccer.RefereeStrippedHead,Soccer.RefereeMosquito,Soccer.RefereeWithFlag",
+    "allowed-events": "Bounce"
+   },
+   "descriptions": "STRING_ID_STOMP_X_REFEREES",
+   "type": "monster-action"
+  },
+  "dj.mission.n067.resurrect_X_times",
+  {
+   "data": {
+    "required-actions": 3,
+    "allowed-events": "Pirate.Resurrect,Ninja.Resurrect,Bunny.Resurrect,Halloween.Resurrect",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_RESURRECT_X_TIMES",
+   "type": "custom-action"
+  },
+  "dj.mission.n068.fly_into_X_mosters_with_propeller",
+  {
+   "data": {
+    "required-actions": 3,
+    "monster-id": "Original.Any,Ninja.Any,Bunny.Any,Halloween.Any,Space.Any,Underwater.Any",
+    "allowed-events": "FlyIntoWithPropeller",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_FLY_INTO_X_MONSTERS_PROPELLER",
+   "type": "monster-action"
+  },
+  "dj.mission.n069.stomp_on_X_mosters",
+  {
+   "data": {
+    "required-actions": 10,
+    "monster-id": "Underwater.PufferFish",
+    "allowed-events": "Bounce",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_STOMP_ON_X_PUFFERFISH",
+   "type": "monster-action"
+  },
+  "dj.mission.n070.blast_X_mosters_one_game",
+  {
+   "data": {
+    "required-actions": 15,
+    "monster-id": "Any.Any",
+    "allowed-events": "Kill",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_BLAST_X_MONSTERS_IN_GAME",
+   "type": "monster-action"
+  },
+  "dj.mission.n071.use_X_springshoes",
+  {
+   "data": {
+    "required-use": 5,
+    "item-id": "Original.SpringShoes,Bunny.SpringShoes,Winter.SpringShoes,Winter.FrozenSpringShoes",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_USE_SPRINGSHOES_X_TIMES",
+   "type": "use-bonus"
+  },
+  "dj.mission.n072.destroy_X_iceblocks",
+  {
+   "data": {
+    "required-actions": 50,
+    "allowed-events": "Winter.IceblockBreak",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_DESTROY_X_ICEBLOCKS",
+   "type": "custom-action"
+  },
+  "dj.mission.n081.v5.miss_X_hits",
+  {
+   "data": {
+    "required-actions": 100,
+    "monster-id": "Any.Any",
+    "allowed-events": "HitMissing"
+   },
+   "descriptions": "STRING_ID_MISS_X_HITS",
+   "type": "monster-action"
+  },
+  "dj.mission.n073.break_X_platforms",
+  {
+   "data": {
+    "required-actions": 100,
+    "allowed-events": "Any.BreakPlatform",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_BREAK_X_PLATFORMS",
+   "type": "custom-action"
+  },
+  "dj.mission.n074.defeat_monsters",
+  {
+   "data": {
+    "required-actions": 3,
+    "count-per-monster": true,
+    "monster-id": "Halloween.Wolfman,Halloween.Frankenstein",
+    "allowed-events": "Kill,Bounce,FlyIntoWithPropeller",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_DEFEAT_FRANKENSTEIN_WOLFMAN",
+   "type": "monster-action"
+  },
+  "dj.mission.n107_arcade.v10.blast_X_siblocks",
+  {
+   "data": {
+    "required-actions": 2,
+    "monster-id": "8Bit.Block",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_BLAST_X_SIBLOCKS",
+   "type": "monster-action"
+  },
+  "dj.mission.n108_arcade.v10.banish_X_space_apes",
+  {
+   "data": {
+    "required-actions": 2,
+    "monster-id": "8Bit.DonkeyKong",
+    "allowed-events": "Kill,Bounce"
+   },
+   "descriptions": "STRING_ID_KILL_X_SPACEAPES",
+   "type": "monster-action"
+  },
+  "dj.mission.n109_arcade.v10.avoid_X_divebombers",
+  {
+   "data": {
+    "required-actions": 4,
+    "monster-id": "8Bit.DiveBomber",
+    "allowed-events": "Avoid"
+   },
+   "descriptions": "STRING_ID_AVOID_X_DIVEBOMBERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n075.bounce_X_times_on_ufo",
+  {
+   "data": {
+    "required-actions": 3,
+    "allowed-events": "Original.UfoBounced,Ninja.UfoBounced,Bunny.UfoBounced,Space.UfoBounced,Underwater.UfoBounced,Jungle.UfoBounced,Winter.UfoBounced,Ice.UfoBounced,8Bit.UfoBounced",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_BOUNCE_X_TIMES_UFO",
+   "type": "custom-action"
+  },
+  "dj.mission.n094_holiday2016.v9.blast_X_snowflakes",
+  {
+   "data": {
+    "required-actions": 2,
+    "monster-id": "Winter.SnowFlake",
+    "allowed-events": "Kill",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_BLAST_X_SNOWFLAKES",
+   "type": "monster-action"
+  },
+  "dj.mission.n095_holiday2016.v7.share_snowscore_X_times",
+  {
+   "data": {
+    "required-actions": 1,
+    "allowed-events": "Winter.ShareScore",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_SHARE_SNOW_X_TIMES",
+   "available-skus": "GOOGLE_SKU,SAMSUNG_SKU",
+   "type": "custom-action"
+  },
+  "dj.mission.n076.stomp_on_X_mosters_one_game",
+  {
+   "data": {
+    "required-actions": 10,
+    "monster-id": "Any.Any",
+    "allowed-events": "Bounce",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_STOMP_X_MONSTERS_IN_GAME",
+   "type": "monster-action"
+  },
+  "dj.mission.n077.open_X_treasure_chests",
+  {
+   "data": {
+    "required-actions": 10,
+    "allowed-events": "Pirate.OpenTreasureChest",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_OPEN_X_TREASURECHESTS",
+   "type": "custom-action"
+  },
+  "dj.mission.n078.bounce_on_X_trampolines",
+  {
+   "data": {
+    "required-use": 30,
+    "item-id": "Original.Trampoline,Ninja.Trampoline,Bunny.Trampoline,Halloween.Trampoline,Space.Trampoline,Soccer.Trampoline,Underwater.Trampoline,Jungle.Trampoline,8Bit.Trampoline",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_BOUNCE_ON_X_TRAMPOLINES",
+   "type": "use-bonus"
+  },
+  "dj.mission.n116_arcade.v10.destroy_X_spacebarrels",
+  {
+   "data": {
+    "required-actions": 4,
+    "monster-id": "8Bit.SpaceBarrel",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_DESTROY_X_SPACEBARRELS",
+   "type": "monster-action"
+  },
+  "dj.mission.n079.stomp_on_X_mosters",
+  {
+   "data": {
+    "required-actions": 50,
+    "monster-id": "Any.Any",
+    "allowed-events": "Bounce"
+   },
+   "descriptions": "STRING_ID_STOMP_X_MONSTERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n089.v5.bounce_X_moving_platforms",
+  {
+   "data": {
+    "required-actions": 100,
+    "platform-id": "Any.PlatformHMove,Any.PlatformVMove,Any.PlatformFastDragging,Any.PlatformSlowDragging",
+    "allowed-events": "BouncePlatform"
+   },
+   "descriptions": "STRING_ID_BOUNCE_X_MOVING_PLATFORMS",
+   "type": "platform-action"
+  },
+  "dj.mission.n080.freeze_X_times",
+  {
+   "data": {
+    "required-actions": 3,
+    "allowed-events": "Ice.Freeze",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_FREEZE_X_TIMES",
+   "type": "custom-action"
+  },
+  "dj.mission.n081.dodge_X_cannonballs",
+  {
+   "data": {
+    "required-actions": 10,
+    "allowed-events": "Pirate.AvoidCannonBall",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_DODGE_X_CANNONBALLS",
+   "type": "custom-action"
+  },
+  "dj.mission.n082.collect_X_gold",
+  {
+   "data": {
+    "required-collection": 1000,
+    "collectible-theme": "Pirate",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_GOLD",
+   "type": "collect-items"
+  },
+  "dj.mission.n083.get_X_score",
+  {
+   "data": {
+    "required-actions": 5,
+    "action-theme": "Any",
+    "required-score": 10000
+   },
+   "descriptions": "STRING_ID_SCORE_X_Y_TIMES",
+   "type": "get-score"
+  },
+  "dj.mission.n084.beat_japan",
+  {
+   "data": {
+    "required-completions": 1,
+    "task-id": "Soccer.Japan"
+   },
+   "descriptions": "STRING_ID_BEAT_JAPAN",
+   "type": "task-completion"
+  },
+  "dj.mission.n085.survive_X_blizzards",
+  {
+   "data": {
+    "required-completions": 2,
+    "task-id": "Ice.Blizzard"
+   },
+   "descriptions": "STRING_ID_SURVIVE_X_BLIZZARDS",
+   "type": "task-completion"
+  },
+  "dj.mission.n107_holiday2016.v7.chop_X_trees",
+  {
+   "data": {
+    "required-actions": 2,
+    "monster-id": "Winter.Tree",
+    "allowed-events": "Kill,Bounce,FlyIntoWithPropeller",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_CHOP_TREE_IN_A_GAME",
+   "type": "monster-action"
+  },
+  "dj.mission.n086.blast_X_mosters_one_game",
+  {
+   "data": {
+    "required-actions": 15,
+    "monster-id": "Any.Any",
+    "allowed-events": "Kill",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_BLAST_X_MONSTERS_IN_GAME",
+   "type": "monster-action"
+  },
+  "dj.mission.n087.take_X_rides_broom",
+  {
+   "data": {
+    "required-use": 3,
+    "item-id": "Halloween.Broom",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_RIDE_X_BROOMS",
+   "type": "use-powerup"
+  },
+  "dj.mission.n088.survive_X_rainstorms",
+  {
+   "data": {
+    "required-completions": 5,
+    "task-id": "Jungle.Rainstorm"
+   },
+   "descriptions": "STRING_ID_SURVIVE_X_RAINSTORMS",
+   "type": "task-completion"
+  },
+  "dj.mission.n089.caught_X_times_by_beartraps",
+  {
+   "data": {
+    "required-actions": 5,
+    "allowed-events": "Ninja.Trap",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_GET_CAUGHT_X_BEARTRAPS",
+   "type": "custom-action"
+  },
+  "dj.mission.n090.collect_X_coins",
+  {
+   "data": {
+    "required-collection": 500,
+    "collectible-theme": "Ninja",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_COINS",
+   "type": "collect-items"
+  },
+  "dj.mission.n131_arcade.v10.ride_X_8bitspacerockets_ingame",
+  {
+   "data": {
+    "required-use": 3,
+    "count-differently": true,
+    "item-id": "8Bit.8BitRocket1,8Bit.8BitRocket2,8Bit.8BitRocket3,8Bit.8BitRocket4,8Bit.8BitRocket5",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_RIDE_X_8BITROCKETS_INGAME",
+   "type": "use-powerup"
+  },
+  "dj.mission.n091.abducted_X_times_by_ufo",
+  {
+   "data": {
+    "required-actions": 3,
+    "allowed-events": "Original.UfoAbducted,Ninja.UfoAbducted,Bunny.UfoAbducted,Space.UfoAbducted,Underwater.UfoAbducted,Jungle.UfoAbducted,Winter.UfoAbducted,Ice.UfoAbducted,8Bit.UfoAbducted",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_GET_ABDUCTED_X_TIMES",
+   "type": "custom-action"
+  },
+  "dj.mission.n092.get_X_score",
+  {
+   "data": {
+    "required-actions": 5,
+    "action-theme": "Underwater",
+    "required-score": 10000
+   },
+   "descriptions": "STRING_ID_SCORE_X_Y_TIMES",
+   "type": "get-score"
+  },
+  "dj.mission.n115_holiday2016.v7.ride_X_rocketsleds",
+  {
+   "data": {
+    "required-use": 3,
+    "item-id": "Winter.Rocket",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_RIDE_X_ROCKETSLEDS",
+   "type": "use-powerup"
+  },
+  "dj.mission.n093.ride_X_spaceships",
+  {
+   "data": {
+    "required-use": 5,
+    "item-id": "Space.Rocket",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_RIDE_X_SPACESHIPS",
+   "type": "use-powerup"
+  },
+  "dj.mission.n136_arcade.v10.tag_X_ghosts",
+  {
+   "data": {
+    "required-actions": 30,
+    "monster-id": "8Bit.Any",
+    "allowed-events": "Tag"
+   },
+   "descriptions": "STRING_ID_TAG_X_GHOSTS",
+   "type": "monster-action"
+  },
+  "dj.mission.n137_arcade.v10.wear_X_springsuits",
+  {
+   "data": {
+    "required-use": 6,
+    "item-id": "8Bit.SpringShoes",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_WEAR_SPRINGSUIT_X_TIMES",
+   "type": "use-bonus"
+  },
+  "dj.mission.n138_arcade.v10.eliminate_X_chompmonsters",
+  {
+   "data": {
+    "required-actions": 15,
+    "monster-id": "8Bit.Chomp",
+    "allowed-events": "Kill,Bounce",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_ELIMINATE_CHOMP_MONSTERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n094.share_score_X_times",
+  {
+   "data": {
+    "required-actions": 5,
+    "allowed-events": "Any.ShareScore",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_SHARE_X_TIMES",
+   "available-skus": "GOOGLE_SKU,SAMSUNG_SKU",
+   "type": "custom-action"
+  },
+  "dj.mission.n095.get_X_score",
+  {
+   "data": {
+    "required-actions": 1,
+    "action-theme": "Any",
+    "required-score": 35000
+   },
+   "descriptions": "STRING_ID_SCORE_X_Y_TIMES",
+   "type": "get-score"
+  },
+  "dj.mission.n106.v5.blast_X_mosters_precisely",
+  {
+   "data": {
+    "precision-enabled": true,
+    "required-actions": 20,
+    "monster-id": "Any.Any",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_BLAST_X_MONSTERS_PRECISE",
+   "type": "monster-action"
+  },
+  "dj.mission.n096.collect_X_eggs",
+  {
+   "data": {
+    "required-collection": 500,
+    "collectible-theme": "Bunny",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_EGGS",
+   "type": "collect-items"
+  },
+  "dj.mission.n121_holiday2016.v7.composite_use_X_bonuspowerup",
+  {
+   "data": {
+    "linked-missions": [
+     {
+      "type": "use-powerup",
+      "data": {
+       "required-use": 3,
+       "item-id": "Winter.JetPack"
+      }
+     },
+     {
+      "type": "use-bonus",
+      "data": {
+       "required-use": 2,
+       "item-id": "Winter.SpringShoes"
+      }
+     }
+    ],
+    "count-per-mission": false
+   },
+   "descriptions": "STRING_ID_USE_GIFTBOX_X_TIMES",
+   "type": "composite-mission"
+  },
+  "dj.mission.n097.freeze_X_times",
+  {
+   "data": {
+    "required-actions": 5,
+    "allowed-events": "Ice.Freeze",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_FREEZE_X_TIMES",
+   "type": "custom-action"
+  },
+  "dj.mission.n098.use_X_headstarts",
+  {
+   "data": {
+    "required-actions": 1,
+    "allowed-events": "Ninja.HeadStart,Pirate.HeadStart",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_USE_X_HEADSTARTS",
+   "type": "custom-action"
+  },
+  "dj.mission.n110.v5.stomp_on_X_referee",
+  {
+   "data": {
+    "required-actions": 3,
+    "monster-id": "Soccer.RefereeCrab,Soccer.RefereeStrippedHead,Soccer.RefereeMosquito,Soccer.RefereeWithFlag",
+    "allowed-events": "Bounce"
+   },
+   "descriptions": "STRING_ID_STOMP_X_REFEREES",
+   "type": "monster-action"
+  },
+  "dj.mission.n147_arcade.v10.blast_X_siblocks",
+  {
+   "data": {
+    "required-actions": 3,
+    "monster-id": "8Bit.Block",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_BLAST_X_SIBLOCKS",
+   "type": "monster-action"
+  },
+  "dj.mission.n099.blast_X_mosters",
+  {
+   "data": {
+    "required-actions": 100,
+    "monster-id": "Any.Any",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_BLAST_X_MONSTERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n100.resurrect_X_times",
+  {
+   "data": {
+    "required-actions": 5,
+    "allowed-events": "Pirate.Resurrect,Ninja.Resurrect,Bunny.Resurrect,Halloween.Resurrect",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_RESURRECT_X_TIMES",
+   "type": "custom-action"
+  },
+  "dj.mission.n127_holiday2016.v9.blast_X_snowmans",
+  {
+   "data": {
+    "required-actions": 2,
+    "monster-id": "Winter.Snowman",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_BLAST_X_SNOWMANS",
+   "type": "monster-action"
+  },
+  "dj.mission.n101.break_X_platforms",
+  {
+   "data": {
+    "required-actions": 200,
+    "allowed-events": "Any.BreakPlatform",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_BREAK_X_PLATFORMS",
+   "type": "custom-action"
+  },
+  "dj.mission.n102.sneak_X_arctic_blasts",
+  {
+   "data": {
+    "required-actions": 10,
+    "allowed-events": "Ice.AvoidChillCloud",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_AVOID_X_ARCTIC_BLASTS",
+   "type": "custom-action"
+  },
+  "dj.mission.n103.collect_X_candies",
+  {
+   "data": {
+    "required-collection": 500,
+    "collectible-theme": "Halloween",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_CANDIES",
+   "type": "collect-items"
+  },
+  "dj.mission.n154_arcade.v10.blast_X_spiders",
+  {
+   "data": {
+    "required-actions": 8,
+    "monster-id": "8Bit.Spider",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_BLAST_X_SPIDERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n104.stomp_on_X_mosters",
+  {
+   "data": {
+    "required-actions": 100,
+    "monster-id": "Any.Any",
+    "allowed-events": "Bounce"
+   },
+   "descriptions": "STRING_ID_STOMP_X_MONSTERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n105.survive_X_rainstorms",
+  {
+   "data": {
+    "required-completions": 6,
+    "task-id": "Jungle.Rainstorm"
+   },
+   "descriptions": "STRING_ID_SURVIVE_X_RAINSTORMS",
+   "type": "task-completion"
+  },
+  "dj.mission.n106.fly_into_X_mosters_with_propeller",
+  {
+   "data": {
+    "required-actions": 5,
+    "monster-id": "Original.Any,Ninja.Any,Bunny.Any,Halloween.Any,Space.Any,Underwater.Any",
+    "allowed-events": "FlyIntoWithPropeller",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_FLY_INTO_X_MONSTERS_PROPELLER",
+   "type": "monster-action"
+  },
+  "dj.mission.n107.stomp_on_X_mosters_one_game",
+  {
+   "data": {
+    "required-actions": 15,
+    "monster-id": "Any.Any",
+    "allowed-events": "Bounce",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_STOMP_X_MONSTERS_IN_GAME",
+   "type": "monster-action"
+  },
+  "dj.mission.n108.hide_in_X_bushes",
+  {
+   "data": {
+    "required-use": 6,
+    "item-id": "Ninja.Bush",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_HIDE_IN_BUSHES_X_TIMES",
+   "type": "use-powerup"
+  },
+  "dj.mission.n109.dodge_X_cannonballs",
+  {
+   "data": {
+    "required-actions": 20,
+    "allowed-events": "Pirate.AvoidCannonBall",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_DODGE_X_CANNONBALLS",
+   "type": "custom-action"
+  },
+  "dj.mission.n110.collect_X_gold",
+  {
+   "data": {
+    "required-collection": 1500,
+    "collectible-theme": "Pirate",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_GOLD",
+   "type": "collect-items"
+  },
+  "dj.mission.n111.avoid_X_mosters_one_game",
+  {
+   "data": {
+    "required-actions": 15,
+    "monster-id": "Any.Any",
+    "allowed-events": "Avoid",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_AVOID_X_MONSTERS_IN_GAME",
+   "type": "monster-action"
+  },
+  "dj.mission.n139_holiday2016.v9.stomp_on_X_reindeers",
+  {
+   "data": {
+    "required-actions": 1,
+    "monster-id": "Winter.Reindeer",
+    "allowed-events": "Bounce",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_STOMP_X_REINDEERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n112.collect_X_coins",
+  {
+   "data": {
+    "required-collection": 600,
+    "collectible-theme": "Ninja",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_COINS",
+   "type": "collect-items"
+  },
+  "dj.mission.n125.v5.miss_X_hits",
+  {
+   "data": {
+    "required-actions": 200,
+    "monster-id": "Any.Any",
+    "allowed-events": "HitMissing"
+   },
+   "descriptions": "STRING_ID_MISS_X_HITS",
+   "type": "monster-action"
+  },
+  "dj.mission.n113.wear_propeller_X_times",
+  {
+   "data": {
+    "required-use": 10,
+    "item-id": "Original.Propeller,Ninja.Propeller,Bunny.Propeller,Halloween.Propeller,Space.Propeller,Underwater.Propeller",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_WEAR_X_PROPELLERS",
+   "type": "use-powerup"
+  },
+  "dj.mission.n114.defeat_monsters",
+  {
+   "data": {
+    "required-actions": 5,
+    "count-per-monster": true,
+    "monster-id": "Halloween.Wolfman,Halloween.Frankenstein",
+    "allowed-events": "Kill,Bounce,FlyIntoWithPropeller",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_DEFEAT_FRANKENSTEIN_WOLFMAN",
+   "type": "monster-action"
+  },
+  "dj.mission.n168_arcade.v10.banish_X_space_apes",
+  {
+   "data": {
+    "required-actions": 3,
+    "monster-id": "8Bit.DonkeyKong",
+    "allowed-events": "Kill,Bounce"
+   },
+   "descriptions": "STRING_ID_KILL_X_SPACEAPES",
+   "type": "monster-action"
+  },
+  "dj.mission.n115.bounce_X_times_on_ufo",
+  {
+   "data": {
+    "required-actions": 5,
+    "allowed-events": "Original.UfoBounced,Ninja.UfoBounced,Bunny.UfoBounced,Space.UfoBounced,Underwater.UfoBounced,Jungle.UfoBounced,Winter.UfoBounced,Ice.UfoBounced,8Bit.UfoBounced",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_BOUNCE_X_TIMES_UFO",
+   "type": "custom-action"
+  },
+  "dj.mission.n116.unlock_X_items",
+  {
+   "data": {
+    "required-amount": 2,
+    "item-id": "Bunny.Costume,Ninja.Costume,Pirate.Costume,Halloween.Costume"
+   },
+   "descriptions": "STRING_ID_UNLOCK_X_COSTUMES",
+   "type": "unlock-item"
+  },
+  "dj.mission.n117.collect_X_eggs",
+  {
+   "data": {
+    "required-collection": 1000,
+    "collectible-theme": "Bunny",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_EGGS",
+   "type": "collect-items"
+  },
+  "dj.mission.n118.take_X_rides_broom",
+  {
+   "data": {
+    "required-use": 6,
+    "item-id": "Halloween.Broom",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_RIDE_X_BROOMS",
+   "type": "use-powerup"
+  },
+  "dj.mission.n119.survive_X_blizzards",
+  {
+   "data": {
+    "required-completions": 3,
+    "task-id": "Ice.Blizzard"
+   },
+   "descriptions": "STRING_ID_SURVIVE_X_BLIZZARDS",
+   "type": "task-completion"
+  },
+  "dj.mission.n120.collect_X_candies",
+  {
+   "data": {
+    "required-collection": 1000,
+    "collectible-theme": "Halloween",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_COLLECT_X_CANDIES",
+   "type": "collect-items"
+  },
+  "dj.mission.n121.caught_X_times_by_beartraps",
+  {
+   "data": {
+    "required-actions": 10,
+    "allowed-events": "Ninja.Trap",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_GET_CAUGHT_X_BEARTRAPS",
+   "type": "custom-action"
+  },
+  "dj.mission.n151_holiday2016.v7.chop_X_trees",
+  {
+   "data": {
+    "required-actions": 3,
+    "monster-id": "Winter.Tree",
+    "allowed-events": "Kill,Bounce,FlyIntoWithPropeller",
+    "reset-between-games": true
+   },
+   "descriptions": "STRING_ID_CHOP_TREE_IN_A_GAME",
+   "type": "monster-action"
+  },
+  "dj.mission.n177_arcade.v10.avoid_X_divebombers",
+  {
+   "data": {
+    "required-actions": 6,
+    "monster-id": "8Bit.DiveBomber",
+    "allowed-events": "Avoid"
+   },
+   "descriptions": "STRING_ID_AVOID_X_DIVEBOMBERS",
+   "type": "monster-action"
+  },
+  "dj.mission.n178_arcade.v10.destroy_X_spacebarrels",
+  {
+   "data": {
+    "required-actions": 6,
+    "monster-id": "8Bit.SpaceBarrel",
+    "allowed-events": "Kill"
+   },
+   "descriptions": "STRING_ID_DESTROY_X_SPACEBARRELS",
+   "type": "monster-action"
+  },
+  "dj.mission.n122.get_X_score",
+  {
+   "data": {
+    "required-actions": 1,
+    "action-theme": "Any",
+    "required-score": 50000
+   },
+   "descriptions": "STRING_ID_SCORE_X_Y_TIMES",
+   "type": "get-score"
+  },
+  "dj.mission.n123.use_X_headstarts",
+  {
+   "data": {
+    "required-actions": 2,
+    "allowed-events": "Ninja.HeadStart,Pirate.HeadStart",
+    "reset-between-games": false
+   },
+   "descriptions": "STRING_ID_USE_X_HEADSTARTS",
+   "type": "custom-action"
+  }
+ ]
+}

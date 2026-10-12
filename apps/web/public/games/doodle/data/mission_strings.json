@@ -1,0 +1,232 @@
+{
+ "STRING_ID_COLLECT_X_GOLD": [
+  "collect %d gold",
+  "collected %d gold"
+ ],
+ "STRING_ID_COLLECT_X_COINS": [
+  "collect %d coins",
+  "collected %d coins"
+ ],
+ "STRING_ID_COLLECT_X_EGGS": [
+  "collect %d eggs",
+  "collected %d eggs"
+ ],
+ "STRING_ID_COLLECT_X_CANDIES": [
+  "collect %d candies",
+  "collected %d candies"
+ ],
+ "STRING_ID_BLAST_X_MONSTERS": [
+  "blast %d monster{s}",
+  "blasted %d monster{s}"
+ ],
+ "STRING_ID_BEAT_COLOMBIA": [
+  "beat colombia",
+  "beat colombia"
+ ],
+ "STRING_ID_BEAT_HUNGARY": [
+  "beat hungary",
+  "beat hungary"
+ ],
+ "STRING_ID_BEAT_JAPAN": [
+  "beat japan",
+  "beat japan"
+ ],
+ "STRING_ID_GET_ABDUCTED_X_TIMES": [
+  "get abducted %d time{s}",
+  "abducted %dx"
+ ],
+ "STRING_ID_STOMP_X_MONSTERS": [
+  "stomp on %d monster{s}",
+  "stomped %d monster{s}"
+ ],
+ "STRING_ID_DODGE_X_CANNONBALLS": [
+  "dodge %d cannonball{s}",
+  "dodged %d cannonball{s}"
+ ],
+ "STRING_ID_BLAST_X_MONSTERS_IN_GAME": [
+  "blast %d monster{s} in a game",
+  "blasted %d monster{s} in a game"
+ ],
+ "STRING_ID_STOMP_X_MONSTERS_IN_GAME": [
+  "stomp on %d monster{s} in a game",
+  "stomped %d monster{s} in a game"
+ ],
+ "STRING_ID_AVOID_X_MONSTERS_IN_GAME": [
+  "avoid %d monster{s} in a game",
+  "avoided %d monster{s} in a game"
+ ],
+ "STRING_ID_JUMP_ON_X_SPRINGS": [
+  "jump on %d spring{s}",
+  "jumped on %d spring{s}"
+ ],
+ "STRING_ID_DEFEAT_FRANKENSTEIN_WOLFMAN": [
+  "defeat frankenstein + wolfman %dx",
+  "beat frankenstein + wolfman %dx"
+ ],
+ "STRING_ID_PLAY_ALL_THEMES": [
+  "play all themes",
+  "played every theme"
+ ],
+ "STRING_ID_USE_SPRINGSHOES_X_TIMES": [
+  "use spring shoes %d time{s}",
+  "used spring shoes %dx"
+ ],
+ "STRING_ID_DESTROY_X_ICEBLOCKS": [
+  "destroy %d ice block{s}",
+  "crushed %d ice block{s}"
+ ],
+ "STRING_ID_OPEN_X_TREASURECHESTS": [
+  "open %d treasure chest{s}",
+  "opened %d chest{s}"
+ ],
+ "STRING_ID_SHARE_X_TIMES": [
+  "share your score %d time{s}",
+  "shared your score %dx"
+ ],
+ "STRING_ID_BOUNCE_ON_X_TRAMPOLINES": [
+  "bounce on %d trampoline{s}",
+  "bounced on %d trampoline{s}"
+ ],
+ "STRING_ID_RIDE_X_SPACESHIPS": [
+  "ride %d spaceship{s}",
+  "rode %d spaceship{s}"
+ ],
+ "STRING_ID_HIDE_IN_BUSHES_X_TIMES": [
+  "hide in the bushes %d time{s}",
+  "hid in bushes %dx"
+ ],
+ "STRING_ID_RESURRECT_X_TIMES": [
+  "resurrect %d time{s}",
+  "resurrected %dx"
+ ],
+ "STRING_ID_WEAR_X_PROPELLERS": [
+  "wear %d propeller hat{s}",
+  "wore %d propeller hat{s}"
+ ],
+ "STRING_ID_SCORE_X_Y_TIMES": [
+  "score over %d1 %d2 time{s}",
+  "scored over %d1"
+ ],
+ "STRING_ID_AVOID_X_ARCTIC_BLASTS": [
+  "sneak past %d arctic blast{s}",
+  "avoided %d arctic blast{s}"
+ ],
+ "STRING_ID_STOMP_ON_X_PUFFERFISH": [
+  "stomp on %d puffer fish",
+  "stomped %d puffer fish"
+ ],
+ "STRING_ID_RIDE_X_BROOMS": [
+  "take %d ride{s} on a broom",
+  "rode %d brooms"
+ ],
+ "STRING_ID_USE_X_HEADSTARTS": [
+  "use %d headstart{s}",
+  "used %d headstart{s}"
+ ],
+ "STRING_ID_GET_CAUGHT_X_BEARTRAPS": [
+  "get caught in %d bear trap{s}",
+  "got caught in %d trap{s}"
+ ],
+ "STRING_ID_BREAK_X_PLATFORMS": [
+  "break %d platform{s}",
+  "broke %d platform{s}"
+ ],
+ "STRING_ID_SURVIVE_X_RAINSTORMS": [
+  "survive %d rainstorm{s}",
+  "survived %d rainstorm{s}"
+ ],
+ "STRING_ID_FREEZE_X_TIMES": [
+  "freeze %d time{s}",
+  "froze %dx"
+ ],
+ "STRING_ID_SURVIVE_X_BLIZZARDS": [
+  "survive %d blizzard{s}",
+  "survived %d blizzard{s}"
+ ],
+ "STRING_ID_UNLOCK_X_COSTUMES": [
+  "unlock %d costume{s}",
+  "unlocked %d costume{s}"
+ ],
+ "STRING_ID_FLY_INTO_X_MONSTERS_PROPELLER": [
+  "fly into %d monster{s} with prop-hat",
+  "flew into %d monster{s}"
+ ],
+ "STRING_ID_BOUNCE_X_TIMES_UFO": [
+  "bounce on %d ufo{s}",
+  "bounced on %d UFO{s}"
+ ],
+ "STRING_ID_FLY_X_JETPACKS_IN_GAME": [
+  "fly %d jetpack{s} in a game",
+  "flew %d jetpack{s}"
+ ],
+ "STRING_ID_BOUNCE_X_MOVING_PLATFORMS": [
+  "bounce on %d moving platform{s}",
+  "bounced on %d moving platform{s}"
+ ],
+ "STRING_ID_BLAST_X_MONSTERS_PRECISE": [
+  "blast %d monster{s} without missing",
+  "blasted %d monster{s} precisely"
+ ],
+ "STRING_ID_MISS_X_HITS": [
+  "shoot and miss monsters %dx",
+  "blasted %d times{s} without hitting monster"
+ ],
+ "STRING_ID_STOMP_X_REFEREES": [
+  "stomp on the referee{s} %dx",
+  "stomped on %d referee{s}"
+ ],
+ "STRING_ID_RIDE_X_ROCKETSLEDS": [
+  "ride the rocket sled %dx"
+ ],
+ "STRING_ID_USE_GIFTBOX_X_TIMES": [
+  "pick up %d gift{s}"
+ ],
+ "STRING_ID_BLAST_X_SNOWMANS": [
+  "hit snowman with a snowball %dx"
+ ],
+ "STRING_ID_STOMP_X_REINDEERS": [
+  "hop on a reindeer %dx"
+ ],
+ "STRING_ID_CHOP_TREE_IN_A_GAME": [
+  "chop down %d tree{s} in one game"
+ ],
+ "STRING_ID_SHARE_SNOW_X_TIMES": [
+  "share your score in snow %d time{s}"
+ ],
+ "STRING_ID_STOMP_X_YETI": [
+  "stomp on a yeti %dx"
+ ],
+ "STRING_ID_BLAST_X_SNOWFLAKES": [
+  "blast a snowflake %dx"
+ ],
+ "STRING_ID_DESTROY_X_SPACEBARRELS": [
+  "destroy %d space barrel{s}"
+ ],
+ "STRING_ID_RIDE_X_8BITROCKETS": [
+  "fly %d different space rockets"
+ ],
+ "STRING_ID_BLAST_X_SIBLOCKS": [
+  "wipeout block of invaders %dx"
+ ],
+ "STRING_ID_TAG_X_GHOSTS": [
+  "tag %d white ghost{s}"
+ ],
+ "STRING_ID_ELIMINATE_CHOMP_MONSTERS": [
+  "eliminate %d chomping monster{s}"
+ ],
+ "STRING_ID_WEAR_SPRINGSUIT_X_TIMES": [
+  "wear spring suit %dx"
+ ],
+ "STRING_ID_BLAST_X_SPIDERS": [
+  "blast %d spider{s}"
+ ],
+ "STRING_ID_AVOID_X_DIVEBOMBERS": [
+  "dodge dive bomber %dx"
+ ],
+ "STRING_ID_KILL_X_SPACEAPES": [
+  "banish space ape %dx"
+ ],
+ "STRING_ID_RIDE_X_8BITROCKETS_INGAME": [
+  "fly %d different rockets in a game"
+ ]
+}

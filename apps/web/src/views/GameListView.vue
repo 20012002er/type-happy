@@ -47,6 +47,14 @@ const list: GameMeta[] = [
     gradient: 'from-violet-400 to-fuchsia-500',
     badge: '⚔️',
   },
+  {
+    id: 'doodle',
+    title: '涂鸦跳跃',
+    desc: '逆向重制版 Doodle Jump:倾斜/键盘移动、点击射击,踩平台躲怪物吃道具一路向上。纯本地运行,成绩与进度只存在浏览器里。',
+    to: '/games/doodle',
+    gradient: 'from-lime-300 to-green-500',
+    badge: '🐸',
+  },
 ]
 
 const records = computed(() => list.map((g) => ({ ...g, best: games.bestOf(g.id) })))

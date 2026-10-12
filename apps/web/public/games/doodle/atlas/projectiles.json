@@ -1,0 +1,135 @@
+{
+  "frames": {
+    "projectiles/nose": {
+      "frame": {
+        "x": 1,
+        "y": 2,
+        "w": 22,
+        "h": 22
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 22,
+        "h": 22
+      },
+      "sourceSize": {
+        "w": 22,
+        "h": 22
+      }
+    },
+    "projectiles/coconut": {
+      "frame": {
+        "x": 26,
+        "y": 2,
+        "w": 37,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 37,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 37,
+        "h": 40
+      }
+    },
+    "projectiles/shuriken": {
+      "frame": {
+        "x": 70,
+        "y": 37,
+        "w": 26,
+        "h": 24
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 24
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 24
+      }
+    },
+    "projectiles/soccer": {
+      "frame": {
+        "x": 3,
+        "y": 66,
+        "w": 39,
+        "h": 40
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 39,
+        "h": 40
+      },
+      "sourceSize": {
+        "w": 39,
+        "h": 40
+      }
+    },
+    "projectiles/laser": {
+      "frame": {
+        "x": 2,
+        "y": 50,
+        "w": 63,
+        "h": 13
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 63,
+        "h": 13
+      },
+      "sourceSize": {
+        "w": 63,
+        "h": 13
+      }
+    },
+    "projectiles/stone": {
+      "frame": {
+        "x": 99,
+        "y": 3,
+        "w": 27,
+        "h": 22
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 27,
+        "h": 22
+      },
+      "sourceSize": {
+        "w": 27,
+        "h": 22
+      }
+    }
+  },
+  "meta": {
+    "app": "doodle-atlas",
+    "version": "1.0",
+    "image": "../img/projectiletiles_X.png",
+    "format": "RGBA8888",
+    "size": {
+      "w": 256,
+      "h": 128
+    },
+    "scale": "1"
+  }
+}
