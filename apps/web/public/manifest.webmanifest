@@ -1,0 +1,16 @@
+{
+  "name": "打字乐园 - 免费在线打字练习与打字游戏",
+  "short_name": "打字乐园",
+  "description": "免费在线打字练习网站:标准指法、英文、中文拼音三大课程与打字游戏,无需注册,打开浏览器即练。",
+  "lang": "zh-CN",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

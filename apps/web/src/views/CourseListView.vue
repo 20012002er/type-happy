@@ -4,6 +4,7 @@ import { RouterLink } from 'vue-router'
 import type { Course, LessonMeta } from '@type-happy/shared'
 import { fetchCourse, fetchCourses } from '../api/client'
 import { useProgressStore } from '../stores/progress'
+import { useItemListSeo } from '../composables/useSeo'
 
 interface CourseCard {
   course: Course
@@ -52,6 +53,13 @@ function percentOf(card: CourseCard): number {
 }
 
 const loadingCards = computed(() => [0, 1, 2])
+
+useItemListSeo(
+  '打字课程',
+  computed(() =>
+    cards.value.map((c) => ({ name: c.course.title, path: `/courses/${c.course.id}` })),
+  ),
+)
 </script>
 
 <template>

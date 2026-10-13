@@ -2,6 +2,7 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useGamesStore } from '../stores/games'
+import { useItemListSeo } from '../composables/useSeo'
 
 const games = useGamesStore()
 
@@ -58,6 +59,11 @@ const list: GameMeta[] = [
 ]
 
 const records = computed(() => list.map((g) => ({ ...g, best: games.bestOf(g.id) })))
+
+useItemListSeo(
+  '打字游戏',
+  computed(() => list.map((g) => ({ name: g.title, path: g.to }))),
+)
 </script>
 
 <template>

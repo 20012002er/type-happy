@@ -3,7 +3,7 @@ import cors from '@fastify/cors'
 import { loadData } from './data-loader.js'
 import { courseRoutes } from './routes/courses.js'
 
-const app = Fastify({ logger: true })
+const app = Fastify({ logger: { level: process.env.LOG_LEVEL ?? 'info' } })
 
 await app.register(cors, { origin: true })
 

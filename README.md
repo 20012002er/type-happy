@@ -13,15 +13,16 @@ pnpm dev          # 同时启动后端(:3001)与前端(:5173),浏览器访问 ht
 
 常用脚本(仓库根目录):
 
-| 命令                                   | 说明                                               |
-| -------------------------------------- | -------------------------------------------------- |
-| `pnpm dev`                             | 并行启动 server + web(dev proxy `/api` → `:3001`)  |
-| `pnpm build`                           | 全部构建(shared → server/web,拓扑序)               |
-| `pnpm typecheck`                       | 全部类型检查(tsc / vue-tsc)                        |
-| `pnpm lint`                            | ESLint 全仓检查                                    |
-| `pnpm format`                          | Prettier 格式化                                    |
-| `pnpm --filter @type-happy/web smoke`  | 打字引擎冒烟测试(Node 内模拟浏览器事件)            |
-| `node apps/web/scripts/e2e-doodle.mjs` | 涂鸦跳跃 Playwright e2e(需先起服务,见「涂鸦跳跃」) |
+| 命令                                      | 说明                                                  |
+| ----------------------------------------- | ----------------------------------------------------- |
+| `pnpm dev`                                | 并行启动 server + web(dev proxy `/api` → `:3001`)     |
+| `pnpm build`                              | 全部构建(shared → server/web,拓扑序)                  |
+| `pnpm typecheck`                          | 全部类型检查(tsc / vue-tsc)                           |
+| `pnpm lint`                               | ESLint 全仓检查                                       |
+| `pnpm format`                             | Prettier 格式化                                       |
+| `pnpm --filter @type-happy/web smoke`     | 打字引擎冒烟测试(Node 内模拟浏览器事件)               |
+| `pnpm --filter @type-happy/web prerender` | 预渲染全部路由为静态 HTML(SEO,见「SEO」章节)          |
+| `node apps/web/scripts/e2e-doodle.mjs`    | 涂鸦跳跃 Playwright e2e(需 dev server,见「涂鸦跳跃」) |
 
 ## Docker 部署
 
@@ -42,10 +43,42 @@ docker compose up -d --build
 说明:
 
 - 对外端口在 `docker-compose.yml` 的 `web.ports`(默认 `8088:80`)中修改;
+- 站点对外地址通过构建参数注入(sitemap/robots/canonical/OG 使用):`SITE_URL=https://type.toby-blog.com docker compose up -d --build`(默认即该域名);
 - `server` 的 3001 端口默认只在 compose 内部网络可达,需要从宿主机直连 API 时取消该服务 `ports` 的注释;
 - 两个 Dockerfile(`apps/server/Dockerfile`、`apps/web/Dockerfile`)均以**仓库根目录**为构建上下文的多阶段构建,单独构建示例:`docker build -f apps/server/Dockerfile .`;
 - nginx 反代地址为 compose 服务名 `server:3001`(`apps/web/nginx.conf`),改服务名需同步修改;`proxy_pass` 使用变量 + Docker 内置 DNS resolver,server 容器重建换 IP 后无需 reload;
 - nginx 已开启 `absolute_redirect off`,放在 TLS 终止代理(https)之后部署时,目录补斜杠等 301 不会因 http 绝对地址被浏览器当作混合内容拦截。
+
+## SEO
+
+面向搜索引擎(含不执行 JS 的 Baiduspider)的完整优化,构建管线自动完成,无需手动操作:
+
+| 能力                                  | 实现                                                                                                                        |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| 每页独立 TDK(title/description)       | `@unhead/vue`:路由 meta 提供默认值,课程/关卡页在数据加载后动态覆盖                                                          |
+| canonical / Open Graph / Twitter Card | 全部路由自动注入,地址基于 `VITE_SITE_URL`(默认 https://type.toby-blog.com)                                                  |
+| 结构化数据 JSON-LD                    | 首页 `WebSite`;游戏页 `VideoGame`;课程/游戏列表页 `ItemList`;课程与关卡页 `BreadcrumbList`                                  |
+| sitemap.xml / robots.txt              | `scripts/gen-seo.mjs` 构建时从课程 JSON 生成(61 个 URL),产物在 `public/`,不入库                                             |
+| **静态预渲染**                        | `scripts/prerender.mjs` 用 Playwright 把全部 61 个路由渲染成静态 HTML 快照写入 `dist/`,爬虫无需执行 JS 即可抓取正文与 meta  |
+| nginx 快照分发                        | `try_files $uri $uri/index.html /index.html`:干净 URL 直接命中预渲染快照,内部重写无 301;HTML 一律 no-cache                  |
+| 站点图标 / PWA manifest               | `public/favicon.svg`(设计源)由 `scripts/gen-icons.mjs` 生成 `.ico`/PNG 全尺寸集与 `manifest.webmanifest`,图标变更时手动重跑 |
+
+本地构建 + 预渲染(与 Docker 构建产物一致):
+
+```bash
+pnpm build                              # 含 gen-seo(sitemap/robots)与入口壳缓存
+pnpm --filter @type-happy/web prerender # 需本机已安装 Playwright Chromium
+```
+
+Docker 构建(web 镜像)已内置以上全部步骤:构建阶段基于 `node:22-bookworm-slim`(Playwright 不支持 alpine),安装 Chromium 后完成 build + prerender,最终镜像仍为 nginx:alpine。换域名时用 `SITE_URL` 构建参数覆盖(见「Docker 部署」)。
+
+预渲染实现要点(`scripts/prerender.mjs`):启动 server(随机高位端口,`LOG_LEVEL=silent`)与 `vite preview`(代理 `/api`)→ 4 并发访问每个路由,`networkidle` 后序列化 DOM 写入 `dist/<route>/index.html`。首页快照最后写入并可用 `save-shell.mjs` 缓存的干净壳还原,避免其污染其他路由的 SPA fallback;快照中的预渲染机地址(modulepreload 绝对链接)会被归一为相对路径。
+
+上线后到各搜索引擎站长平台提交(一次性操作):
+
+- **Google Search Console** / **Bing Webmaster Tools**:验证站点后提交 `https://type.toby-blog.com/sitemap.xml`;
+- **百度搜索资源平台**(ziyuan.baidu.com):验证站点、提交 sitemap,新内容可用「普通收录-主动推送」加速;
+- canonical/og:url 已声明 https 正式域名,注意同时提交 `http→https` 与 `www/裸域` 中实际使用的唯一版本。
 
 ## 项目结构
 
@@ -61,15 +94,16 @@ type-happy/
 │   │   ├── scripts/gen-content.mjs # 内容生成器
 │   │   └── Dockerfile            # 后端 API 生产镜像(Node 运行时,多阶段构建)
 │   └── web/                  # @type-happy/web:Vue 3 SPA
-│       ├── src/composables/      # useTypingEngine / useChineseEngine / useKeyGame / useFightGame / useStats
+│       ├── src/composables/      # useTypingEngine / useChineseEngine / useKeyGame / useFightGame / useStats / useSeo
 │       ├── src/components/       # 虚拟键盘、打字区、拼音打字区、统计、结算
 │       │   └── games/            # 小游戏组件(BalloonGame / DuckGame / FighterGame / DoodleJumpGame 及 HUD、Overlay)
 │       ├── src/games/doodle-jump/ # 涂鸦跳跃引擎(Pixi.js:game / save / trackers / audio)
 │       ├── src/stores/           # progress.ts(练习进度)+ games.ts(游戏最高分),均为 Pinia + localStorage
 │       ├── src/utils/            # fingerMap / keyboardLayout / format
 │       ├── src/views/            # Home / CourseList / CourseDetail / Practice / GameList + 各游戏页
-│       ├── scripts/              # smoke-engines.ts(引擎冒烟)+ e2e-doodle.mjs(Playwright e2e)
+│       ├── scripts/              # smoke-engines.ts(引擎冒烟)+ e2e-doodle.mjs(Playwright e2e)+ gen-seo/prerender/save-shell(SEO 构建管线)+ gen-icons.mjs(图标生成)
 │       ├── games/vue-idle-game/  # 放置刷装备源码(vendored,Vue 2 独立构建,见「游戏模块」)
+│       ├── public/               # 站点图标(favicon.svg/.ico、apple-touch-icon、icon-192/512、manifest.webmanifest)与 og-cover
 │       ├── public/games/idle/    # vue-idle-game 构建产物,由 vite 原样托管在 /games/idle/
 │       ├── public/games/doodle/  # 涂鸦跳跃静态资源(atlas / audio / img),托管在 /games/doodle/
 │       ├── nginx.conf            # 前端容器 nginx:SPA 回退 + /api 反代
@@ -142,8 +176,8 @@ courseId:`fingering` / `english` / `chinese`。非法 id 返回 404。
 - Playwright e2e 覆盖加载、输入、死亡结算、存档持久化、任务/成就/选项界面与控制台无报错:
 
 ```bash
-pnpm --filter @type-happy/web build
-pnpm --filter @type-happy/web exec vite preview --port 5199 &  # 或任意端口
+# e2e 依赖 window.__doodle 调试钩子,仅 DEV 构建暴露,须跑 dev server(而非 preview)
+pnpm --filter @type-happy/web exec vite --port 5199 &
 E2E_BASE=http://localhost:5199 node apps/web/scripts/e2e-doodle.mjs
 ```
 

@@ -5,13 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "node scripts/gen-seo.mjs && vite build && node scripts/save-shell.mjs",
+    "prerender": "node scripts/prerender.mjs",
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
     "smoke": "tsx scripts/smoke-engines.ts"
   },
   "dependencies": {
     "@type-happy/shared": "workspace:*",
+    "@unhead/vue": "^3.4.2",
     "pinia": "^4.0.3",
     "pixi.js": "^8.22.0",
     "vue": "^3.5.43",

@@ -2,8 +2,10 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import type { Lesson, LessonMeta, PracticeResult } from '@type-happy/shared'
+import { useSeoMeta } from '@unhead/vue'
 import { ApiError, fetchCourse, fetchLesson } from '../api/client'
 import { isBetterResult, useProgressStore } from '../stores/progress'
+import { useBreadcrumb, withSite } from '../composables/useSeo'
 import PracticeSession from '../components/PracticeSession.vue'
 import ResultPanel from '../components/ResultPanel.vue'
 
@@ -46,7 +48,6 @@ async function load(courseId: string, lessonId: string): Promise<void> {
     lesson.value = lessonData
     courseTitle.value = courseData?.course.title ?? ''
     courseLessons.value = courseData?.lessons ?? []
-    document.title = `${lessonData.title} · 打字乐园`
   } catch (e) {
     lesson.value = null
     if (e instanceof ApiError && e.status === 404) notFound.value = true
@@ -60,6 +61,31 @@ onMounted(() => load(props.courseId, props.lessonId))
 watch(
   () => [props.courseId, props.lessonId],
   ([courseId, lessonId]) => load(courseId, lessonId),
+)
+
+const seoTitle = computed(() => withSite(lesson.value?.title ?? ''))
+const seoDescription = computed(
+  () =>
+    lesson.value?.description ??
+    `${courseTitle.value || '打字课程'}在线打字练习关卡:实时判分,统计 WPM 速度与准确率,虚拟键盘指法引导。`,
+)
+
+useSeoMeta({
+  title: seoTitle,
+  description: seoDescription,
+  ogTitle: seoTitle,
+  ogDescription: seoDescription,
+})
+
+useBreadcrumb(
+  computed(() => [
+    { name: '首页', path: '/' },
+    { name: courseTitle.value || '课程', path: `/courses/${props.courseId}` },
+    {
+      name: lesson.value?.title ?? '练习',
+      path: `/courses/${props.courseId}/lessons/${props.lessonId}`,
+    },
+  ]),
 )
 
 function onFinished(result: PracticeResult): void {

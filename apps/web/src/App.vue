@@ -1,5 +1,70 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from 'vue-router'
+import { computed } from 'vue'
+import { RouterLink, RouterView, useRoute } from 'vue-router'
+import { useHead } from '@unhead/vue'
+import { SITE_NAME, SITE_ORIGIN, withSite } from './composables/useSeo'
+
+const route = useRoute()
+
+const title = computed(() =>
+  route.name === 'home'
+    ? `${SITE_NAME} - 免费在线打字练习与打字游戏`
+    : withSite(route.meta.title ?? ''),
+)
+const description = computed(
+  () =>
+    route.meta.description ?? '免费在线打字练习网站:指法、英文、中文拼音课程与打字游戏,无需注册。',
+)
+const canonical = computed(() => SITE_ORIGIN + route.path)
+
+const jsonLd = computed<object[]>(() => {
+  const list: object[] = []
+  if (route.name === 'home') {
+    list.push({
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: SITE_NAME,
+      alternateName: 'type-happy',
+      url: `${SITE_ORIGIN}/`,
+      description: description.value,
+      inLanguage: 'zh-CN',
+    })
+  }
+  if (route.meta.ld === 'VideoGame') {
+    list.push({
+      '@context': 'https://schema.org',
+      '@type': 'VideoGame',
+      name: route.meta.title ?? '',
+      description: description.value,
+      url: canonical.value,
+      inLanguage: 'zh-CN',
+      applicationCategory: 'Game',
+      gamePlatform: 'Web Browser',
+      browserRequirements: 'Requires JavaScript',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'CNY' },
+    })
+  }
+  return list
+})
+
+useHead({
+  title,
+  meta: [
+    { name: 'description', content: description },
+    { property: 'og:site_name', content: SITE_NAME },
+    { property: 'og:type', content: 'website' },
+    { property: 'og:locale', content: 'zh_CN' },
+    { property: 'og:title', content: title },
+    { property: 'og:description', content: description },
+    { property: 'og:url', content: canonical },
+    { property: 'og:image', content: `${SITE_ORIGIN}/og-cover.svg` },
+    { name: 'twitter:card', content: 'summary_large_image' },
+  ],
+  link: [{ rel: 'canonical', href: canonical }],
+  script: computed(() =>
+    jsonLd.value.map((ld) => ({ type: 'application/ld+json', textContent: JSON.stringify(ld) })),
+  ),
+})
 </script>
 
 <template>

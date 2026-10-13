@@ -1,8 +1,10 @@
 # syntax=docker/dockerfile:1
 # 构建上下文必须是仓库根目录:docker build -f apps/web/Dockerfile .
 
-# ---- 构建阶段:安装全部依赖并编译 shared → web(vite build)----
-FROM node:22-alpine AS build
+# ---- 构建阶段:安装全部依赖,编译 shared → server → web,并预渲染 SEO 静态快照 ----
+# 预渲染脚本需要 Playwright Chromium;Playwright 不支持 alpine(musl),故构建阶段用 debian slim,
+# 最终运行镜像仍为 nginx:alpine,不受影响。
+FROM node:22-bookworm-slim AS build
 RUN npm install -g pnpm@10.34.6
 WORKDIR /app
 
@@ -13,10 +15,22 @@ COPY apps/server/package.json apps/server/
 COPY apps/web/package.json apps/web/
 RUN pnpm install --frozen-lockfile
 
-# 再复制源码并构建前端产物
+# 预渲染用 Chromium(独立层缓存,仅 playwright 版本变化时重新下载)
+RUN pnpm --filter @type-happy/web exec playwright install --with-deps chromium
+
+# 站点对外地址(sitemap.xml / robots.txt / canonical / OG 使用),可通过构建参数覆盖
+ARG SITE_URL=https://type.toby-blog.com
+ENV SITE_URL=$SITE_URL
+ENV VITE_SITE_URL=$SITE_URL
+
+# 再复制源码:构建 shared/server/web,gen-seo 生成 sitemap/robots,prerender 产出全路由静态快照
 COPY packages/shared packages/shared
+COPY apps/server apps/server
 COPY apps/web apps/web
-RUN pnpm --filter @type-happy/shared build && pnpm --filter @type-happy/web build
+RUN pnpm --filter @type-happy/shared build \
+ && pnpm --filter @type-happy/server build \
+ && pnpm --filter @type-happy/web build \
+ && pnpm --filter @type-happy/web prerender
 
 # ---- 运行阶段:nginx 托管静态产物并反代 /api 到 server 容器 ----
 FROM nginx:1.27-alpine AS runtime

@@ -2,8 +2,10 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { RouterLink, useRouter } from 'vue-router'
 import type { CourseDetail } from '@type-happy/shared'
+import { useSeoMeta } from '@unhead/vue'
 import { ApiError, fetchCourse } from '../api/client'
 import { useProgressStore } from '../stores/progress'
+import { useBreadcrumb, withSite } from '../composables/useSeo'
 
 const props = defineProps<{ courseId: string }>()
 const router = useRouter()
@@ -33,6 +35,29 @@ onMounted(() => load(props.courseId))
 watch(
   () => props.courseId,
   (id) => load(id),
+)
+
+useSeoMeta({
+  title: computed(() => withSite(detail.value?.course.title ?? '')),
+  description: computed(
+    () =>
+      detail.value?.course.description ??
+      '打字练习课程关卡列表:循序渐进的关卡设计,虚拟键盘指法引导,完成上一关解锁下一关。',
+  ),
+  ogTitle: computed(() => withSite(detail.value?.course.title ?? '')),
+  ogDescription: computed(
+    () =>
+      detail.value?.course.description ??
+      '打字练习课程关卡列表:循序渐进的关卡设计,虚拟键盘指法引导,完成上一关解锁下一关。',
+  ),
+})
+
+useBreadcrumb(
+  computed(() => [
+    { name: '首页', path: '/' },
+    { name: '全部课程', path: '/courses' },
+    { name: detail.value?.course.title ?? '课程', path: `/courses/${props.courseId}` },
+  ]),
 )
 
 const lessonIds = computed(() => detail.value?.lessons.map((l) => l.id) ?? [])

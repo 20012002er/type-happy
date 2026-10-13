@@ -8,7 +8,7 @@ services:
     image: type-happy-server:latest
     environment:
       NODE_ENV: production
-      PORT: "3001"
+      PORT: '3001'
     restart: unless-stopped
     # 3001 仅供 web(nginx)容器在内部网络反代,不发布到宿主机;
     # 如需从宿主机直接访问 API,取消下面注释:
@@ -19,9 +19,12 @@ services:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      args:
+        # 站点对外地址,用于生成 sitemap.xml / robots.txt(SEO)
+        SITE_URL: ${SITE_URL:-https://type.toby-blog.com}
     image: type-happy-web:latest
     ports:
-      - "8088:80"
+      - '8088:80'
     depends_on:
       server:
         condition: service_healthy
