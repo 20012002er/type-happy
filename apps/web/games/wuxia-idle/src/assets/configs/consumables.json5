@@ -1,0 +1,315 @@
+{
+  version: '0.2.0',
+  lastUpdated: '2025-01-10',
+  items: {
+    // ========== 炼丹产出的丹药 ==========
+    pill_healing_basic: {
+      id: 'pill_healing_basic',
+      name: '金疮药',
+      description: '用金疮草炼制的基础疗伤药，可恢复少量生命值',
+      category: 'potion',
+      quality: 'common',
+      cooldownSec: 5,
+      effects: [ { type: 'restoreHp', amount: 50 } ]
+    },
+    
+    pill_healing_medium: {
+      id: 'pill_healing_medium',
+      name: '回血丹',
+      description: '用多种草药炼制的回血丹，恢复效果显著',
+      category: 'potion',
+      quality: 'fine',
+      cooldownSec: 8,
+      effects: [ { type: 'restoreHp', amount: 120 } ]
+    },
+    
+    pill_healing_advanced: {
+      id: 'pill_healing_advanced',
+      name: '大还丹',
+      description: '以人参、灵芝为主药炼制的大还丹，疗伤圣药',
+      category: 'potion',
+      quality: 'rare',
+      cooldownSec: 10,
+      effects: [ { type: 'restoreHp', amount: 250 } ]
+    },
+    
+    pill_healing_master: {
+      id: 'pill_healing_master',
+      name: '九转回魂丹',
+      description: '传说中的仙丹，可起死回生',
+      category: 'potion',
+      quality: 'epic',
+      cooldownSec: 15,
+      effects: [ { type: 'restoreHp', amount: 500 } ]
+    },
+    
+    pill_stamina_basic: {
+      id: 'pill_stamina_basic',
+      name: '回气丸',
+      description: '用回气草炼制的基础丹药，恢复少量体力',
+      category: 'potion',
+      quality: 'common',
+      cooldownSec: 5,
+      effects: [ { type: 'restoreStamina', amount: 30 } ]
+    },
+    
+    pill_stamina_medium: {
+      id: 'pill_stamina_medium',
+      name: '凝气丹',
+      description: '凝聚内力的丹药，快速恢复体力',
+      category: 'potion',
+      quality: 'fine',
+      cooldownSec: 8,
+      effects: [ { type: 'restoreStamina', amount: 60 } ]
+    },
+    
+    pill_stamina_advanced: {
+      id: 'pill_stamina_advanced',
+      name: '聚灵丹',
+      description: '聚天地灵气而成的丹药，大幅恢复体力',
+      category: 'potion',
+      quality: 'rare',
+      cooldownSec: 10,
+      effects: [ { type: 'restoreStamina', amount: 120 } ]
+    },
+    
+    // ========== 回复内力的丹药 ==========
+    pill_energy_basic: {
+      id: 'pill_energy_basic',
+      name: '养气丹',
+      description: '用灵草炼制的基础丹药，可恢复少量内力',
+      category: 'potion',
+      quality: 'common',
+      cooldownSec: 3,
+      effects: [ { type: 'restoreEnergy', amount: 30 } ]
+    },
+    
+    pill_energy_medium: {
+      id: 'pill_energy_medium',
+      name: '培元丹',
+      description: '培固根元的丹药，显著恢复内力',
+      category: 'potion',
+      quality: 'fine',
+      cooldownSec: 5,
+      effects: [ { type: 'restoreEnergy', amount: 60 } ]
+    },
+    
+    pill_energy_advanced: {
+      id: 'pill_energy_advanced',
+      name: '归元丹',
+      description: '归于本元的高级丹药，大幅恢复内力',
+      category: 'potion',
+      quality: 'rare',
+      cooldownSec: 8,
+      effects: [ { type: 'restoreEnergy', amount: 120 } ]
+    },
+    
+    // ========== 测试用丹药 ==========
+    potion_small: {
+      id: 'potion_small',
+      name: '小还丹',
+      description: '初级丹药，可恢复少量生命值',
+      category: 'potion',
+      quality: 'common',
+      cooldownSec: 10,
+      effects: [ { type: 'restoreHp', amount: 50 } ]
+    },
+    
+    egg_soup: {
+      id: 'egg_soup',
+      name: '鸡蛋汤',
+      description: '简单的营养汤，恢复体力和生命',
+      category: 'food',
+      quality: 'common',
+      cooldownSec: 30,
+      effects: [
+        { type: 'restoreHp', amount: 30 },
+        { type: 'restoreStamina', amount: 20 }
+      ]
+    },
+    
+    // ========== 烹饪料理 - 普通品质 ==========
+    grilled_fish_item: {
+      id: 'grilled_fish_item',
+      name: '烤鱼',
+      description: '简单的烤鱼，能恢复一些体力和生命',
+      category: 'cooked_food',
+      quality: 'common',
+      cooldownSec: 30,
+      effects: [
+        { type: 'restoreHp', amount: 30 },
+        { type: 'restoreStamina', amount: 20 }
+      ]
+    },
+    
+    herb_soup_item: {
+      id: 'herb_soup_item',
+      name: '草药汤',
+      description: '草药熬制的汤水，恢复生命值',
+      category: 'cooked_food',
+      quality: 'common',
+      cooldownSec: 30,
+      effects: [
+        { type: 'restoreHp', amount: 50 }
+      ]
+    },
+    
+    // ========== 烹饪料理 - 精良品质 ==========
+    fish_stew_item: {
+      id: 'fish_stew_item',
+      name: '鱼肉炖汤',
+      description: '营养丰富的鱼汤，恢复大量生命和体力',
+      category: 'cooked_food',
+      quality: 'fine',
+      cooldownSec: 45,
+      effects: [
+        { type: 'restoreHp', amount: 80 },
+        { type: 'restoreStamina', amount: 40 }
+      ]
+    },
+    
+    wood_fire_fish_item: {
+      id: 'wood_fire_fish_item',
+      name: '木火烤鱼',
+      description: '用柳木烤制的鱼肉，散发着木香',
+      category: 'cooked_food',
+      quality: 'fine',
+      cooldownSec: 45,
+      effects: [
+        { type: 'restoreHp', amount: 60 },
+        { type: 'restoreStamina', amount: 60 }
+      ]
+    },
+    
+    roasted_meat_item: {
+      id: 'roasted_meat_item',
+      name: '烤肉',
+      description: '香喷喷的烤肉，大幅恢复体力',
+      category: 'cooked_food',
+      quality: 'fine',
+      cooldownSec: 45,
+      effects: [
+        { type: 'restoreHp', amount: 60 },
+        { type: 'restoreStamina', amount: 60 }
+      ]
+    },
+    
+    ginseng_tea_item: {
+      id: 'ginseng_tea_item',
+      name: '参茶',
+      description: '以人参熬制的茶水，恢复内力',
+      category: 'cooked_food',
+      quality: 'common',
+      cooldownSec: 30,
+      effects: [
+        { type: 'restoreEnergy', amount: 40 }
+      ]
+    },
+    
+    spirit_soup_item: {
+      id: 'spirit_soup_item',
+      name: '灵芝汤',
+      description: '以灵芝熬制的汤水，显著恢复内力',
+      category: 'cooked_food',
+      quality: 'fine',
+      cooldownSec: 40,
+      effects: [
+        { type: 'restoreEnergy', amount: 70 }
+      ]
+    },
+    
+    // ========== 烹饪料理 - 稀有品质（带buff） ==========
+    energy_fish_item: {
+      id: 'energy_fish_item',
+      name: '元气鱼汤',
+      description: '充满元气的鱼汤，恢复体力并短时间增加暴击率',
+      category: 'cooked_food',
+      quality: 'rare',
+      cooldownSec: 60,
+      effects: [
+        { type: 'restoreHp', amount: 100 },
+        { type: 'restoreStamina', amount: 80 },
+        { type: 'buffCritRate', amount: 0.1, duration: 180 }  // +10%暴击率，持续3分钟
+      ]
+    },
+    
+    energy_rice_item: {
+      id: 'energy_rice_item',
+      name: '元气饭团',
+      description: '充满元气的饭团，恢复体力并短时间增加暴击率',
+      category: 'cooked_food',
+      quality: 'rare',
+      cooldownSec: 60,
+      effects: [
+        { type: 'restoreHp', amount: 100 },
+        { type: 'restoreStamina', amount: 80 },
+        { type: 'buffCritRate', amount: 0.1, duration: 180 }  // +10%暴击率，持续3分钟
+      ]
+    },
+    
+    power_soup_item: {
+      id: 'power_soup_item',
+      name: '气力汤',
+      description: '武林秘传汤品，短时间内增强力量',
+      category: 'cooked_food',
+      quality: 'rare',
+      cooldownSec: 60,
+      effects: [
+        { type: 'restoreHp', amount: 120 },
+        { type: 'buffAttack', amount: 15, duration: 300 }  // +15攻击力，持续5分钟
+      ]
+    },
+    
+    // ========== 烹饪料理 - 史诗品质（强力buff） ==========
+    dragon_soup_item: {
+      id: 'dragon_soup_item',
+      name: '龙虎汤',
+      description: '传说中的绝品佳肴，大幅提升战斗能力',
+      category: 'cooked_food',
+      quality: 'epic',
+      cooldownSec: 90,
+      effects: [
+        { type: 'restoreHp', amount: 200 },
+        { type: 'restoreStamina', amount: 150 },
+        { type: 'buffAttack', amount: 25, duration: 600 },   // +25攻击，持续10分钟
+        { type: 'buffDefense', amount: 15, duration: 600 }   // +15防御，持续10分钟
+      ]
+    },
+    
+    immortal_pill_item: {
+      id: 'immortal_pill_item',
+      name: '仙丹妙药',
+      description: '近乎传说的料理，全面提升能力',
+      category: 'cooked_food',
+      quality: 'epic',
+      cooldownSec: 120,
+      effects: [
+        { type: 'restoreHp', amount: 300 },
+        { type: 'restoreStamina', amount: 200 },
+        { type: 'buffAttack', amount: 30, duration: 900 },
+        { type: 'buffDefense', amount: 20, duration: 900 },
+        { type: 'buffExpGain', amount: 0.2, duration: 900 }  // +20%经验获取，持续15分钟
+      ]
+    },
+    
+    // ========== 烹饪料理 - 传说品质（顶级buff） ==========
+    celestial_feast_item: {
+      id: 'celestial_feast_item',
+      name: '天龙盛宴',
+      description: '传说中的绝世料理，食用后功力大增',
+      category: 'cooked_food',
+      quality: 'legendary',
+      cooldownSec: 180,
+      effects: [
+        { type: 'restoreHp', amount: 500 },
+        { type: 'restoreStamina', amount: 300 },
+        { type: 'buffAttack', amount: 50, duration: 1800 },
+        { type: 'buffDefense', amount: 35, duration: 1800 },
+        { type: 'buffSpeed', amount: 0.3, duration: 1800 },
+        { type: 'buffCritRate', amount: 0.15, duration: 1800 },
+        { type: 'buffExpGain', amount: 0.5, duration: 1800 }  // +50%经验，持续30分钟
+      ]
+    }
+  }
+}
+

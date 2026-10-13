@@ -1,0 +1,1284 @@
+{
+  version: '2.0.0',
+  lastUpdated: '2025-01-12',
+  description: '铸造系统配置 - 支持9个装备槽位的完整铸造体系',
+  
+  // ========== 铸造材料（中间产物） ==========
+  // 用于将矿石、木材等原材料加工成装备制作材料
+  materials: {
+    // ===== 金属锭 =====
+    iron_ingot: {
+      id: 'iron_ingot',
+      name: '铁锭',
+      description: '冶炼铁矿石得到的铁锭，可用于锻造基础装备',
+      category: 'materials',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 3000,  // 3秒
+      experience: 15,
+      baseSuccessRate: 0.95,
+      ingredients: [
+        { id: 'ore_tiekuang', quantity: 2 }  // 铁矿 x2
+      ],
+      result: {
+        itemId: 'iron_ingot',
+        quantity: 1
+      }
+    },
+    
+    copper_ingot: {
+      id: 'copper_ingot',
+      name: '铜锭',
+      description: '冶炼铜矿得到的铜锭，用途广泛',
+      category: 'materials',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 3000,
+      experience: 15,
+      baseSuccessRate: 0.95,
+      ingredients: [
+        { id: 'ore_tongkuang', quantity: 2 }  // 铜矿 x2
+      ],
+      result: {
+        itemId: 'copper_ingot',
+        quantity: 1
+      }
+    },
+    
+    steel_ingot: {
+      id: 'steel_ingot',
+      name: '钢锭',
+      description: '精炼铁锭得到的钢锭，比铁锭更坚固',
+      category: 'materials',
+      quality: 'fine',
+      requiredLevel: 5,
+      craftTime: 5000,
+      experience: 30,
+      baseSuccessRate: 0.85,
+      ingredients: [
+        { id: 'ore_tiekuang', quantity: 3 },
+        { id: 'ore_meikuang', quantity: 1 }  // 煤矿作为燃料
+      ],
+      result: {
+        itemId: 'steel_ingot',
+        quantity: 1
+      }
+    },
+    
+    silver_ingot: {
+      id: 'silver_ingot',
+      name: '银锭',
+      description: '冶炼银矿得到的银锭，可用于制作精良装备',
+      category: 'materials',
+      quality: 'rare',
+      requiredLevel: 10,
+      craftTime: 8000,
+      experience: 50,
+      baseSuccessRate: 0.75,
+      ingredients: [
+        { id: 'ore_yinkuang', quantity: 2 }  // 银矿 x2
+      ],
+      result: {
+        itemId: 'silver_ingot',
+        quantity: 1
+      }
+    },
+    
+    gold_ingot: {
+      id: 'gold_ingot',
+      name: '金锭',
+      description: '冶炼金矿得到的金锭，珍贵的装备材料',
+      category: 'materials',
+      quality: 'epic',
+      requiredLevel: 15,
+      craftTime: 12000,
+      experience: 80,
+      baseSuccessRate: 0.65,
+      ingredients: [
+        { id: 'ore_jinkuang', quantity: 2 }  // 金矿 x2
+      ],
+      result: {
+        itemId: 'gold_ingot',
+        quantity: 1
+      }
+    },
+    
+    // ===== 木质部件 =====
+    wooden_handle: {
+      id: 'wooden_handle',
+      name: '木质手柄',
+      description: '用木材制作的武器手柄',
+      category: 'materials',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 2000,
+      experience: 10,
+      baseSuccessRate: 0.95,
+      ingredients: [
+        { id: 'wood_song', quantity: 2 }  // 松木 x2
+      ],
+      result: {
+        itemId: 'wooden_handle',
+        quantity: 1
+      }
+    },
+    
+    hardwood_handle: {
+      id: 'hardwood_handle',
+      name: '硬木手柄',
+      description: '用优质木材制作的坚固手柄',
+      category: 'materials',
+      quality: 'fine',
+      requiredLevel: 5,
+      craftTime: 4000,
+      experience: 25,
+      baseSuccessRate: 0.85,
+      ingredients: [
+        { id: 'wood_tan', quantity: 2 }  // 檀木 x2
+      ],
+      result: {
+        itemId: 'hardwood_handle',
+        quantity: 1
+      }
+    },
+    
+    wooden_shield_frame: {
+      id: 'wooden_shield_frame',
+      name: '木质盾框',
+      description: '用木材制作的盾牌框架',
+      category: 'materials',
+      quality: 'common',
+      requiredLevel: 2,
+      craftTime: 3000,
+      experience: 15,
+      baseSuccessRate: 0.9,
+      ingredients: [
+        { id: 'wood_song', quantity: 3 }  // 松木 x3
+      ],
+      result: {
+        itemId: 'wooden_shield_frame',
+        quantity: 1
+      }
+    },
+    
+    // ===== 布料（新增）=====
+    linen_cloth: {
+      id: 'linen_cloth',
+      name: '亚麻布',
+      description: '基础的亚麻布料，可用于制作布甲',
+      category: 'materials',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 2000,
+      experience: 10,
+      baseSuccessRate: 0.95,
+      ingredients: [
+        { id: 'herb_jinchang', quantity: 3 }  // 暂用草药代替（未来可添加棉花资源）
+      ],
+      result: {
+        itemId: 'linen_cloth',
+        quantity: 1
+      }
+    },
+    
+    silk_cloth: {
+      id: 'silk_cloth',
+      name: '丝绸',
+      description: '高级丝绸布料，柔软而坚韧',
+      category: 'materials',
+      quality: 'fine',
+      requiredLevel: 6,
+      craftTime: 4000,
+      experience: 25,
+      baseSuccessRate: 0.85,
+      ingredients: [
+        { id: 'herb_qingling', quantity: 3 }  // 暂用草药代替
+      ],
+      result: {
+        itemId: 'silk_cloth',
+        quantity: 1
+      }
+    },
+    
+    // 由丝绸抽丝而成的中间材质，用于饰品与轻装
+    silk_thread: {
+      id: 'silk_thread',
+      name: '丝线',
+      description: '由丝绸抽丝制成，坚韧而细密',
+      category: 'materials',
+      quality: 'fine',
+      requiredLevel: 6,
+      craftTime: 3000,
+      experience: 20,
+      baseSuccessRate: 0.9,
+      ingredients: [
+        { id: 'silk_cloth', quantity: 1 }
+      ],
+      result: {
+        itemId: 'silk_thread',
+        quantity: 3
+      }
+    },
+    // 皮革相关配方已迁移至 leatherworking-recipes.json5（制皮技能）
+  },
+  
+  // ========== 装备配方 ==========
+  equipment: {
+    // ========== 头部装备 (head) ==========
+    
+    // 普通品质
+    dou_li: {
+      id: 'dou_li',
+      name: '斗笠',
+      description: '遮阳防雨，江湖必备',
+      category: 'head',
+      slot: 'head',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 4000,
+      experience: 15,
+      baseSuccessRate: 0.9,
+      ingredients: [
+        { id: 'linen_cloth', quantity: 2 },
+        { id: 'wood_yang', quantity: 1 }
+      ],
+      result: {
+        itemId: 'dou_li',
+        quantity: 1
+      }
+    },
+    
+    tou_jin: {
+      id: 'tou_jin',
+      name: '头巾',
+      description: '束发用的布巾',
+      category: 'head',
+      slot: 'head',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 3000,
+      experience: 12,
+      baseSuccessRate: 0.95,
+      ingredients: [
+        { id: 'linen_cloth', quantity: 1 }
+      ],
+      result: {
+        itemId: 'tou_jin',
+        quantity: 1
+      }
+    },
+    
+    // 精良品质
+    pi_mao: {
+      id: 'pi_mao',
+      name: '皮帽',
+      description: '用兽皮制成的帽子',
+      category: 'head',
+      slot: 'head',
+      quality: 'uncommon',
+      requiredLevel: 6,
+      craftTime: 6000,
+      experience: 30,
+      baseSuccessRate: 0.85,
+      ingredients: [
+        { id: 'leather', quantity: 2 },
+        { id: 'linen_cloth', quantity: 1 }
+      ],
+      result: {
+        itemId: 'pi_mao',
+        quantity: 1
+      }
+    },
+    
+    tie_kui: {
+      id: 'tie_kui',
+      name: '铁盔',
+      description: '基础的铁制头盔',
+      category: 'head',
+      slot: 'head',
+      quality: 'uncommon',
+      requiredLevel: 8,
+      craftTime: 7000,
+      experience: 35,
+      baseSuccessRate: 0.8,
+      ingredients: [
+        { id: 'iron_ingot', quantity: 2 },
+        { id: 'leather', quantity: 1 }
+      ],
+      result: {
+        itemId: 'tie_kui',
+        quantity: 1
+      }
+    },
+    
+    // 稀有品质
+    gang_kui: {
+      id: 'gang_kui',
+      name: '钢盔',
+      description: '坚固的钢制头盔',
+      category: 'head',
+      slot: 'head',
+      quality: 'rare',
+      requiredLevel: 18,
+      craftTime: 10000,
+      experience: 60,
+      baseSuccessRate: 0.7,
+      ingredients: [
+        { id: 'steel_ingot', quantity: 3 },
+        { id: 'fine_leather', quantity: 1 }
+      ],
+      result: {
+        itemId: 'gang_kui',
+        quantity: 1
+      }
+    },
+    
+    // ========== 武器 (weapon) ==========
+    
+    // 普通品质
+    mu_jian: {
+      id: 'mu_jian',
+      name: '木剑',
+      description: '新手练习用剑',
+      category: 'weapon',
+      slot: 'weapon',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 4000,
+      experience: 15,
+      baseSuccessRate: 0.95,
+      ingredients: [
+        { id: 'wood_song', quantity: 3 }
+      ],
+      result: {
+        itemId: 'mu_jian',
+        quantity: 1
+      }
+    },
+    
+    tie_jian: {
+      id: 'tie_jian',
+      name: '铁剑',
+      description: '普通的铁制长剑',
+      category: 'weapon',
+      slot: 'weapon',
+      quality: 'common',
+      requiredLevel: 3,
+      craftTime: 5000,
+      experience: 20,
+      baseSuccessRate: 0.9,
+      ingredients: [
+        { id: 'iron_ingot', quantity: 2 },
+        { id: 'wooden_handle', quantity: 1 }
+      ],
+      result: {
+        itemId: 'tie_jian',
+        quantity: 1
+      }
+    },
+    
+    // 精良品质
+    gang_jian: {
+      id: 'gang_jian',
+      name: '钢剑',
+      description: '精钢打造的长剑',
+      category: 'weapon',
+      slot: 'weapon',
+      quality: 'uncommon',
+      requiredLevel: 8,
+      craftTime: 8000,
+      experience: 40,
+      baseSuccessRate: 0.8,
+      ingredients: [
+        { id: 'steel_ingot', quantity: 2 },
+        { id: 'hardwood_handle', quantity: 1 }
+      ],
+      result: {
+        itemId: 'gang_jian',
+        quantity: 1
+      }
+    },
+    
+    hanfeng_jian: {
+      id: 'hanfeng_jian',
+      name: '寒锋剑',
+      description: '摸起来很凉的剑',
+      category: 'weapon',
+      slot: 'weapon',
+      quality: 'uncommon',
+      requiredLevel: 10,
+      craftTime: 9000,
+      experience: 45,
+      baseSuccessRate: 0.75,
+      ingredients: [
+        { id: 'steel_ingot', quantity: 2 },
+        { id: 'silver_ingot', quantity: 1 },
+        { id: 'hardwood_handle', quantity: 1 }
+      ],
+      result: {
+        itemId: 'hanfeng_jian',
+        quantity: 1
+      }
+    },
+    
+    // 稀有品质
+    yin_jian: {
+      id: 'yin_jian',
+      name: '银剑',
+      description: '闪耀银光的精良长剑',
+      category: 'weapon',
+      slot: 'weapon',
+      quality: 'rare',
+      requiredLevel: 16,
+      craftTime: 12000,
+      experience: 70,
+      baseSuccessRate: 0.7,
+      ingredients: [
+        { id: 'silver_ingot', quantity: 3 },
+        { id: 'hardwood_handle', quantity: 1 }
+      ],
+      result: {
+        itemId: 'yin_jian',
+        quantity: 1
+      }
+    },
+    
+    qinggang_jian: {
+      id: 'qinggang_jian',
+      name: '青钢剑',
+      description: '出鞘有声',
+      category: 'weapon',
+      slot: 'weapon',
+      quality: 'rare',
+      requiredLevel: 18,
+      craftTime: 13000,
+      experience: 80,
+      baseSuccessRate: 0.65,
+      ingredients: [
+        { id: 'steel_ingot', quantity: 3 },
+        { id: 'silver_ingot', quantity: 1 },
+        { id: 'hardwood_handle', quantity: 1 }
+      ],
+      result: {
+        itemId: 'qinggang_jian',
+        quantity: 1
+      }
+    },
+    
+    // ========== 副手 (offhand) ==========
+    
+    // 普通品质 - 盾牌
+    mu_dun: {
+      id: 'mu_dun',
+      name: '木盾',
+      description: '简易的木制圆盾',
+      category: 'offhand',
+      slot: 'offhand',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 4000,
+      experience: 15,
+      baseSuccessRate: 0.9,
+      ingredients: [
+        { id: 'wooden_shield_frame', quantity: 1 },
+        { id: 'linen_cloth', quantity: 1 }
+      ],
+      result: {
+        itemId: 'mu_dun',
+        quantity: 1
+      }
+    },
+    
+    tie_dun: {
+      id: 'tie_dun',
+      name: '铁盾',
+      description: '基础的铁制盾牌',
+      category: 'offhand',
+      slot: 'offhand',
+      quality: 'common',
+      requiredLevel: 4,
+      craftTime: 5000,
+      experience: 20,
+      baseSuccessRate: 0.85,
+      ingredients: [
+        { id: 'iron_ingot', quantity: 2 },
+        { id: 'wooden_shield_frame', quantity: 1 }
+      ],
+      result: {
+        itemId: 'tie_dun',
+        quantity: 1
+      }
+    },
+    
+    // 过渡副手 - 藤牌（介于铁盾与钢盾之间）
+    teng_pai: {
+      id: 'teng_pai',
+      name: '藤牌',
+      description: '以藤条编织的轻便盾牌',
+      category: 'offhand',
+      slot: 'offhand',
+      quality: 'common',
+      requiredLevel: 7,
+      craftTime: 6000,
+      experience: 28,
+      baseSuccessRate: 0.85,
+      ingredients: [
+        { id: 'wooden_shield_frame', quantity: 1 },
+        { id: 'linen_cloth', quantity: 2 },
+        { id: 'copper_ingot', quantity: 1 }
+      ],
+      result: {
+        itemId: 'teng_pai',
+        quantity: 1
+      }
+    },
+    
+    // 精良品质 - 盾牌
+    gang_dun: {
+      id: 'gang_dun',
+      name: '钢盾',
+      description: '坚固的钢制盾牌',
+      category: 'offhand',
+      slot: 'offhand',
+      quality: 'uncommon',
+      requiredLevel: 10,
+      craftTime: 8000,
+      experience: 45,
+      baseSuccessRate: 0.75,
+      ingredients: [
+        { id: 'steel_ingot', quantity: 3 },
+        { id: 'hardwood_handle', quantity: 1 }
+      ],
+      result: {
+        itemId: 'gang_dun',
+        quantity: 1
+      }
+    },
+    
+    // 普通品质 - 暗器
+    short_dao: {
+      id: 'short_dao',
+      name: '短刀',
+      description: '短小精悍的匕首',
+      category: 'offhand',
+      slot: 'offhand',
+      quality: 'common',
+      requiredLevel: 3,
+      craftTime: 4000,
+      experience: 18,
+      baseSuccessRate: 0.9,
+      ingredients: [
+        { id: 'iron_ingot', quantity: 1 },
+        { id: 'wooden_handle', quantity: 1 }
+      ],
+      result: {
+        itemId: 'short_dao',
+        quantity: 1
+      }
+    },
+    
+    // 精良品质 - 暗器
+    fei_dao: {
+      id: 'fei_dao',
+      name: '飞刀',
+      description: '可投掷的飞刀',
+      category: 'offhand',
+      slot: 'offhand',
+      quality: 'uncommon',
+      requiredLevel: 8,
+      craftTime: 6000,
+      experience: 35,
+      baseSuccessRate: 0.8,
+      ingredients: [
+        { id: 'steel_ingot', quantity: 2 },
+        { id: 'leather', quantity: 1 }
+      ],
+      result: {
+        itemId: 'fei_dao',
+        quantity: 1
+      }
+    },
+    
+    // ========== 衣甲 (armor) ==========
+    
+    // 普通品质
+    bu_yi: {
+      id: 'bu_yi',
+      name: '布衣',
+      description: '普通的布制衣服',
+      category: 'armor',
+      slot: 'armor',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 4000,
+      experience: 15,
+      baseSuccessRate: 0.95,
+      ingredients: [
+        { id: 'linen_cloth', quantity: 3 }
+      ],
+      result: {
+        itemId: 'bu_yi',
+        quantity: 1
+      }
+    },
+    
+    mianjia: {
+      id: 'mianjia',
+      name: '棉甲',
+      description: '柔软贴身的棉甲',
+      category: 'armor',
+      slot: 'armor',
+      quality: 'common',
+      requiredLevel: 3,
+      craftTime: 5000,
+      experience: 20,
+      baseSuccessRate: 0.9,
+      ingredients: [
+        { id: 'linen_cloth', quantity: 5 }
+      ],
+      result: {
+        itemId: 'mianjia',
+        quantity: 1
+      }
+    },
+    
+    // 精良品质
+    pi_jia: {
+      id: 'pi_jia',
+      name: '皮甲',
+      description: '用兽皮制成的护甲',
+      category: 'armor',
+      slot: 'armor',
+      quality: 'uncommon',
+      requiredLevel: 7,
+      craftTime: 8000,
+      experience: 40,
+      baseSuccessRate: 0.8,
+      ingredients: [
+        { id: 'leather', quantity: 4 },
+        { id: 'linen_cloth', quantity: 2 }
+      ],
+      result: {
+        itemId: 'pi_jia',
+        quantity: 1
+      }
+    },
+    
+    suozi_jia: {
+      id: 'suozi_jia',
+      name: '锁子甲',
+      description: '环环相扣的铁链甲',
+      category: 'armor',
+      slot: 'armor',
+      quality: 'uncommon',
+      requiredLevel: 10,
+      craftTime: 10000,
+      experience: 50,
+      baseSuccessRate: 0.75,
+      ingredients: [
+        { id: 'iron_ingot', quantity: 4 },
+        { id: 'leather', quantity: 2 }
+      ],
+      result: {
+        itemId: 'suozi_jia',
+        quantity: 1
+      }
+    },
+    
+    yunwen_pao: {
+      id: 'yunwen_pao',
+      name: '云纹袍',
+      description: '穿上后步伐生风',
+      category: 'armor',
+      slot: 'armor',
+      quality: 'uncommon',
+      requiredLevel: 12,
+      craftTime: 11000,
+      experience: 55,
+      baseSuccessRate: 0.7,
+      ingredients: [
+        { id: 'silk_cloth', quantity: 4 },
+        { id: 'silver_ingot', quantity: 1 }
+      ],
+      result: {
+        itemId: 'yunwen_pao',
+        quantity: 1
+      }
+    },
+    
+    // 稀有品质
+    gang_jia: {
+      id: 'gang_jia',
+      name: '钢甲',
+      description: '精钢打造的重甲',
+      category: 'armor',
+      slot: 'armor',
+      quality: 'rare',
+      requiredLevel: 18,
+      craftTime: 14000,
+      experience: 80,
+      baseSuccessRate: 0.65,
+      ingredients: [
+        { id: 'steel_ingot', quantity: 5 },
+        { id: 'fine_leather', quantity: 2 }
+      ],
+      result: {
+        itemId: 'gang_jia',
+        quantity: 1
+      }
+    },
+    
+    huxin_jia: {
+      id: 'huxin_jia',
+      name: '护心甲',
+      description: '据说挡过三箭五刀',
+      category: 'armor',
+      slot: 'armor',
+      quality: 'rare',
+      requiredLevel: 20,
+      craftTime: 15000,
+      experience: 90,
+      baseSuccessRate: 0.6,
+      ingredients: [
+        { id: 'steel_ingot', quantity: 5 },
+        { id: 'silver_ingot', quantity: 2 },
+        { id: 'fine_leather', quantity: 2 }
+      ],
+      result: {
+        itemId: 'huxin_jia',
+        quantity: 1
+      }
+    },
+    
+    // ========== 腰带 (belt) ==========
+    
+    // 普通品质
+    bu_dai: {
+      id: 'bu_dai',
+      name: '布带',
+      description: '普通的布制腰带',
+      category: 'belt',
+      slot: 'belt',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 2000,
+      experience: 10,
+      baseSuccessRate: 0.95,
+      ingredients: [
+        { id: 'linen_cloth', quantity: 2 }
+      ],
+      result: {
+        itemId: 'bu_dai',
+        quantity: 1
+      }
+    },
+    
+    pi_dai: {
+      id: 'pi_dai',
+      name: '皮带',
+      description: '结实的皮制腰带',
+      category: 'belt',
+      slot: 'belt',
+      quality: 'common',
+      requiredLevel: 3,
+      craftTime: 3000,
+      experience: 15,
+      baseSuccessRate: 0.9,
+      ingredients: [
+        { id: 'leather', quantity: 1 }
+      ],
+      result: {
+        itemId: 'pi_dai',
+        quantity: 1
+      }
+    },
+    
+    // 精良品质
+    tonghuan_dai: {
+      id: 'tonghuan_dai',
+      name: '铜环带',
+      description: '带铜环装饰的腰带',
+      category: 'belt',
+      slot: 'belt',
+      quality: 'uncommon',
+      requiredLevel: 8,
+      craftTime: 6000,
+      experience: 35,
+      baseSuccessRate: 0.8,
+      ingredients: [
+        { id: 'leather', quantity: 2 },
+        { id: 'copper_ingot', quantity: 2 }
+      ],
+      result: {
+        itemId: 'tonghuan_dai',
+        quantity: 1
+      }
+    },
+    
+    // 稀有品质
+    yu_dai: {
+      id: 'yu_dai',
+      name: '玉带',
+      description: '镶嵌玉石的腰带',
+      category: 'belt',
+      slot: 'belt',
+      quality: 'rare',
+      requiredLevel: 16,
+      craftTime: 10000,
+      experience: 65,
+      baseSuccessRate: 0.7,
+      ingredients: [
+        { id: 'silk_cloth', quantity: 2 },
+        { id: 'silver_ingot', quantity: 2 },
+        { id: 'ore_zijing', quantity: 1 }  // 紫晶
+      ],
+      result: {
+        itemId: 'yu_dai',
+        quantity: 1
+      }
+    },
+    
+    // ========== 手套 (gloves) ==========
+    
+    // 普通品质
+    bu_shoutao: {
+      id: 'bu_shoutao',
+      name: '布手套',
+      description: '简单的布手套',
+      category: 'gloves',
+      slot: 'gloves',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 3000,
+      experience: 12,
+      baseSuccessRate: 0.9,
+      ingredients: [
+        { id: 'linen_cloth', quantity: 2 }
+      ],
+      result: {
+        itemId: 'bu_shoutao',
+        quantity: 1
+      }
+    },
+    
+    pi_shoutao: {
+      id: 'pi_shoutao',
+      name: '皮手套',
+      description: '皮革手套',
+      category: 'gloves',
+      slot: 'gloves',
+      quality: 'common',
+      requiredLevel: 4,
+      craftTime: 4000,
+      experience: 18,
+      baseSuccessRate: 0.85,
+      ingredients: [
+        { id: 'leather', quantity: 2 }
+      ],
+      result: {
+        itemId: 'pi_shoutao',
+        quantity: 1
+      }
+    },
+    
+    // 精良品质
+    hu_wan: {
+      id: 'hu_wan',
+      name: '护腕',
+      description: '加固的腕部护具',
+      category: 'gloves',
+      slot: 'gloves',
+      quality: 'uncommon',
+      requiredLevel: 9,
+      craftTime: 7000,
+      experience: 40,
+      baseSuccessRate: 0.75,
+      ingredients: [
+        { id: 'leather', quantity: 2 },
+        { id: 'iron_ingot', quantity: 1 }
+      ],
+      result: {
+        itemId: 'hu_wan',
+        quantity: 1
+      }
+    },
+    
+    // 稀有品质
+    tie_hushou: {
+      id: 'tie_hushou',
+      name: '铁护手',
+      description: '铁制护手',
+      category: 'gloves',
+      slot: 'gloves',
+      quality: 'rare',
+      requiredLevel: 17,
+      craftTime: 10000,
+      experience: 70,
+      baseSuccessRate: 0.65,
+      ingredients: [
+        { id: 'steel_ingot', quantity: 2 },
+        { id: 'fine_leather', quantity: 1 }
+      ],
+      result: {
+        itemId: 'tie_hushou',
+        quantity: 1
+      }
+    },
+    
+    // ========== 靴子 (boots) ==========
+    
+    // 普通品质
+    cao_xie: {
+      id: 'cao_xie',
+      name: '草鞋',
+      description: '草编的鞋子',
+      category: 'boots',
+      slot: 'boots',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 2000,
+      experience: 10,
+      baseSuccessRate: 0.95,
+      ingredients: [
+        { id: 'linen_cloth', quantity: 2 }
+      ],
+      result: {
+        itemId: 'cao_xie',
+        quantity: 1
+      }
+    },
+    
+    bu_xie: {
+      id: 'bu_xie',
+      name: '布鞋',
+      description: '轻若无物',
+      category: 'boots',
+      slot: 'boots',
+      quality: 'common',
+      requiredLevel: 2,
+      craftTime: 3000,
+      experience: 12,
+      baseSuccessRate: 0.9,
+      ingredients: [
+        { id: 'linen_cloth', quantity: 3 }
+      ],
+      result: {
+        itemId: 'bu_xie',
+        quantity: 1
+      }
+    },
+    
+    // 精良品质
+    pi_xue: {
+      id: 'pi_xue',
+      name: '皮靴',
+      description: '结实的皮靴',
+      category: 'boots',
+      slot: 'boots',
+      quality: 'uncommon',
+      requiredLevel: 7,
+      craftTime: 6000,
+      experience: 35,
+      baseSuccessRate: 0.8,
+      ingredients: [
+        { id: 'leather', quantity: 3 }
+      ],
+      result: {
+        itemId: 'pi_xue',
+        quantity: 1
+      }
+    },
+    
+    fengxing_xue: {
+      id: 'fengxing_xue',
+      name: '风行靴',
+      description: '穿上后仿佛脚底有风',
+      category: 'boots',
+      slot: 'boots',
+      quality: 'uncommon',
+      requiredLevel: 10,
+      craftTime: 7000,
+      experience: 40,
+      baseSuccessRate: 0.75,
+      ingredients: [
+        { id: 'leather', quantity: 3 },
+        { id: 'silk_cloth', quantity: 1 }
+      ],
+      result: {
+        itemId: 'fengxing_xue',
+        quantity: 1
+      }
+    },
+    
+    // 稀有品质
+    tie_xue: {
+      id: 'tie_xue',
+      name: '铁靴',
+      description: '铁制战靴',
+      category: 'boots',
+      slot: 'boots',
+      quality: 'rare',
+      requiredLevel: 18,
+      craftTime: 11000,
+      experience: 75,
+      baseSuccessRate: 0.65,
+      ingredients: [
+        { id: 'steel_ingot', quantity: 2 },
+        { id: 'fine_leather', quantity: 2 }
+      ],
+      result: {
+        itemId: 'tie_xue',
+        quantity: 1
+      }
+    },
+    
+    // ========== 饰品 (accessory) ==========
+    
+    // 普通品质
+    mu_pei: {
+      id: 'mu_pei',
+      name: '木佩',
+      description: '木制的饰品',
+      category: 'accessory',
+      slot: 'accessory1',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 3000,
+      experience: 12,
+      baseSuccessRate: 0.9,
+      ingredients: [
+        { id: 'wood_song', quantity: 2 }
+      ],
+      result: {
+        itemId: 'mu_pei',
+        quantity: 1
+      }
+    },
+    
+    yu_pei: {
+      id: 'yu_pei',
+      name: '玉佩',
+      description: '温润如玉的饰品',
+      category: 'accessory',
+      slot: 'accessory1',
+      quality: 'common',
+      requiredLevel: 4,
+      craftTime: 4000,
+      experience: 18,
+      baseSuccessRate: 0.85,
+      ingredients: [
+        { id: 'ore_yinkuang', quantity: 1 },
+        { id: 'silk_thread', quantity: 1 }
+      ],
+      result: {
+        itemId: 'yu_pei',
+        quantity: 1
+      }
+    },
+    
+    // 精良品质
+    yin_huan: {
+      id: 'yin_huan',
+      name: '银环',
+      description: '银制的玉环',
+      category: 'accessory',
+      slot: 'accessory1',
+      quality: 'uncommon',
+      requiredLevel: 10,
+      craftTime: 7000,
+      experience: 40,
+      baseSuccessRate: 0.75,
+      ingredients: [
+        { id: 'silver_ingot', quantity: 2 }
+      ],
+      result: {
+        itemId: 'yin_huan',
+        quantity: 1
+      }
+    },
+    
+    hu_fu: {
+      id: 'hu_fu',
+      name: '护符',
+      description: '道士开光的护符',
+      category: 'accessory',
+      slot: 'accessory1',
+      quality: 'uncommon',
+      requiredLevel: 12,
+      craftTime: 8000,
+      experience: 45,
+      baseSuccessRate: 0.7,
+      ingredients: [
+        { id: 'silk_cloth', quantity: 2 },
+        { id: 'ore_zijing', quantity: 1 }
+      ],
+      result: {
+        itemId: 'hu_fu',
+        quantity: 1
+      }
+    },
+    
+    // 戒指系列
+    mu_jiezhi: {
+      id: 'mu_jiezhi',
+      name: '木戒指',
+      description: '天然环保',
+      category: 'accessory',
+      slot: 'accessory2',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 2000,
+      experience: 10,
+      baseSuccessRate: 0.95,
+      ingredients: [
+        { id: 'wood_liu', quantity: 1 }
+      ],
+      result: {
+        itemId: 'mu_jiezhi',
+        quantity: 1
+      }
+    },
+    
+    tong_jiezhi: {
+      id: 'tong_jiezhi',
+      name: '铜戒指',
+      description: '普通的铜戒指',
+      category: 'accessory',
+      slot: 'accessory2',
+      quality: 'common',
+      requiredLevel: 3,
+      craftTime: 3000,
+      experience: 15,
+      baseSuccessRate: 0.9,
+      ingredients: [
+        { id: 'copper_ingot', quantity: 1 }
+      ],
+      result: {
+        itemId: 'tong_jiezhi',
+        quantity: 1
+      }
+    },
+    
+    // 精良品质
+    yin_jiezhi: {
+      id: 'yin_jiezhi',
+      name: '银戒指',
+      description: '银制戒指',
+      category: 'accessory',
+      slot: 'accessory2',
+      quality: 'uncommon',
+      requiredLevel: 10,
+      craftTime: 6000,
+      experience: 40,
+      baseSuccessRate: 0.75,
+      ingredients: [
+        { id: 'silver_ingot', quantity: 1 }
+      ],
+      result: {
+        itemId: 'yin_jiezhi',
+        quantity: 1
+      }
+    },
+    
+    yinyue_jiezhi: {
+      id: 'yinyue_jiezhi',
+      name: '银月戒',
+      description: '月光加成',
+      category: 'accessory',
+      slot: 'accessory2',
+      quality: 'uncommon',
+      requiredLevel: 12,
+      craftTime: 7000,
+      experience: 45,
+      baseSuccessRate: 0.7,
+      ingredients: [
+        { id: 'silver_ingot', quantity: 1 },
+        { id: 'ore_zijing', quantity: 1 }
+      ],
+      result: {
+        itemId: 'yinyue_jiezhi',
+        quantity: 1
+      }
+    },
+    
+    // 稀有品质
+    jin_jiezhi: {
+      id: 'jin_jiezhi',
+      name: '金戒指',
+      description: '黄金打造的戒指',
+      category: 'accessory',
+      slot: 'accessory2',
+      quality: 'rare',
+      requiredLevel: 18,
+      craftTime: 10000,
+      experience: 70,
+      baseSuccessRate: 0.65,
+      ingredients: [
+        { id: 'gold_ingot', quantity: 1 },
+        { id: 'ore_lingyu', quantity: 1 }
+      ],
+      result: {
+        itemId: 'jin_jiezhi',
+        quantity: 1
+      }
+    },
+  },
+  
+  // ========== 装备分类配置（用于左侧菜单） ==========
+  categories: [
+    {
+      id: 'materials',
+      name: '锻材',
+      icon: '⚒️',
+      description: '将原材料加工成装备制作材料'
+    },
+    {
+      id: 'head',
+      name: '首冠',
+      icon: '👒',
+      description: '打造头部防护装备'
+    },
+    {
+      id: 'weapon',
+      name: '兵刃',
+      icon: '⚔️',
+      description: '锻造各种武器'
+    },
+    {
+      id: 'offhand',
+      name: '副器',
+      icon: '🛡️',
+      description: '打造盾牌暗器等副手装备'
+    },
+    {
+      id: 'armor',
+      name: '甲胄',
+      icon: '🥋',
+      description: '制作身体护甲'
+    },
+    {
+      id: 'belt',
+      name: '束带',
+      icon: '🪢',
+      description: '打造腰部装备'
+    },
+    {
+      id: 'gloves',
+      name: '护手',
+      icon: '🧤',
+      description: '制作手部护具'
+    },
+    {
+      id: 'boots',
+      name: '履靴',
+      icon: '🥾',
+      description: '打造足部装备'
+    },
+    {
+      id: 'accessory',
+      name: '佩饰',
+      icon: '📿',
+      description: '制作各类饰品'
+    }
+  ]
+}

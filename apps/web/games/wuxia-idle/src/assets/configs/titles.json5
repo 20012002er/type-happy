@@ -1,0 +1,502 @@
+{
+  // 称号配置
+  titles: [
+    // ========== 阶段称号（5个，对应主线进度） ==========
+    {
+      id: 'phase1_newcomer',
+      name: '江湖新秀',
+      description: '初入江湖的年轻侠客，已开始在江湖中崭露头角',
+      category: 'phase',
+      rarity: 'common',
+      requirements: [
+        { type: 'reputation_level', value: 2, description: '江湖声望达到江湖新秀' }
+      ],
+      bonuses: [
+        { statType: 'attack', value: 5, isPercentage: false }
+      ],
+      icon: '🌱',
+      isHidden: false,
+      isPermanent: true,
+      source: '江湖声望达到第2级'
+    },
+    {
+      id: 'phase2_rising',
+      name: '小有名气',
+      description: '在江湖中有了一定的名声，许多人开始认识你',
+      category: 'phase',
+      rarity: 'rare',
+      requirements: [
+        { type: 'reputation_level', value: 3, description: '江湖声望达到小有名气' }
+      ],
+      bonuses: [
+        { statType: 'attack', value: 10, isPercentage: false },
+        { statType: 'defense', value: 5, isPercentage: false }
+      ],
+      icon: '⭐',
+      isHidden: false,
+      isPermanent: true,
+      source: '江湖声望达到第3级'
+    },
+    {
+      id: 'phase3_elite',
+      name: '一流高手',
+      description: '实力出众的一流高手，在江湖中享有盛誉',
+      category: 'phase',
+      rarity: 'epic',
+      requirements: [
+        { type: 'reputation_level', value: 4, description: '江湖声望达到一流高手' }
+      ],
+      bonuses: [
+        { statType: 'attack', value: 20, isPercentage: false },
+        { statType: 'defense', value: 10, isPercentage: false },
+        { statType: 'critChance', value: 0.02, isPercentage: true }
+      ],
+      icon: '⚔️',
+      isHidden: false,
+      isPermanent: true,
+      source: '江湖声望达到第4级'
+    },
+    {
+      id: 'phase4_famous',
+      name: '赫赫有名',
+      description: '威震江湖的知名高手，名号响彻大江南北',
+      category: 'phase',
+      rarity: 'legendary',
+      requirements: [
+        { type: 'reputation_level', value: 5, description: '江湖声望达到赫赫有名' }
+      ],
+      bonuses: [
+        { statType: 'attack', value: 35, isPercentage: false },
+        { statType: 'defense', value: 20, isPercentage: false },
+        { statType: 'critChance', value: 0.05, isPercentage: true },
+        { statType: 'dodgeChance', value: 0.03, isPercentage: true }
+      ],
+      icon: '🏆',
+      isHidden: false,
+      isPermanent: true,
+      source: '江湖声望达到第5级'
+    },
+    {
+      id: 'phase5_legend',
+      name: '武林传奇',
+      description: '武林中的传奇人物，其传说将永远流传',
+      category: 'phase',
+      rarity: 'mythic',
+      requirements: [
+        { type: 'reputation_level', value: 8, description: '江湖声望达到传奇人物' }
+      ],
+      bonuses: [
+        { statType: 'attack', value: 50, isPercentage: false },
+        { statType: 'defense', value: 30, isPercentage: false },
+        { statType: 'critChance', value: 0.08, isPercentage: true },
+        { statType: 'dodgeChance', value: 0.05, isPercentage: true },
+        { statType: 'luck', value: 5, isPercentage: false }
+      ],
+      icon: '👑',
+      isHidden: false,
+      isPermanent: true,
+      source: '江湖声望达到第8级'
+    },
+
+    // ========== 门派称号（5个门派各1个） ==========
+    {
+      id: 'sect_shaolin_disciple',
+      name: '少林弟子',
+      description: '少林派入门弟子，刚猛霸道，内外兼修',
+      category: 'sect',
+      rarity: 'common',
+      requirements: [
+        { type: 'custom', value: 'join_sect', description: '加入少林派' }
+      ],
+      bonuses: [
+        { statType: 'defense', value: 10, isPercentage: false },
+        { statType: 'maxHp', value: 30, isPercentage: false }
+      ],
+      icon: '🙏',
+      isHidden: false,
+      isPermanent: false,
+      source: '加入少林派'
+    },
+    {
+      id: 'sect_wudang_disciple',
+      name: '武当弟子',
+      description: '武当派入门弟子，以柔克刚，道法自然',
+      category: 'sect',
+      rarity: 'common',
+      requirements: [
+        { type: 'custom', value: 'join_sect', description: '加入武当派' }
+      ],
+      bonuses: [
+        { statType: 'energyRegen', value: 2, isPercentage: false },
+        { statType: 'dodgeChance', value: 0.02, isPercentage: true }
+      ],
+      icon: '☯️',
+      isHidden: false,
+      isPermanent: false,
+      source: '加入武当派'
+    },
+    {
+      id: 'sect_emei_disciple',
+      name: '峨眉弟子',
+      description: '峨眉派入门弟子，灵动飘逸，剑法精妙',
+      category: 'sect',
+      rarity: 'common',
+      requirements: [
+        { type: 'custom', value: 'join_sect', description: '加入峨眉派' }
+      ],
+      bonuses: [
+        { statType: 'critChance', value: 0.03, isPercentage: true },
+        { statType: 'speed', value: 0.05, isPercentage: true }
+      ],
+      icon: '🌸',
+      isHidden: false,
+      isPermanent: false,
+      source: '加入峨眉派'
+    },
+    {
+      id: 'sect_huashan_disciple',
+      name: '华山弟子',
+      description: '华山派入门弟子，奇险快绝，剑走偏锋',
+      category: 'sect',
+      rarity: 'common',
+      requirements: [
+        { type: 'custom', value: 'join_sect', description: '加入华山派' }
+      ],
+      bonuses: [
+        { statType: 'attack', value: 15, isPercentage: false },
+        { statType: 'critMultiplier', value: 0.1, isPercentage: true }
+      ],
+      icon: '🏔️',
+      isHidden: false,
+      isPermanent: false,
+      source: '加入华山派'
+    },
+    {
+      id: 'sect_gaibang_disciple',
+      name: '丐帮弟子',
+      description: '丐帮入门弟子，刚猛凌厉，降龙十八掌',
+      category: 'sect',
+      rarity: 'common',
+      requirements: [
+        { type: 'custom', value: 'join_sect', description: '加入丐帮' }
+      ],
+      bonuses: [
+        { statType: 'maxHp', value: 20, isPercentage: false },
+        { statType: 'luck', value: 3, isPercentage: false }
+      ],
+      icon: '🍜',
+      isHidden: false,
+      isPermanent: false,
+      source: '加入丐帮'
+    },
+
+    // ========== 江湖榜称号（3个榜单各2个） ==========
+    {
+      id: 'ranking_xuan_top10',
+      name: '玄榜高手',
+      description: '位列玄榜前十的年轻高手',
+      category: 'ranking',
+      rarity: 'rare',
+      requirements: [
+        { type: 'jianghu_rank', value: 'xuan_top10', description: '玄榜排名前10' }
+      ],
+      bonuses: [
+        { statType: 'attack', value: 15, isPercentage: false },
+        { statType: 'expBonus', value: 0.1, isPercentage: true }
+      ],
+      icon: '📜',
+      isHidden: false,
+      isPermanent: true,
+      source: '玄榜排名前10'
+    },
+    {
+      id: 'ranking_di_top10',
+      name: '地榜高手',
+      description: '位列地榜前十的成名高手',
+      category: 'ranking',
+      rarity: 'epic',
+      requirements: [
+        { type: 'jianghu_rank', value: 'di_top10', description: '地榜排名前10' }
+      ],
+      bonuses: [
+        { statType: 'attack', value: 25, isPercentage: false },
+        { statType: 'defense', value: 15, isPercentage: false },
+        { statType: 'expBonus', value: 0.15, isPercentage: true }
+      ],
+      icon: '📯',
+      isHidden: false,
+      isPermanent: true,
+      source: '地榜排名前10'
+    },
+    {
+      id: 'ranking_tian_top10',
+      name: '天榜高手',
+      description: '位列天榜前十的绝世高手',
+      category: 'ranking',
+      rarity: 'legendary',
+      requirements: [
+        { type: 'jianghu_rank', value: 'tian_top10', description: '天榜排名前10' }
+      ],
+      bonuses: [
+        { statType: 'attack', value: 40, isPercentage: false },
+        { statType: 'defense', value: 25, isPercentage: false },
+        { statType: 'critChance', value: 0.05, isPercentage: true },
+        { statType: 'expBonus', value: 0.2, isPercentage: true }
+      ],
+      icon: '🏵️',
+      isHidden: false,
+      isPermanent: true,
+      source: '天榜排名前10'
+    },
+
+    // ========== 生活技能称号（采集/制造各2个） ==========
+    {
+      id: 'life_herb_master',
+      name: '采药人',
+      description: '精通草药采集的资深采药人',
+      category: 'life_skill',
+      rarity: 'common',
+      requirements: [
+        { type: 'life_skill', value: 'herb_gathering_level_5', description: '采药技能达到5级' }
+      ],
+      bonuses: [
+        { statType: 'vitality', value: 3, isPercentage: false }
+      ],
+      icon: '🌿',
+      isHidden: false,
+      isPermanent: false,
+      source: '采药技能达到5级'
+    },
+    {
+      id: 'life_mining_master',
+      name: '矿工',
+      description: '精通矿石开采的资深矿工',
+      category: 'life_skill',
+      rarity: 'common',
+      requirements: [
+        { type: 'life_skill', value: 'mining_level_5', description: '采矿技能达到5级' }
+      ],
+      bonuses: [
+        { statType: 'strength', value: 3, isPercentage: false }
+      ],
+      icon: '⛏️',
+      isHidden: false,
+      isPermanent: false,
+      source: '采矿技能达到5级'
+    },
+    {
+      id: 'life_smithing_master',
+      name: '锻造大师',
+      description: '技艺精湛的锻造大师',
+      category: 'life_skill',
+      rarity: 'rare',
+      requirements: [
+        { type: 'life_skill', value: 'smithing_level_10', description: '锻造技能达到10级' }
+      ],
+      bonuses: [
+        { statType: 'attack', value: 8, isPercentage: false },
+        { statType: 'armorPenetration', value: 5, isPercentage: false }
+      ],
+      icon: '🔨',
+      isHidden: false,
+      isPermanent: false,
+      source: '锻造技能达到10级'
+    },
+    {
+      id: 'life_alchemy_master',
+      name: '炼丹宗师',
+      description: '精通炼丹之术的宗师级人物',
+      category: 'life_skill',
+      rarity: 'epic',
+      requirements: [
+        { type: 'life_skill', value: 'alchemy_level_10', description: '炼丹技能达到10级' }
+      ],
+      bonuses: [
+        { statType: 'maxHp', value: 50, isPercentage: false },
+        { statType: 'energyRegen', value: 3, isPercentage: false }
+      ],
+      icon: '🧪',
+      isHidden: false,
+      isPermanent: false,
+      source: '炼丹技能达到10级'
+    },
+
+    // ========== 成就称号（3个里程碑） ==========
+    {
+      id: 'achievement_first_blood',
+      name: '初露锋芒',
+      description: '首次在江湖榜挑战中获胜',
+      category: 'achievement',
+      rarity: 'common',
+      requirements: [
+        { type: 'achievement', value: 'first_combat_victory', description: '达成首次战斗胜利' }
+      ],
+      bonuses: [
+        { statType: 'attack', value: 3, isPercentage: false }
+      ],
+      icon: '🗡️',
+      isHidden: false,
+      isPermanent: true,
+      source: '完成成就「首战告捷」'
+    },
+    {
+      id: 'achievement_sect_master',
+      name: '门派精英',
+      description: '成为门派的正式弟子',
+      category: 'achievement',
+      rarity: 'rare',
+      requirements: [
+        { type: 'achievement', value: 'sect_disciple', description: '成为门派正式弟子' }
+      ],
+      bonuses: [
+        { statType: 'attack', value: 10, isPercentage: false },
+        { statType: 'defense', value: 5, isPercentage: false }
+      ],
+      icon: '🏯',
+      isHidden: false,
+      isPermanent: true,
+      source: '完成成就「门派精英」'
+    },
+    {
+      id: 'achievement_completionist',
+      name: '武学全才',
+      description: '精通多种武学技艺',
+      category: 'achievement',
+      rarity: 'legendary',
+      requirements: [
+        { type: 'achievement', value: 'martial_master', description: '掌握10种以上武学' }
+      ],
+      bonuses: [
+        { statType: 'critChance', value: 0.05, isPercentage: true },
+        { statType: 'critMultiplier', value: 0.15, isPercentage: true },
+        { statType: 'speed', value: 0.1, isPercentage: true }
+      ],
+      icon: '📚',
+      isHidden: false,
+      isPermanent: true,
+      source: '完成成就「武学全才」'
+    },
+
+    // ========== 隐藏称号（3个） ==========
+    {
+      id: 'hidden_drifter',
+      name: '江湖游侠',
+      description: '云游四海，行踪不定的神秘游侠',
+      category: 'hidden',
+      rarity: 'epic',
+      requirements: [
+        { type: 'custom', value: 'visit_all_locations', description: '访问所有地点' }
+      ],
+      bonuses: [
+        { statType: 'dodgeChance', value: 0.05, isPercentage: true },
+        { statType: 'speed', value: 0.1, isPercentage: true }
+      ],
+      icon: '🎭',
+      isHidden: true,
+      isPermanent: true,
+      source: '探索全部27个地点'
+    },
+    {
+      id: 'hidden_night_watcher',
+      name: '夜行人',
+      description: '昼伏夜出的神秘高手',
+      category: 'hidden',
+      rarity: 'legendary',
+      requirements: [
+        { type: 'custom', value: 'night_explorer', description: '累计在线100小时' }
+      ],
+      bonuses: [
+        { statType: 'attack', value: 30, isPercentage: false },
+        { statType: 'critChance', value: 0.05, isPercentage: true },
+        { statType: 'critMultiplier', value: 0.1, isPercentage: true }
+      ],
+      icon: '🌙',
+      isHidden: true,
+      isPermanent: true,
+      source: '累计在线100小时'
+    },
+    {
+      id: 'hidden_legend',
+      name: '传说之人',
+      description: '江湖中关于你的传说开始流传',
+      category: 'hidden',
+      rarity: 'mythic',
+      requirements: [
+        { type: 'custom', value: 'play_100_days', description: '连续游戏100天' }
+      ],
+      bonuses: [
+        { statType: 'attack', value: 50, isPercentage: false },
+        { statType: 'defense', value: 50, isPercentage: false },
+        { statType: 'maxHp', value: 100, isPercentage: false },
+        { statType: 'luck', value: 10, isPercentage: false }
+      ],
+      icon: '✨',
+      isHidden: true,
+      isPermanent: true,
+      source: '连续游戏100天'
+    },
+
+    // ========== 特殊称号（3个） ==========
+    {
+      id: 'special_new_hero',
+      name: '新晋侠客',
+      description: '刚刚踏入江湖的新人侠客',
+      category: 'special',
+      rarity: 'common',
+      requirements: [],
+      bonuses: [],
+      icon: '🎋',
+      isHidden: false,
+      isPermanent: false,
+      source: '游戏初始称号'
+    },
+    {
+      id: 'special_survivor',
+      name: '劫后余生',
+      description: '在生死关头幸存下来的强者',
+      category: 'special',
+      rarity: 'rare',
+      requirements: [
+        { type: 'custom', value: 'survive_danger', description: '在濒死状态下获胜' }
+      ],
+      bonuses: [
+        { statType: 'tenacity', value: 10, isPercentage: false },
+        { statType: 'maxHp', value: 20, isPercentage: false }
+      ],
+      icon: '💀',
+      isHidden: false,
+      isPermanent: true,
+      source: '濒死状态获胜1次'
+    },
+    {
+      id: 'special_champion',
+      name: '武林冠军',
+      description: '武林大会的冠军得主',
+      category: 'special',
+      rarity: 'mythic',
+      requirements: [
+        { type: 'custom', value: 'martial_contest_champion', description: '获得武林大会冠军' }
+      ],
+      bonuses: [
+        { statType: 'attack', value: 60, isPercentage: false },
+        { statType: 'defense', value: 40, isPercentage: false },
+        { statType: 'critChance', value: 0.08, isPercentage: true },
+        { statType: 'critMultiplier', value: 0.2, isPercentage: true }
+      ],
+      icon: '🏆',
+      isHidden: false,
+      isPermanent: true,
+      source: '获得武林大会冠军'
+    }
+  ],
+
+  categories: [
+    { id: 'phase', name: '阶段称号', description: '对应江湖声望等级的称号' },
+    { id: 'sect', name: '门派称号', description: '各门派相关的称号' },
+    { id: 'ranking', name: '江湖榜称号', description: '江湖榜排名相关的称号' },
+    { id: 'life_skill', name: '生活技能称号', description: '生活技能相关的称号' },
+    { id: 'achievement', name: '成就称号', description: '达成特定成就获得的称号' },
+    { id: 'hidden', name: '隐藏称号', description: '需要特殊条件才能解锁的隐藏称号' },
+    { id: 'special', name: '特殊称号', description: '特殊事件或剧情获得的称号' }
+  ]
+}

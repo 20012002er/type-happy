@@ -1,0 +1,333 @@
+// 怪物组（JSON5）
+{
+  version: '1.1.0',
+  lastUpdated: '2025-11-08',
+  groups: {
+    // === 低阶区域 ===
+    newbie_monsters: {
+      normal: [
+        { enemyId: 'bandit', weight: 220 },
+        { enemyId: 'wolf', weight: 320 },
+        { enemyId: 'snake', weight: 260 },
+        { enemyId: 'village_thug', weight: 150 },
+        { enemyId: 'market_pickpocket', weight: 150 }
+      ],
+      elite: [
+        { enemyId: 'rogue_swordsman', weight: 80 }
+      ],
+      boss: [
+        { enemyId: 'drunk_master', weight: 5 }
+      ],
+    },
+
+    forest_monsters: {
+      normal: [
+        { enemyId: 'wolf', weight: 220 },
+        { enemyId: 'boar', weight: 250 },
+        { enemyId: 'tiger', weight: 210 },
+        { enemyId: 'greenwood_ranger', weight: 180 },
+        { enemyId: 'bamboo_guard', weight: 140 }
+      ],
+      elite: [
+        { enemyId: 'wolf_alpha', weight: 80 },
+        { enemyId: 'frost_sabre_maiden', weight: 70 }
+      ],
+      boss: [
+        { enemyId: 'wolf_alpha', weight: 12 }
+      ],
+    },
+
+    trail_monsters: {
+      normal: [
+        { enemyId: 'bandit', weight: 220 },
+        { enemyId: 'rogue_swordsman', weight: 220 },
+        { enemyId: 'river_bandit', weight: 220 },
+        { enemyId: 'drifting_scholar', weight: 160 },
+        { enemyId: 'tea_house_spy', weight: 180 }
+      ],
+      elite: [
+        { enemyId: 'bandit_leader', weight: 90 },
+        { enemyId: 'southern_blade_duelist', weight: 60 }
+      ],
+      boss: [
+        { enemyId: 'bandit_leader', weight: 8 }
+      ],
+    },
+
+    river_monsters: {
+      normal: [
+        { enemyId: 'river_bandit', weight: 260 },
+        { enemyId: 'river_scout', weight: 200 },
+        { enemyId: 'drifting_scholar', weight: 160 },
+        { enemyId: 'ice_river_swordsman', weight: 120 }
+      ],
+      elite: [
+        { enemyId: 'red_cloak_rider', weight: 90 }
+      ],
+      boss: [
+        { enemyId: 'thunder_marsh_bandit', weight: 6 }
+      ],
+    },
+
+    wild_beast_monsters: {
+      normal: [
+        { enemyId: 'wolf', weight: 200 },
+        { enemyId: 'boar', weight: 220 },
+        { enemyId: 'tiger', weight: 200 },
+        { enemyId: 'frost_sabre_maiden', weight: 130 },
+        { enemyId: 'ice_river_swordsman', weight: 130 }
+      ],
+      elite: [
+        { enemyId: 'wolf_alpha', weight: 90 }
+      ],
+      boss: [
+        { enemyId: 'wolf_alpha', weight: 10 }
+      ],
+    },
+
+    // === 中阶区域 ===
+    bandit_monsters: {
+      normal: [
+        { enemyId: 'bandit', weight: 240 },
+        { enemyId: 'river_bandit', weight: 220 },
+        { enemyId: 'desert_raider', weight: 180 },
+        { enemyId: 'thunder_marsh_bandit', weight: 140 },
+        { enemyId: 'red_cloak_rider', weight: 140 }
+      ],
+      elite: [
+        { enemyId: 'bandit_leader', weight: 120 },
+        { enemyId: 'iron_palm_elite', weight: 80 }
+      ],
+      boss: [
+        { enemyId: 'bandit_leader', weight: 12 }
+      ],
+    },
+
+    temple_monsters: {
+      normal: [
+        { enemyId: 'temple_monk', weight: 250 },
+        { enemyId: 'mist_valley_monk', weight: 220 },
+        { enemyId: 'seven_star_disciple', weight: 180 },
+        { enemyId: 'heavenly_note_maiden', weight: 150 }
+      ],
+      elite: [
+        { enemyId: 'cloud_summit_elite', weight: 120 },
+        { enemyId: 'heavenly_silk_maiden', weight: 80 }
+      ],
+      boss: [
+        { enemyId: 'cloud_summit_master', weight: 10 }
+      ],
+    },
+
+    assassin_monsters: {
+      normal: [
+        { enemyId: 'shadow_blade', weight: 260 },
+        { enemyId: 'assassin', weight: 220 },
+        { enemyId: 'jade_fan_assassin', weight: 200 },
+        { enemyId: 'southern_blade_duelist', weight: 140 }
+      ],
+      elite: [
+        { enemyId: 'jade_fan_assassin', weight: 120 },
+        { enemyId: 'jade_fan_blossom', weight: 90 }
+      ],
+      boss: [
+        { enemyId: 'lonely_island_guardian', weight: 8 }
+      ],
+    },
+
+    grave_monsters: {
+      normal: [
+        { enemyId: 'ghost', weight: 260 },
+        { enemyId: 'shadow_vale_specter', weight: 200 },
+        { enemyId: 'blackwater_sorcerer', weight: 170 },
+        { enemyId: 'blackwater_wraith', weight: 170 }
+      ],
+      elite: [
+        { enemyId: 'shadow_vale_lord', weight: 100 }
+      ],
+      boss: [
+        { enemyId: 'shadow_vale_lord', weight: 8 }
+      ],
+    },
+
+    mountain_monsters: {
+      normal: [
+        { enemyId: 'mountain_hunter', weight: 220 },
+        { enemyId: 'stone_golem', weight: 220 },
+        { enemyId: 'thousand_blade_swordsman', weight: 200 },
+        { enemyId: 'dragon_gate_keeper', weight: 160 }
+      ],
+      elite: [
+        { enemyId: 'thousand_blade_warlord', weight: 120 },
+        { enemyId: 'thunder_marsh_commander', weight: 90 }
+      ],
+      boss: [
+        { enemyId: 'thousand_blade_master', weight: 8 }
+      ],
+    },
+
+    // === 专属主题区域 ===
+    tea_house_monsters: {
+      normal: [
+        { enemyId: 'tea_house_spy', weight: 320 },
+        { enemyId: 'drifting_scholar', weight: 240 },
+        { enemyId: 'market_pickpocket', weight: 240 }
+      ],
+      elite: [
+        { enemyId: 'jade_fan_assassin', weight: 120 },
+        { enemyId: 'jade_fan_blossom', weight: 80 }
+      ],
+      boss: [
+        { enemyId: 'hero_huang_rong', weight: 5 }
+      ],
+    },
+
+    market_rogues_monsters: {
+      normal: [
+        { enemyId: 'market_pickpocket', weight: 260 },
+        { enemyId: 'emerald_market_guard', weight: 220 },
+        { enemyId: 'tea_house_spy', weight: 200 }
+      ],
+      elite: [
+        { enemyId: 'emerald_court_guard', weight: 120 },
+        { enemyId: 'emerald_market_guard', weight: 100 }
+      ],
+      boss: [
+        { enemyId: 'white_garbed_duelist', weight: 6 }
+      ],
+    },
+
+    lotus_valley_monsters: {
+      normal: [
+        { enemyId: 'lotus_disciple', weight: 300 },
+        { enemyId: 'jade_flower_guardian', weight: 220 },
+        { enemyId: 'jade_fan_blossom', weight: 200 }
+      ],
+      elite: [
+        { enemyId: 'heavenly_silk_maiden', weight: 100 }
+      ],
+      boss: [
+        { enemyId: 'hero_huang_rong', weight: 5 }
+      ],
+    },
+
+    desert_raider_monsters: {
+      normal: [
+        { enemyId: 'desert_raider', weight: 260 },
+        { enemyId: 'desert_storm_chief', weight: 220 },
+        { enemyId: 'red_sand_warlord', weight: 200 }
+      ],
+      elite: [
+        { enemyId: 'thunder_marsh_commander', weight: 120 }
+      ],
+      boss: [
+        { enemyId: 'poison_ouyang_feng', weight: 5 }
+      ],
+    },
+
+    marsh_monsters: {
+      normal: [
+        { enemyId: 'thunder_marsh_bandit', weight: 260 },
+        { enemyId: 'thunder_marsh_shaman', weight: 220 },
+        { enemyId: 'blackwater_sorcerer', weight: 180 }
+      ],
+      elite: [
+        { enemyId: 'blackwater_wraith', weight: 120 }
+      ],
+      boss: [
+        { enemyId: 'shadow_vale_lord', weight: 6 }
+      ],
+    },
+
+    cloud_monastery_monsters: {
+      normal: [
+        { enemyId: 'mist_valley_monk', weight: 260 },
+        { enemyId: 'cloud_summit_elite', weight: 220 },
+        { enemyId: 'heavenly_note_maiden', weight: 180 }
+      ],
+      elite: [
+        { enemyId: 'cloud_summit_master', weight: 120 }
+      ],
+      boss: [
+        { enemyId: 'mystic_master_wudang', weight: 6 }
+      ],
+    },
+
+    royal_guard_monsters: {
+      normal: [
+        { enemyId: 'flying_fish_guard', weight: 260 },
+        { enemyId: 'royal_hunter_captain', weight: 220 },
+        { enemyId: 'royal_shadow_agent', weight: 180 }
+      ],
+      elite: [
+        { enemyId: 'royal_dragon_guard', weight: 140 }
+      ],
+      boss: [
+        { enemyId: 'hero_guo_jing', weight: 4 }
+      ],
+    },
+
+    island_monsters: {
+      normal: [
+        { enemyId: 'lonely_island_guardian', weight: 240 },
+        { enemyId: 'plum_isle_duelist', weight: 220 },
+        { enemyId: 'ice_river_swordsman', weight: 180 }
+      ],
+      elite: [
+        { enemyId: 'jade_fan_blossom', weight: 100 }
+      ],
+      boss: [
+        { enemyId: 'hero_yang_guo', weight: 4 }
+      ],
+    },
+
+    shadow_vale_monsters: {
+      normal: [
+        { enemyId: 'shadow_blade', weight: 260 },
+        { enemyId: 'shadow_vale_specter', weight: 220 },
+        { enemyId: 'blackwater_sorcerer', weight: 160 }
+      ],
+      elite: [
+        { enemyId: 'shadow_vale_lord', weight: 120 }
+      ],
+      boss: [
+        { enemyId: 'invincible_dongfang', weight: 3 }
+      ],
+    },
+
+    thousand_blade_monsters: {
+      normal: [
+        { enemyId: 'thousand_blade_swordsman', weight: 240 },
+        { enemyId: 'thousand_blade_warlord', weight: 220 },
+        { enemyId: 'jade_dragon_general', weight: 160 }
+      ],
+      elite: [
+        { enemyId: 'thousand_blade_master', weight: 120 }
+      ],
+      boss: [
+        { enemyId: 'sword_saint_ximen', weight: 3 }
+      ],
+    },
+
+    dragon_gate_monsters: {
+      normal: [
+        { enemyId: 'dragon_gate_keeper', weight: 240 },
+        { enemyId: 'dragon_gate_hermit', weight: 220 },
+        { enemyId: 'jade_dragon_general', weight: 180 }
+      ],
+      elite: [
+        { enemyId: 'royal_dragon_guard', weight: 120 }
+      ],
+      boss: [
+        { enemyId: 'legend_xiao_feng', weight: 4 }
+      ],
+    },
+  },
+
+  tierModifiers: {
+    normal: { attack: 1.2, hp: 1.0, defense: 1.0, critChance: 0.05, dodgeChance: 0.02 },
+    elite:  { attack: 3.0, hp: 1.6, defense: 1.2, critChance: 0.10, dodgeChance: 0.04 },
+    boss:   { attack: 12.0, hp: 3.0, defense: 1.5, critChance: 0.15, dodgeChance: 0.05 },
+  },
+}
+

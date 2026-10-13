@@ -5,7 +5,7 @@
 # Playwright 仅存在于构建阶段,且不是测试用途,而是 SEO 预渲染(生成全路由静态快照)。
 #
 # 构建参数:
-#   PRERENDER=true(默认) 安装 Chromium Headless Shell 并预渲染 61 个路由;
+#   PRERENDER=true(默认) 安装 Chromium Headless Shell 并预渲染 64 个路由;
 #                          不执行 JS 的爬虫(Baiduspider)依赖这些快照抓取正文。
 #   PRERENDER=false        完全跳过浏览器下载与预渲染,构建资源占用最小,
 #                          产出纯 SPA(仅入口壳带 meta,Google 可渲染,百度收录效果差)。

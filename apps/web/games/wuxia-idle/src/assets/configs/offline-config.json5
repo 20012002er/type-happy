@@ -1,0 +1,77 @@
+{
+  // 离线收益系统配置
+  version: "1.0.0",
+  
+  // 基础离线时长配置（单位：小时）
+  offlineTime: {
+    // 基础最大离线收益时长
+    baseMaxHours: 12,
+    
+    // 最小离线时长（少于此时间不给收益，单位：分钟）
+    minOfflineMinutes: 1,
+    
+    // 离线效率（相比在线的效率百分比）
+    // 例如：0.8 表示离线收益是在线收益的80%
+    efficiency: 0.8
+  },
+  
+  // 可通过道具提升的离线时长（预留）
+  upgrades: [
+    {
+      id: "offline_boost_1",
+      name: "离线加成I",
+      description: "最大离线时长+6小时",
+      additionalHours: 6,
+      cost: 1000,
+      unlockLevel: 10
+    },
+    {
+      id: "offline_boost_2",
+      name: "离线加成II",
+      description: "最大离线时长+12小时",
+      additionalHours: 12,
+      cost: 5000,
+      unlockLevel: 20
+    },
+    {
+      id: "offline_boost_3",
+      name: "离线加成III",
+      description: "最大离线时长+24小时",
+      additionalHours: 24,
+      cost: 10000,
+      unlockLevel: 30
+    }
+  ],
+  
+  // 不同活动类型的离线计算规则
+  activityRules: {
+    // 采集类活动（采药、伐木、钓鱼、采矿）
+    gathering: {
+      enabled: true,
+      // 离线时采集效率（相比在线）
+      efficiency: 0.8,
+      // 是否在离线时继续消耗队列中的任务
+      consumeQueue: true,
+      // 最多计算多少次采集（防止数据过大）
+      maxIterations: 999999
+    },
+    
+    // 打坐修炼
+    meditation: {
+      enabled: true,
+      efficiency: 0.8
+    },
+    
+    // 武学修炼
+    martial: {
+      enabled: false,  // 暂不支持
+      efficiency: 0.5
+    },
+    
+    // 战斗（开启离线结算，效率默认沿用全局效率）
+    combat: {
+      enabled: true
+    }
+  }
+}
+

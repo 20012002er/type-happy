@@ -1,0 +1,37 @@
+{
+  version: '1.0.0',
+  lastUpdated: '2025-09-24',
+  recipes: [
+    // 武器 × 鞋 → 魔法剑
+    { id: 'r01', inputs: ['qinggang_jian', 'bu_xie'], output: 'magic_sword_1', conditions: { playerLevel: 3, cost: { gold: 60 } }, effects: { bonuses: { attack: 6 } }, description: '青钢剑注入轻步之意' },
+    { id: 'r02', inputs: ['hanfeng_jian', 'fengxing_xue'], output: 'qinggang_jian', conditions: { playerLevel: 3, cost: { gold: 40 } }, effects: { bonuses: { attack: 4 } }, description: '寒锋激发更稳定的出手' },
+    { id: 'r03', inputs: ['hanfeng_jian', 'bu_xie'], output: 'qinggang_jian', conditions: { playerLevel: 2, cost: { gold: 35 } }, effects: { bonuses: { attack: 3 } }, description: '轻功助剑' },
+
+    // 武器 × 戒指
+    { id: 'r04', inputs: ['qinggang_jian', 'mu_jiezhi'], output: 'hanfeng_jian', conditions: { playerLevel: 4, cost: { gold: 50 } }, effects: { bonuses: { attack: 5 } }, description: '木意平衡锋芒' },
+    { id: 'r05', inputs: ['hanfeng_jian', 'yinyue_jiezhi'], output: 'qinggang_jian', conditions: { playerLevel: 4, cost: { gold: 55 } }, effects: { bonuses: { attack: 5 } }, description: '银月加持，剑身更灵' },
+    { id: 'r06', inputs: ['tieji_jian', 'mu_jiezhi'], output: 'tieji_jian', conditions: { playerLevel: 6, cost: { gold: 80 } }, effects: { bonuses: { defense: 2 } }, description: '沉稳之中更显坚实' },
+    { id: 'r07', inputs: ['tieji_jian', 'yinyue_jiezhi'], output: 'magic_sword_1', conditions: { playerLevel: 6, cost: { gold: 110 } }, effects: { bonuses: { attack: 8 } }, description: '以重驭巧，化为奇兵' },
+
+    // 武器 × 护甲
+    { id: 'r08', inputs: ['qinggang_jian', 'yunwen_pao'], output: 'tieji_jian', conditions: { playerLevel: 5, cost: { gold: 120 } }, effects: { bonuses: { attack: 6, defense: 3 } }, description: '云纹稳剑，化轻为重' },
+    { id: 'r09', inputs: ['qinggang_jian', 'mianjia'], output: 'qinggang_jian', conditions: { playerLevel: 2, cost: { gold: 30 } }, effects: { bonuses: { attack: 2 } }, description: '轻甲不碍快剑' },
+    { id: 'r10', inputs: ['hanfeng_jian', 'yunwen_pao'], output: 'tieji_jian', conditions: { playerLevel: 5, cost: { gold: 120 } }, effects: { bonuses: { attack: 6, defense: 2 } }, description: '寒锋得袍，韧而不折' },
+    { id: 'r11', inputs: ['qinggang_jian', 'huxin_jia'], output: 'tieji_jian', conditions: { playerLevel: 7, cost: { gold: 150 } }, effects: { bonuses: { attack: 8, defense: 4 } }, description: '护心定脉，重剑成形' },
+
+    // 护甲 × 戒指
+    { id: 'r12', inputs: ['yunwen_pao', 'mu_jiezhi'], output: 'huxin_jia', conditions: { playerLevel: 5, cost: { gold: 90 } }, effects: { bonuses: { hp: 6, defense: 2 } }, description: '木意温养，护心更固' },
+    { id: 'r13', inputs: ['yunwen_pao', 'yinyue_jiezhi'], output: 'huxin_jia', conditions: { playerLevel: 5, cost: { gold: 95 } }, effects: { bonuses: { defense: 3 } }, description: '银月庇护，纹理生辉' },
+    { id: 'r14', inputs: ['mianjia', 'mu_jiezhi'], output: 'yunwen_pao', conditions: { playerLevel: 3, cost: { gold: 45 } }, effects: { bonuses: { hp: 5 } }, description: '柔韧生纹，袍成云影' },
+    { id: 'r15', inputs: ['mianjia', 'yinyue_jiezhi'], output: 'yunwen_pao', conditions: { playerLevel: 3, cost: { gold: 50 } }, effects: { bonuses: { defense: 2 } }, description: '银意入纹' },
+    { id: 'r16', inputs: ['huxin_jia', 'mu_jiezhi'], output: 'huxin_jia', conditions: { playerLevel: 6, cost: { gold: 110 } }, effects: { bonuses: { hp: 8 } }, description: '木润心防' },
+
+    // 鞋 × 戒指
+    { id: 'r17', inputs: ['bu_xie', 'mu_jiezhi'], output: 'fengxing_xue', conditions: { playerLevel: 2, cost: { gold: 30 } }, effects: { bonuses: { defense: 1, hp: 2 } }, description: '木气轻身，风行于足' },
+    { id: 'r18', inputs: ['bu_xie', 'yinyue_jiezhi'], output: 'fengxing_xue', conditions: { playerLevel: 3, cost: { gold: 35 } }, effects: { bonuses: { hp: 3 } }, description: '银辉照足，步履生风' },
+
+    // 鞋 × 护甲
+    { id: 'r19', inputs: ['bu_xie', 'yunwen_pao'], output: 'fengxing_xue', conditions: { playerLevel: 3, cost: { gold: 40 } }, effects: { bonuses: { defense: 1, hp: 2 } }, description: '云纹入靴，行如风' },
+    { id: 'r20', inputs: ['fengxing_xue', 'mianjia'], output: 'yunwen_pao', conditions: { playerLevel: 3, cost: { gold: 45 } }, effects: { bonuses: { hp: 4 } }, description: '轻行之理转为守' }
+  ]
+}

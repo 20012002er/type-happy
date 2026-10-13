@@ -1,0 +1,412 @@
+// 招数配置（JSON5）
+// 说明：
+// - 使用注释说明字段含义，便于非程序人员维护
+// - 数值均为可调教，保持简单直观
+{
+  version: '1.0.0',
+  lastUpdated: '2025-09-24',
+  // moves: 以ID为键的招数字典
+  moves: {},
+
+  talentTree: {
+    version: '1.0.0',
+    theme: 'martial',
+    startingPoints: 3,
+    nodes: {
+      root_foundation: {
+        id: 'root_foundation',
+        name: '武学根基',
+        description: '夯实经脉，打牢筋骨，习武的第一步。',
+        type: 'root',
+        position: { x: 0, y: 0 },
+        autoUnlock: true,
+        effect: {
+          stats: {
+            maxHp: 50,
+            attack: 5
+          }
+        },
+        connections: ['body_tempering', 'inner_focus', 'blade_insight']
+      },
+      body_tempering: {
+        id: 'body_tempering',
+        name: '炼体筑骨',
+        description: '淬炼筋骨皮膜，久战不疲。',
+        type: 'stat',
+        position: { x: -2, y: 1 },
+        prerequisites: ['root_foundation'],
+        cost: { insight: 1 },
+        effect: {
+          stats: {
+            maxHp: 40,
+            defense: 5
+          }
+        },
+        connections: ['iron_wall']
+      },
+      iron_wall: {
+        id: 'iron_wall',
+        name: '铁壁功架',
+        description: '沉腰坠马，卸去来势。',
+        type: 'stat',
+        position: { x: -2.5, y: 2 },
+        prerequisites: ['body_tempering'],
+        cost: { insight: 1 },
+        effect: {
+          stats: {
+            defense: 10
+          }
+        },
+        connections: ['guardian_stance']
+      },
+      guardian_stance: {
+        id: 'guardian_stance',
+        name: '守御反击',
+        description: '守中带攻，见缝插针。',
+        type: 'skill',
+        position: { x: -2.5, y: 3 },
+        prerequisites: ['iron_wall'],
+        cost: { insight: 2 },
+        effect: {
+          move: {
+            id: 'kang_shou',
+            name: '抗守',
+            category: 'outer',
+            description: '架势稳固，趁隙反击',
+            damageMultiplier: 0.9,
+            damageFlat: 4,
+            extraCritChance: 0.02,
+            energyCost: 4,
+            minLevel: 1,
+            tags: ['defense'],
+            emojis: ['✋💨', '♾️', '🛡️💥']
+          }
+        }
+      },
+      inner_focus: {
+        id: 'inner_focus',
+        name: '内息调匀',
+        description: '精修吐纳，真气运转更为顺畅。',
+        type: 'stat',
+        position: { x: -1, y: 1 },
+        prerequisites: ['root_foundation'],
+        cost: { insight: 1 },
+        effect: {
+          stats: {
+            maxEnergy: 30,
+            critChance: 0.02
+          }
+        },
+        connections: ['chi_burst', 'flowing_form']
+      },
+      chi_burst: {
+        id: 'chi_burst',
+        name: '真息回环',
+        description: '运气如潮，攻势更凌厉。',
+        type: 'stat',
+        position: { x: -1.5, y: 2 },
+        prerequisites: ['inner_focus'],
+        cost: { insight: 1 },
+        effect: {
+          stats: {
+            attack: 6,
+            critChance: 0.01
+          }
+        },
+        connections: ['deep_reservoir']
+      },
+      deep_reservoir: {
+        id: 'deep_reservoir',
+        name: '真源蓄藏',
+        description: '积蓄真源，持久作战。',
+        type: 'stat',
+        position: { x: -1.5, y: 3 },
+        prerequisites: ['chi_burst'],
+        cost: { insight: 1 },
+        effect: {
+          stats: {
+            maxEnergy: 20,
+            defense: 5
+          }
+        },
+        connections: ['tai_xuan_core', 'mystic_resonance']
+      },
+      tai_xuan_core: {
+        id: 'tai_xuan_core',
+        name: '太玄心法',
+        description: '真息吞吐自如，内劲源源不绝。',
+        type: 'skill',
+        position: { x: -1.5, y: 4 },
+        prerequisites: ['deep_reservoir'],
+        cost: { insight: 2 },
+        effect: {
+          move: {
+            id: 'tai_xuan_tu_na',
+            name: '太玄吐纳',
+            category: 'inner',
+            description: '行功吐纳，运转经脉后劲十足',
+            damageMultiplier: 1.2,
+            damageFlat: 1,
+            extraCritChance: 0.06,
+            energyCost: 7,
+            minLevel: 2,
+            tags: ['qi'],
+            emojis: ['♾️🌈', '🌀', '🔮💫']
+          }
+        },
+        connections: ['natural_cycle']
+      },
+      natural_cycle: {
+        id: 'natural_cycle',
+        name: '自然循环',
+        description: '周天自然运转，招式圆活。',
+        type: 'skill',
+        position: { x: -1.5, y: 5 },
+        prerequisites: ['tai_xuan_core'],
+        cost: { insight: 2 },
+        effect: {
+          move: {
+            id: 'zi_ran_yun_xing',
+            name: '自然运行',
+            category: 'inner',
+            description: '周天自然运转，出招圆活',
+            damageMultiplier: 1.0,
+            damageFlat: 2,
+            extraCritChance: 0.1,
+            energyCost: 5,
+            minLevel: 2,
+            tags: ['flow'],
+            emojis: ['🌀', '🌪️♾️', '♾️🌈']
+          }
+        }
+      },
+      blade_insight: {
+        id: 'blade_insight',
+        name: '刀势研悟',
+        description: '体悟刀势，斩击更为凌厉。',
+        type: 'stat',
+        position: { x: 1.2, y: 1 },
+        prerequisites: ['root_foundation'],
+        cost: { insight: 1 },
+        effect: {
+          stats: {
+            attack: 10,
+            defense: 5
+          }
+        },
+        connections: ['blade_sprint', 'storm_edge']
+      },
+      blade_sprint: {
+        id: 'blade_sprint',
+        name: '疾风快意',
+        description: '刀势更迅烈，步伐飘忽。',
+        type: 'stat',
+        position: { x: 0.7, y: 2 },
+        prerequisites: ['blade_insight'],
+        cost: { insight: 1 },
+        effect: {
+          stats: {
+            attack: 8,
+            critChance: 0.01
+          }
+        },
+        connections: ['sword_flash']
+      },
+      sword_flash: {
+        id: 'sword_flash',
+        name: '剑光疾袭',
+        description: '剑芒掠影，迅若奔雷。',
+        type: 'skill',
+        position: { x: 0.7, y: 3 },
+        prerequisites: ['blade_sprint'],
+        cost: { insight: 2 },
+        effect: {
+          move: {
+            id: 'zhan_ji',
+            name: '斩击',
+            category: 'outer',
+            description: '基础剑法，直取要害',
+            damageMultiplier: 1.2,
+            damageFlat: 0,
+            extraCritChance: 0.05,
+            energyCost: 5,
+            minLevel: 1,
+            tags: ['sword', 'basic'],
+            emojis: ['🗡️💫', '⚔️✨', '🪄✨']
+          }
+        }
+      },
+      flowing_form: {
+        id: 'flowing_form',
+        name: '行云身法',
+        description: '行云流水般的身法，使招式衔接更为流畅。',
+        type: 'skill',
+        position: { x: -0.3, y: 2 },
+        prerequisites: ['inner_focus'],
+        cost: { insight: 1 },
+        effect: {
+          move: {
+            id: 'tu_jin',
+            name: '突进',
+            category: 'universal',
+            description: '踏步前压，伺机重击',
+            damageMultiplier: 1.0,
+            damageFlat: 3,
+            extraCritChance: 0.0,
+            energyCost: 3,
+            minLevel: 1,
+            tags: ['movement'],
+            emojis: ['⚡🌪️', '👊💨', '🤛💫']
+          }
+        },
+        connections: ['mystic_resonance']
+      },
+      storm_edge: {
+        id: 'storm_edge',
+        name: '破风刀意',
+        description: '刀随风走，破风之意贯穿八方。',
+        type: 'stat',
+        position: { x: 2.2, y: 2 },
+        prerequisites: ['blade_insight'],
+        cost: { insight: 1 },
+        effect: {
+          stats: {
+            attack: 12,
+            critMultiplier: 0.1
+          }
+        },
+        connections: ['wind_step', 'tempest_slash']
+      },
+      wind_step: {
+        id: 'wind_step',
+        name: '风行百里',
+        description: '身形宛若旋风，攻守兼备。',
+        type: 'stat',
+        position: { x: 2.4, y: 3 },
+        prerequisites: ['storm_edge'],
+        cost: { insight: 1 },
+        effect: {
+          stats: {
+            attack: 6,
+            defense: 5
+          }
+        }
+      },
+      mystic_resonance: {
+        id: 'mystic_resonance',
+        name: '玄息共鸣',
+        description: '真气与天地共鸣，提升内功修为。',
+        type: 'stat',
+        position: { x: -0.3, y: 3 },
+        prerequisites: ['flowing_form', 'deep_reservoir'],
+        cost: { insight: 2 },
+        effect: {
+          stats: {
+            maxEnergy: 40,
+            defense: 8
+          }
+        },
+        connections: ['inner_burst']
+      },
+      inner_burst: {
+        id: 'inner_burst',
+        name: '真气爆发',
+        description: '运转体内真气，领悟爆发之道。',
+        type: 'skill',
+        position: { x: -0.3, y: 4 },
+        prerequisites: ['mystic_resonance'],
+        cost: { insight: 2 },
+        effect: {
+          move: {
+            id: 'zhen_qi_bao_fa',
+            name: '真气爆发',
+            category: 'inner',
+            description: '运转真气，一击爆发',
+            damageMultiplier: 1.5,
+            damageFlat: 2,
+            extraCritChance: 0.1,
+            energyCost: 12,
+            minLevel: 3,
+            tags: ['qi', 'burst'],
+            emojis: ['🔮💫', '💥🔥', '♾️🌈']
+          }
+        }
+      },
+      tempest_slash: {
+        id: 'tempest_slash',
+        name: '风雷闪击',
+        description: '刀势如风雷，迅疾无匹。',
+        type: 'skill',
+        position: { x: 3.1, y: 3.8 },
+        prerequisites: ['storm_edge'],
+        cost: { insight: 2 },
+        effect: {
+          move: {
+            id: 'po_feng_zhan',
+            name: '破风斩',
+            category: 'outer',
+            description: '借风势斩出锐利刀气',
+            damageMultiplier: 1.35,
+            damageFlat: 1,
+            extraCritChance: 0.05,
+            energyCost: 6,
+            minLevel: 2,
+            tags: ['blade'],
+            emojis: ['⚔️⚡', '🌪️♾️', '🗡️💫']
+          }
+        },
+        connections: ['thunderclap_assault', 'flowing_combo']
+      },
+      thunderclap_assault: {
+        id: 'thunderclap_assault',
+        name: '雷霆辟杀',
+        description: '刀鸣如雷，霸道绝伦。',
+        type: 'skill',
+        position: { x: 3.1, y: 4.8 },
+        prerequisites: ['tempest_slash'],
+        cost: { insight: 3 },
+        effect: {
+          move: {
+            id: 'thunderclap_assault',
+            name: '雷霆辟杀',
+            category: 'outer',
+            description: '蓄势一斩，雷火齐落',
+            damageMultiplier: 1.8,
+            damageFlat: 5,
+            extraCritChance: 0.12,
+            energyCost: 12,
+            minLevel: 6,
+            tags: ['storm', 'burst'],
+            emojis: ['⚡🌪️', '💥🔥', '♾️']
+          }
+        }
+      },
+      flowing_combo: {
+        id: 'flowing_combo',
+        name: '流云秘传',
+        description: '掌握流云三连的精妙身法与招式变化。',
+        type: 'skill',
+        position: { x: 3.6, y: 5.6 },
+        prerequisites: ['tempest_slash'],
+        cost: { insight: 3 },
+        effect: {
+          move: {
+            id: 'liu_yun_san_lian',
+            name: '流云三连',
+            category: 'outer',
+            description: '三连快击，势若流云',
+            damageMultiplier: 1.1,
+            damageFlat: 2,
+            extraCritChance: 0.08,
+            energyCost: 8,
+            minLevel: 3,
+            tags: ['combo'],
+            emojis: ['👊👊💥', '👊👊👊🔥', '💥💥💥⚡']
+          }
+        }
+      }
+    }
+  }
+}
+
+

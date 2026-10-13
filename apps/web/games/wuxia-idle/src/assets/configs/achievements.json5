@@ -1,0 +1,512 @@
+// 成就配置
+{
+  version: '1.0.0',
+  achievements: {
+    // ===== 新手引导 =====
+    guide_meditation_intro: {
+      id: 'guide_meditation_intro',
+      name: '初入江湖',
+      description: '试着打坐修炼，熟悉基础操作。',
+      category: 'guide',
+      tier: 'bronze',
+      points: 5,
+      objectives: [
+        {
+          type: 'meditate_times',
+          target: 'meditate',
+          required: 3,
+          description: '打坐修炼 3 次'
+        }
+      ],
+      rewards: {
+        exp: 50,
+        gold: 20
+      },
+      quickNavTarget: 'meditation'
+    },
+
+    guide_first_victory: {
+      id: 'guide_first_victory',
+      name: '初试锋芒',
+      description: '击败一些小喽啰，证明你的实力。',
+      category: 'guide',
+      tier: 'bronze',
+      points: 5,
+      objectives: [
+        {
+          type: 'defeat_enemy',
+          target: 'bandit',
+          required: 5,
+          description: '击败山贼 5 名'
+        }
+      ],
+      rewards: {
+        exp: 100,
+        gold: 50
+      },
+      requirements: {
+        completedIds: ['guide_meditation_intro']
+      },
+      quickNavTarget: 'forest_path'
+    },
+
+    guide_first_equipment: {
+      id: 'guide_first_equipment',
+      name: '装备自己',
+      description: '穿上趁手兵器，让战斗更从容。',
+      category: 'guide',
+      tier: 'bronze',
+      points: 5,
+      objectives: [
+        {
+          type: 'equip_item',
+          target: 'any_weapon',
+          required: 1,
+          description: '装备任意武器'
+        }
+      ],
+      rewards: {
+        exp: 80,
+        gold: 30
+      },
+      requirements: {
+        completedIds: ['guide_first_victory']
+      },
+      quickNavTarget: 'equipment'
+    },
+
+    guide_reach_level_3: {
+      id: 'guide_reach_level_3',
+      name: '小有所成',
+      description: '持续修炼，角色等级到达 3 级。',
+      category: 'guide',
+      tier: 'silver',
+      points: 10,
+      objectives: [
+        {
+          type: 'reach_level',
+          target: 3,
+          required: 1,
+          description: '达到等级 3'
+        }
+      ],
+      rewards: {
+        exp: 200,
+        gold: 100,
+        items: [
+          { id: 'potion_small', quantity: 5 }
+        ]
+      },
+      requirements: {
+        completedIds: ['guide_first_equipment']
+      }
+    },
+
+    // ===== 角色养成 =====
+    progression_level_10: {
+      id: 'progression_level_10',
+      name: '渐入佳境',
+      description: '角色等级提升至 10 级。',
+      category: 'progression',
+      tier: 'silver',
+      points: 15,
+      objectives: [
+        {
+          type: 'reach_level',
+          target: 10,
+          required: 1,
+          description: '达到等级 10'
+        }
+      ],
+      rewards: {
+        exp: 400,
+        gold: 200
+      }
+    },
+
+    progression_level_20: {
+      id: 'progression_level_20',
+      name: '小有所成',
+      description: '角色等级达到 20 级，初窥门径。',
+      category: 'progression',
+      tier: 'gold',
+      points: 25,
+      objectives: [
+        {
+          type: 'reach_level',
+          target: 20,
+          required: 1,
+          description: '达到等级 20'
+        }
+      ],
+      rewards: {
+        exp: 800,
+        gold: 400,
+        reputation: 10
+      },
+      requirements: {
+        completedIds: ['progression_level_10']
+      }
+    },
+
+    // ===== 战斗成就 =====
+    combat_defeat_100: {
+      id: 'combat_defeat_100',
+      name: '武林新人',
+      description: '累计击败 100 名敌人。',
+      category: 'combat',
+      tier: 'silver',
+      points: 20,
+      objectives: [
+        {
+          type: 'defeat_enemy',
+          target: 'any',
+          required: 100,
+          description: '击败任意敌人 100 名'
+        }
+      ],
+      rewards: {
+        exp: 500,
+        gold: 200,
+        reputation: 10
+      }
+    },
+
+    combat_defeat_elites: {
+      id: 'combat_defeat_elites',
+      name: '精英猎手',
+      description: '击败 10 名精英或 BOSS。',
+      category: 'combat',
+      tier: 'gold',
+      points: 30,
+      objectives: [
+        {
+          type: 'defeat_enemy',
+          target: 'elite',
+          required: 10,
+          description: '击败精英或 BOSS 10 名'
+        }
+      ],
+      rewards: {
+        exp: 800,
+        gold: 400,
+        reputation: 15
+      }
+    },
+
+    // ===== 生活与经济 =====
+    lifestyle_meditate_100: {
+      id: 'lifestyle_meditate_100',
+      name: '修炼狂人',
+      description: '累计打坐修炼 100 次。',
+      category: 'lifestyle',
+      tier: 'silver',
+      points: 15,
+      objectives: [
+        {
+          type: 'meditate_times',
+          target: 'meditate',
+          required: 100,
+          description: '累计打坐 100 次'
+        }
+      ],
+      rewards: {
+        exp: 400,
+        gold: 100,
+        reputation: 5
+      }
+    },
+
+    economy_earn_gold_1000: {
+      id: 'economy_earn_gold_1000',
+      name: '财富积累',
+      description: '累计赚取 1000 金币。',
+      category: 'economy',
+      tier: 'silver',
+      points: 15,
+      objectives: [
+        {
+          type: 'earn_gold',
+          target: 'total',
+          required: 1000,
+          description: '累计赚取 1000 金币'
+        }
+      ],
+      rewards: {
+        exp: 300,
+        gold: 500
+      }
+    },
+
+    crafting_alchemy_novice: {
+      id: 'crafting_alchemy_novice',
+      name: '药炉初成',
+      description: '成功炼制 20 瓶丹药。',
+      category: 'crafting',
+      tier: 'bronze',
+      points: 10,
+      objectives: [
+        {
+          type: 'craft_item',
+          target: 'alchemy',
+          required: 20,
+          description: '炼制任意丹药 20 次'
+        }
+      ],
+      rewards: {
+        exp: 350,
+        gold: 150
+      }
+    },
+
+    crafting_cook_novice: {
+      id: 'crafting_cook_novice',
+      name: '掌勺新秀',
+      description: '成功烹饪 30 份料理。',
+      category: 'crafting',
+      tier: 'bronze',
+      points: 10,
+      objectives: [
+        {
+          type: 'craft_item',
+          target: 'cooking',
+          required: 30,
+          description: '烹饪任意料理 30 次'
+        }
+      ],
+      rewards: {
+        exp: 320,
+        gold: 120
+      }
+    },
+
+    // ===== 阶段里程碑成就 =====
+    phase1_joined_sect: {
+      id: 'phase1_joined_sect',
+      name: '拜入门下',
+      description: '加入任意门派，开始江湖之路。',
+      category: 'progression',
+      tier: 'silver',
+      points: 20,
+      objectives: [
+        {
+          type: 'join_sect',
+          target: 'any',
+          required: 1,
+          description: '加入任意门派'
+        }
+      ],
+      rewards: {
+        exp: 500,
+        gold: 300,
+        reputation: 20
+      }
+    },
+
+    phase2_first_fame: {
+      id: 'phase2_first_fame',
+      name: '初露锋芒',
+      description: '获得「江湖新秀」称号，声名开始在江湖流传。',
+      category: 'progression',
+      tier: 'gold',
+      points: 30,
+      objectives: [
+        {
+          type: 'reach_title',
+          target: '江湖新秀',
+          required: 1,
+          description: '获得「江湖新秀」称号'
+        }
+      ],
+      rewards: {
+        exp: 800,
+        gold: 500,
+        reputation: 30
+      },
+      requirements: {
+        completedIds: ['phase1_joined_sect']
+      }
+    },
+
+    phase3_gained_recognition: {
+      id: 'phase3_gained_recognition',
+      name: '小有名气',
+      description: '获得「小有名气」称号，在江湖中已有所名声。',
+      category: 'progression',
+      tier: 'gold',
+      points: 40,
+      objectives: [
+        {
+          type: 'reach_title',
+          target: '小有名气',
+          required: 1,
+          description: '获得「小有名气」称号'
+        }
+      ],
+      rewards: {
+        exp: 1200,
+        gold: 800,
+        reputation: 50
+      },
+      requirements: {
+        completedIds: ['phase2_first_fame']
+      }
+    },
+
+    phase4_become_master: {
+      id: 'phase4_become_master',
+      name: '一代高手',
+      description: '获得「一流高手」称号，成为江湖中令人敬畏的存在。',
+      category: 'progression',
+      tier: 'platinum',
+      points: 60,
+      objectives: [
+        {
+          type: 'reach_title',
+          target: '一流高手',
+          required: 1,
+          description: '获得「一流高手」称号'
+        }
+      ],
+      rewards: {
+        exp: 2000,
+        gold: 1500,
+        reputation: 100
+      },
+      requirements: {
+        completedIds: ['phase3_gained_recognition']
+      }
+    },
+
+    phase5_truth_revealed: {
+      id: 'phase5_truth_revealed',
+      name: '真相大白',
+      description: '完成主线最终章节，揭开二十年前的惊天真相。',
+      category: 'progression',
+      tier: 'platinum',
+      points: 100,
+      objectives: [
+        {
+          type: 'complete_chapter',
+          target: 5,
+          required: 1,
+          description: '完成主线第 5 章'
+        }
+      ],
+      rewards: {
+        exp: 5000,
+        gold: 3000,
+        reputation: 200,
+        items: [
+          { id: 'truth_amulet', quantity: 1 }
+        ]
+      },
+      requirements: {
+        completedIds: ['phase4_become_master']
+      }
+    },
+
+    // ===== 真相碎片收集成就 =====
+    truth_fragment_5: {
+      id: 'truth_fragment_5',
+      name: '碎片猎手',
+      description: '收集 5 个真相碎片，真相逐渐浮出水面。',
+      category: 'progression',
+      tier: 'gold',
+      points: 40,
+      objectives: [
+        {
+          type: 'collect_truth_fragment',
+          target: 5,
+          required: 5,
+          description: '收集 5 个真相碎片'
+        }
+      ],
+      rewards: {
+        exp: 1000,
+        gold: 800,
+        reputation: 40
+      }
+    },
+
+    truth_fragment_15: {
+      id: 'truth_fragment_15',
+      name: '真相追寻者',
+      description: '收集 15 个真相碎片，事件的真相越来越清晰。',
+      category: 'progression',
+      tier: 'gold',
+      points: 50,
+      objectives: [
+        {
+          type: 'collect_truth_fragment',
+          target: 15,
+          required: 15,
+          description: '收集 15 个真相碎片'
+        }
+      ],
+      rewards: {
+        exp: 1500,
+        gold: 1200,
+        reputation: 60
+      },
+      requirements: {
+        completedIds: ['truth_fragment_5']
+      }
+    },
+
+    truth_fragment_25: {
+      id: 'truth_fragment_25',
+      name: '真相接近者',
+      description: '收集 25 个真相碎片，离最终真相只有一步之遥。',
+      category: 'progression',
+      tier: 'platinum',
+      points: 70,
+      objectives: [
+        {
+          type: 'collect_truth_fragment',
+          target: 25,
+          required: 25,
+          description: '收集 25 个真相碎片'
+        }
+      ],
+      rewards: {
+        exp: 2500,
+        gold: 2000,
+        reputation: 100
+      },
+      requirements: {
+        completedIds: ['truth_fragment_15']
+      }
+    },
+
+    truth_all_fragments: {
+      id: 'truth_all_fragments',
+      name: '真相掌控者',
+      description: '收集全部 30 个真相碎片，掌握了事件的全部真相。',
+      category: 'progression',
+      tier: 'platinum',
+      points: 100,
+      objectives: [
+        {
+          type: 'collect_truth_fragment',
+          target: 30,
+          required: 30,
+          description: '收集全部 30 个真相碎片'
+        }
+      ],
+      rewards: {
+        exp: 5000,
+        gold: 5000,
+        reputation: 300,
+        items: [
+          { id: 'dragon_seal', quantity: 1 }
+        ]
+      },
+      requirements: {
+        completedIds: ['truth_fragment_25']
+      }
+    }
+  }
+}
+
+

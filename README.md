@@ -1,6 +1,6 @@
 # 打字乐园(type-happy)
 
-一个纯打字练习网站:三大课程(**标准指法练习 / 英文练习 / 中文练习**),SVG 虚拟键盘指法引导,中文 IME 拼音逐音节判分;另含**游戏模块**(消气球 / 打鸭子 / 街霸 / 放置刷装备 / 涂鸦跳跃)。成绩与游戏进度均保存在浏览器本地。无账号、无排行榜、无数据库。
+一个纯打字练习网站:三大课程(**标准指法练习 / 英文练习 / 中文练习**),SVG 虚拟键盘指法引导,中文 IME 拼音逐音节判分;另含**游戏模块**(消气球 / 打鸭子 / 街霸 / 放置刷装备 / 武侠放置 / 涂鸦跳跃)。成绩与游戏进度均保存在浏览器本地。无账号、无排行榜、无数据库。
 
 ## 快速开始
 
@@ -23,6 +23,7 @@ pnpm dev          # 同时启动后端(:3001)与前端(:5173),浏览器访问 ht
 | `pnpm --filter @type-happy/web smoke`     | 打字引擎冒烟测试(Node 内模拟浏览器事件)               |
 | `pnpm --filter @type-happy/web prerender` | 预渲染全部路由为静态 HTML(SEO,见「SEO」章节)          |
 | `node apps/web/scripts/e2e-doodle.mjs`    | 涂鸦跳跃 Playwright e2e(需 dev server,见「涂鸦跳跃」) |
+| `node apps/web/scripts/e2e-wuxia.mjs`     | 武侠放置 Playwright e2e(需 dev server,见「武侠放置」) |
 
 ## Docker 部署
 
@@ -59,8 +60,8 @@ docker compose up -d --build
 | 每页独立 TDK(title/description)       | `@unhead/vue`:路由 meta 提供默认值,课程/关卡页在数据加载后动态覆盖                                                          |
 | canonical / Open Graph / Twitter Card | 全部路由自动注入,地址基于 `VITE_SITE_URL`(默认 https://type.toby-blog.com)                                                  |
 | 结构化数据 JSON-LD                    | 首页 `WebSite`;游戏页 `VideoGame`;课程/游戏列表页 `ItemList`;课程与关卡页 `BreadcrumbList`                                  |
-| sitemap.xml / robots.txt              | `scripts/gen-seo.mjs` 构建时从课程 JSON 生成(61 个 URL),产物在 `public/`,不入库                                             |
-| **静态预渲染**                        | `scripts/prerender.mjs` 用 Playwright 把全部 61 个路由渲染成静态 HTML 快照写入 `dist/`,爬虫无需执行 JS 即可抓取正文与 meta  |
+| sitemap.xml / robots.txt              | `scripts/gen-seo.mjs` 构建时从课程 JSON 生成(64 个 URL),产物在 `public/`,不入库                                             |
+| **静态预渲染**                        | `scripts/prerender.mjs` 用 Playwright 把全部 64 个路由渲染成静态 HTML 快照写入 `dist/`,爬虫无需执行 JS 即可抓取正文与 meta  |
 | nginx 快照分发                        | `try_files $uri $uri/index.html /index.html`:干净 URL 直接命中预渲染快照,内部重写无 301;HTML 一律 no-cache                  |
 | 站点图标 / PWA manifest               | `public/favicon.svg`(设计源)由 `scripts/gen-icons.mjs` 生成 `.ico`/PNG 全尺寸集与 `manifest.webmanifest`,图标变更时手动重跑 |
 
@@ -102,10 +103,12 @@ type-happy/
 │       ├── src/stores/           # progress.ts(练习进度)+ games.ts(游戏最高分),均为 Pinia + localStorage
 │       ├── src/utils/            # fingerMap / keyboardLayout / format
 │       ├── src/views/            # Home / CourseList / CourseDetail / Practice / GameList + 各游戏页
-│       ├── scripts/              # smoke-engines.ts(引擎冒烟)+ e2e-doodle.mjs(Playwright e2e)+ gen-seo/prerender/save-shell(SEO 构建管线)+ gen-icons.mjs(图标生成)
+│       ├── scripts/              # smoke-engines.ts(引擎冒烟)+ e2e-doodle.mjs / e2e-wuxia.mjs(Playwright e2e)+ gen-seo/prerender/save-shell(SEO 构建管线)+ gen-icons.mjs(图标生成)
 │       ├── games/vue-idle-game/  # 放置刷装备源码(vendored,Vue 2 独立构建,见「游戏模块」)
+│       ├── games/wuxia-idle/     # 武侠放置源码(vendored,Vue 3 + Vite 独立构建,见「游戏模块」)
 │       ├── public/               # 站点图标(favicon.svg/.ico、apple-touch-icon、icon-192/512、manifest.webmanifest)与 og-cover
 │       ├── public/games/idle/    # vue-idle-game 构建产物,由 vite 原样托管在 /games/idle/
+│       ├── public/games/wuxia/   # wuxia-idle 构建产物,由 vite 原样托管在 /games/wuxia/
 │       ├── public/games/doodle/  # 涂鸦跳跃静态资源(atlas / audio / img),托管在 /games/doodle/
 │       ├── nginx.conf            # 前端容器 nginx:SPA 回退 + /api 反代
 │       └── Dockerfile            # 前端镜像(vite 产物 + nginx)
@@ -156,7 +159,7 @@ courseId:`fingering` / `english` / `chinese`。非法 id 返回 404。
 
 ## 游戏模块
 
-入口 `/games`,五个小游戏,成绩均只保存在本机浏览器:
+入口 `/games`,六个小游戏,成绩均只保存在本机浏览器:
 
 | 游戏          | 路由             | 实现                                                                                        |
 | ------------- | ---------------- | ------------------------------------------------------------------------------------------- |
@@ -164,6 +167,7 @@ courseId:`fingering` / `english` / `chinese`。非法 id 返回 404。
 | 🦆 打字打鸭子 | `/games/duck`    | 同上                                                                                        |
 | 🥋 打字街霸   | `/games/fighter` | 原生 Vue 3 组件(`useFightGame`,限时打单词出招)                                              |
 | ⚔️ 放置刷装备 | `/games/idle`    | vendored 开源游戏 [vue-idle-game](https://github.com/Couy69/vue-idle-game)(MIT),iframe 嵌入 |
+| 🗡️ 武侠放置   | `/games/wuxia`   | vendored 开源游戏 [WuXiaIdle](https://github.com/wuuJiawei/WuXiaIdle)(仅供学习/个人使用),iframe 嵌入 |
 | 🐸 涂鸦跳跃   | `/games/doodle`  | 自研 Pixi.js 引擎(`src/games/doodle-jump/`),Doodle Jump 逆向重制                            |
 
 打字类游戏的最高分/连击/局数记录在 localStorage key `type-happy:games:v1`(`stores/games.ts`);涂鸦跳跃的 bestScore 也汇总写入该 store。
@@ -194,6 +198,30 @@ cd apps/web/games/vue-idle-game
 npm install --legacy-peer-deps   # 首次
 npm run build                    # 内置 --openssl-legacy-provider,兼容新版 Node
 rsync -a --delete dist/ ../../public/games/idle/
+```
+
+### 武侠放置(WuXiaIdle)
+
+- 源码位于 `apps/web/games/wuxia-idle/`(Vue 3 + Vite 独立子项目,**不在** pnpm workspace 与 ESLint/tsconfig/prettier 范围内,安装依赖需加 `--ignore-workspace`);
+- 古典武侠文字放置游戏:五大门派、真相之路主线、生活技能、闭关护镖等,**无任何外部请求**,存档仅用浏览器 localStorage(key 均为 `wuxia*` 前缀,与主站不冲突);
+- 集成改造(相对上游仅三处):`vite.config.ts` 增加 `base: '/games/wuxia/'`;路由由 `createWebHistory` 改为 `createWebHashHistory`(iframe 以 `index.html` 地址嵌入时 history 模式无法匹配根路由);`index.html` 补全中文 TDK;
+- 构建产物提交在 `apps/web/public/games/wuxia/`,由 vite 作为静态资源托管在 `/games/wuxia/`,主站页面 `WuxiaGameView.vue` 以 iframe 嵌入;
+- 上游存在 36 个历史遗留的 `vue-tsc` 类型错误(集中在 services 层,与集成改造无关),故构建用 `pnpm build`(纯 vite,不做类型检查);游戏自带 47 个 vitest 单测可独立运行;
+- 修改源码后重新构建并同步产物:
+
+```bash
+cd apps/web/games/wuxia-idle
+pnpm install --ignore-workspace  # 首次
+pnpm test                        # 游戏自身 vitest 单测(可选)
+pnpm build
+rsync -a --delete dist/ ../../public/games/wuxia/
+```
+
+- Playwright e2e 验证集成页与 iframe 内游戏挂载、交互、存档与无控制台报错:
+
+```bash
+pnpm --filter @type-happy/web exec vite --port 5199 &
+E2E_BASE=http://localhost:5199 node apps/web/scripts/e2e-wuxia.mjs
 ```
 
 ## 内容扩充指南

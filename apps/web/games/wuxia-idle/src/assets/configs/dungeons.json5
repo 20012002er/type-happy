@@ -1,0 +1,169 @@
+// 地牢配置（JSON5）
+// 支持多波次、多敌人的地牢挑战
+{
+  version: '1.0.0',
+  lastUpdated: '2025-12-24',
+  
+  dungeons: [
+    // === 新手地牢 (Lv 5-10) ===
+    {
+      id: 'bandit_hideout',
+      name: '山贼窝',
+      description: '林间深处的山贼据点，传闻藏有不少金银。击败山贼头目可获得丰厚奖励。',
+      recommendLevel: 8,
+      entryCost: { stamina: 5 },
+      waves: [
+        {
+          id: 'wave_1',
+          title: '外围哨卡',
+          spawns: [
+            { enemyId: 'bandit', tier: 'normal', count: 2 }
+          ]
+        },
+        {
+          id: 'wave_2',
+          title: '营地守卫',
+          spawns: [
+            { enemyId: 'bandit', tier: 'normal', count: 1 },
+            { enemyId: 'rogue_swordsman', tier: 'elite', count: 1 }
+          ]
+        },
+        {
+          id: 'wave_3',
+          title: '寨主厅堂',
+          spawns: [
+            { enemyId: 'bandit_leader', tier: 'boss', count: 1 }
+          ],
+          isBossWave: true
+        }
+      ],
+      reward: {
+        goldMultiplier: 2.0,
+        expMultiplier: 1.5,
+        dropTables: ['bandit_drops'],
+        bonusDropChance: 0.1,
+        pity: { minEpicOnClear: true }
+      },
+      unlockCondition: { minLevel: 5 }
+    },
+    
+    // === 初级地牢 (Lv 10-15) ===
+    {
+      id: 'abandoned_temple_depths',
+      name: '荒寺地宫',
+      description: '荒寺之下的幽暗地宫，阴气森森，传闻有邪教徒在此修炼邪功。',
+      recommendLevel: 12,
+      entryCost: { stamina: 8 },
+      waves: [
+        {
+          id: 'wave_1',
+          title: '地宫入口',
+          spawns: [
+            { enemyId: 'ghost', tier: 'normal', count: 2 },
+            { enemyId: 'cultist', tier: 'normal', count: 1 }
+          ]
+        },
+        {
+          id: 'wave_2',
+          title: '祭坛守卫',
+          spawns: [
+            { enemyId: 'cultist', tier: 'normal', count: 2 },
+            { enemyId: 'poison_hand_disciple', tier: 'elite', count: 1 }
+          ],
+          modifiers: [
+            { type: 'buff_enemies', attackMul: 1.1 }
+          ]
+        },
+        {
+          id: 'wave_3',
+          title: '邪祭大殿',
+          spawns: [
+            { enemyId: 'ghost', tier: 'normal', count: 2 },
+            { enemyId: 'blackwater_sorcerer', tier: 'elite', count: 1 }
+          ]
+        },
+        {
+          id: 'wave_4',
+          title: '地宫深处',
+          spawns: [
+            { enemyId: 'shadow_vale_specter', tier: 'boss', count: 1 }
+          ],
+          isBossWave: true,
+          modifiers: [
+            { type: 'no_heal' }
+          ]
+        }
+      ],
+      reward: {
+        goldMultiplier: 2.5,
+        expMultiplier: 2.0,
+        dropTables: ['cult_drops', 'grave_drops'],
+        bonusDropChance: 0.15,
+        pity: { minRareEvery: 2, minEpicOnClear: true }
+      },
+      unlockCondition: { minLevel: 10 }
+    },
+    
+    // === 中级地牢 (Lv 15-20) ===
+    {
+      id: 'wolf_den',
+      name: '狼王巢穴',
+      description: '深山中的狼群巢穴，狼王统领着数十头凶狼，是附近村庄的心腹大患。',
+      recommendLevel: 16,
+      entryCost: { stamina: 10 },
+      waves: [
+        {
+          id: 'wave_1',
+          title: '巢穴外围',
+          spawns: [
+            { enemyId: 'wolf', tier: 'normal', count: 3 }
+          ]
+        },
+        {
+          id: 'wave_2',
+          title: '狼群伏击',
+          spawns: [
+            { enemyId: 'wolf', tier: 'normal', count: 2 },
+            { enemyId: 'wolf', tier: 'elite', count: 1, levelOffset: 2 }
+          ],
+          modifiers: [
+            { type: 'debuff_player', defenseMul: 0.9 }
+          ]
+        },
+        {
+          id: 'wave_3',
+          title: '精锐狼卫',
+          spawns: [
+            { enemyId: 'wolf', tier: 'elite', count: 2 }
+          ]
+        },
+        {
+          id: 'wave_4',
+          title: '狼王领地',
+          spawns: [
+            { enemyId: 'wolf', tier: 'normal', count: 2 },
+            { enemyId: 'wolf_alpha', tier: 'boss', count: 1 }
+          ],
+          isBossWave: true
+        }
+      ],
+      reward: {
+        goldMultiplier: 2.8,
+        expMultiplier: 2.2,
+        dropTables: ['forest_drops'],
+        bonusDropChance: 0.12,
+        pity: { minRareEvery: 2, minEpicOnClear: true }
+      },
+      unlockCondition: { minLevel: 14 }
+    }
+  ],
+  
+  // 地点与地牢的映射
+  locationDungeons: {
+    'bandit_camp': ['bandit_hideout'],
+    'forest_path': ['bandit_hideout'],
+    'abandoned_temple': ['abandoned_temple_depths'],
+    'hidden_valley': ['wolf_den'],
+    'ancient_pine_forest': ['wolf_den']
+  }
+}

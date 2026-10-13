@@ -1,0 +1,222 @@
+// 门派贡献配置
+// 定义五大派的任务类型、贡献获取规则和兑换奖励
+
+{
+  // 贡献获取规则
+  contributionGains: [
+    {
+      type: 'daily_prayer',
+      name: '每日诵经',
+      baseContribution: 10,
+      description: '在门派诵经堂进行每日诵经',
+      cooldown: 'daily',
+      requirements: {
+        minReputationLevel: 1
+      }
+    },
+    {
+      type: 'sect_task',
+      name: '门派任务',
+      baseContribution: 20,
+      description: '完成门派发布的日常任务',
+      cooldown: 'daily',
+      requirements: {
+        minReputationLevel: 2
+      }
+    },
+    {
+      type: 'donate_gold',
+      name: '捐赠银两',
+      baseContribution: 1,
+      perGold: 100,
+      description: '向门派捐赠银两',
+      cooldown: 'none',
+      requirements: {
+        minReputationLevel: 1
+      }
+    },
+    {
+      type: 'donate_material',
+      name: '捐赠材料',
+      baseContribution: 50,
+      description: '向门派捐赠稀有材料',
+      cooldown: 'none',
+      requirements: {
+        minReputationLevel: 3
+      }
+    },
+    {
+      type: 'sect_battle',
+      name: '门派比武',
+      baseContribution: 30,
+      description: '在门派内部比武中获胜',
+      cooldown: 'daily',
+      maxDaily: 3,
+      requirements: {
+        minReputationLevel: 2
+      }
+    },
+    {
+      type: 'defend_sect',
+      name: '守卫门派',
+      baseContribution: 100,
+      description: '参与门派防御战并击退敌人',
+      cooldown: 'weekly',
+      requirements: {
+        minReputationLevel: 4
+      }
+    },
+    {
+      type: 'teach_disciple',
+      name: '指点弟子',
+      baseContribution: 25,
+      description: '指点门派弟子练功',
+      cooldown: 'daily',
+      maxDaily: 2,
+      requirements: {
+        minReputationLevel: 3
+      }
+    },
+    {
+      type: 'clear_territory',
+      name: '清扫山门',
+      baseContribution: 15,
+      description: '清扫门派领地内的贼匪',
+      cooldown: 'daily',
+      maxDaily: 5,
+      requirements: {
+        minReputationLevel: 1
+      }
+    }
+  ],
+
+  // 兑换奖励配置
+  redemptionRewards: [
+    {
+      id: 'sect_weapon_basic',
+      name: '门派制式兵器',
+      type: 'equipment',
+      category: 'weapon',
+      contributionCost: 100,
+      rarity: 'common',
+      sectTypes: ['shaolin', 'wudang', 'emei', 'huashan', 'gaibang'],
+      description: '门派制式兵器一件'
+    },
+    {
+      id: 'sect_armor_basic',
+      name: '门派制式防具',
+      type: 'equipment',
+      category: 'armor',
+      contributionCost: 150,
+      rarity: 'common',
+      sectTypes: ['shaolin', 'wudang', 'emei', 'huashan', 'gaibang'],
+      description: '门派制式防具一件'
+    },
+    {
+      id: 'sect_skill_scroll',
+      name: '门派武学残卷',
+      type: 'item',
+      contributionCost: 300,
+      sectTypes: ['shaolin', 'wudang', 'emei', 'huashan', 'gaibang'],
+      description: '可领悟一门门派基础武学'
+    },
+    {
+      id: 'sect_healing_potion',
+      name: '门派疗伤丹',
+      type: 'consumable',
+      contributionCost: 50,
+      quantity: 5,
+      sectTypes: ['shaolin', 'wudang', 'emei', 'huashan', 'gaibang'],
+      description: '门派秘制疗伤丹x5'
+    },
+    {
+      id: 'sect_elite_weapon',
+      name: '门派精英兵器',
+      type: 'equipment',
+      category: 'weapon',
+      contributionCost: 500,
+      rarity: 'uncommon',
+      sectTypes: ['shaolin', 'wudang', 'emei', 'huashan', 'gaibang'],
+      description: '门派精英兵器一件，需要一定声望等级'
+    },
+    {
+      id: 'sect_advanced_skill',
+      name: '门派中级武学',
+      type: 'item',
+      contributionCost: 800,
+      sectTypes: ['shaolin', 'wudang', 'emei', 'huashan', 'gaibang'],
+      description: '可领悟一门门派中级武学',
+      requirements: {
+        minReputationLevel: 3
+      }
+    },
+    {
+      id: 'sect_breakthrough_pill',
+      name: '境界突破丹',
+      type: 'consumable',
+      contributionCost: 1000,
+      sectTypes: ['shaolin', 'wudang', 'emei', 'huashan', 'gaibang'],
+      description: '帮助突破当前境界',
+      requirements: {
+        minReputationLevel: 4
+      }
+    },
+    {
+      id: 'sect_master_weapon',
+      name: '门派镇派兵器',
+      type: 'equipment',
+      category: 'weapon',
+      contributionCost: 2000,
+      rarity: 'rare',
+      sectTypes: ['shaolin', 'wudang', 'emei', 'huashan', 'gaibang'],
+      description: '门派镇派兵器之一',
+      requirements: {
+        minReputationLevel: 5
+      }
+    }
+  ],
+
+  // 贡献等级配置
+  contributionLevels: [
+    {
+      level: 1,
+      name: '初入门派',
+      minContribution: 0,
+      maxContribution: 499,
+      title: '热心弟子',
+      benefits: ['基础兑换权限', '门派商店95折']
+    },
+    {
+      level: 2,
+      name: '略有贡献',
+      minContribution: 500,
+      maxContribution: 1499,
+      title: '积极弟子',
+      benefits: ['中级兑换权限', '门派商店9折', '每日任务额外奖励']
+    },
+    {
+      level: 3,
+      name: '贡献良多',
+      minContribution: 1500,
+      maxContribution: 4999,
+      title: '杰出弟子',
+      benefits: ['高级兑换权限', '门派商店85折', '门派秘法阅览']
+    },
+    {
+      level: 4,
+      name: '功勋卓著',
+      minContribution: 5000,
+      maxContribution: 9999,
+      title: '门派精英',
+      benefits: ['全部兑换权限', '门派商店8折', '禁地进入权限', '弟子请教资格']
+    },
+    {
+      level: 5,
+      name: '一代宗师',
+      minContribution: 10000,
+      maxContribution: 999999,
+      title: '门派长老',
+      benefits: ['镇派武学兑换', '门派商店7折', '全部区域访问', '指导弟子权限']
+    }
+  ]
+}

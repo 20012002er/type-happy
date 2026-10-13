@@ -1,0 +1,13 @@
+// 词缀库（JSON5）
+{
+  version: '1.0.0',
+  lastUpdated: '2025-09-21',
+  affixes: {
+    light:  { name: '轻灵篆',  bonuses: { hp: 0, attack: 0, defense: 0 }, extra: { dodge: 0.03 } },
+    keen:   { name: '锋锐篆',  bonuses: { attack: 3 }, extra: {} },
+    sturdy: { name: '坚韧篆',  bonuses: { defense: 3 }, extra: {} },
+    focus:  { name: '聚气篆',  bonuses: { hp: 8 }, extra: {} },
+  },
+}
+
+

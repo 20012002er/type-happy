@@ -1,0 +1,408 @@
+{
+  // 闭关修炼系统配置 v2.0
+  // 金庸武侠风格「点香修炼」系统
+  version: '2.0.0',
+  lastUpdated: '2025-02-02',
+
+  // 时长选项（分钟 -> 炷/场）
+  durationOptions: {
+    一炷香: 25,
+    两炷香: 50,
+    一场闭关: 90,
+  },
+
+  // 品质效率映射
+  qualityMultipliers: {
+    common: 1.0,   // 寻常
+    fine: 1.5,     // 上乘
+    rare: 2.0,     // 绝学
+    epic: 3.0,     // 失传
+    legendary: 5.0 // 传说（保留兼容）
+  },
+
+  // 系统参数
+  parameters: {
+    tickIntervalMs: 1000,              // tick间隔（毫秒）
+    baseExpPerTick: 1,                // 基础每tick经验
+    baseHpRecoveryPerTick: 0.5,       // 基础每tick回血
+    baseEnergyRecoveryPerTick: 0.3,    // 基础每tick回体力
+    eventTriggerChance: 0.02,          // 事件触发概率（每tick 2%）
+    collectibleDropChance: 0.15,       // 收集物掉落概率（每次闭关结束时）
+    reputationGainPerSession: 1,       // 每次闭关获得的名声值
+    reputationGainBonus: 0.5,          // 无中断完成的名声额外加成
+    offlineMaxDurationMs: 14400000,    // 离线最大时长 4小时
+    offlineEfficiencyMultiplier: 0.5, // 离线效率倍率 50%
+    offlineRewardCap: {
+      exp: 10000,
+      hp: 500,
+      energy: 300
+    }
+  },
+
+  // 闭关类型定义（功课名目）
+  types: [
+    {
+      id: 'practice',
+      name: '闭门练功',
+      description: '吐纳调息，运转周天',
+      icon: '🧘',
+      baseExpPerTick: 2,
+      baseGoldPerTick: 0.1,
+      primaryBonus: {
+        type: 'exp',
+        multiplier: 1.5
+      },
+      // 掉落倾向
+      collectibleDrops: {
+        primary: ['心法残页', '武学典籍'],
+        secondary: ['江湖典故']
+      },
+      // 事件权重修正
+      eventWeightModifiers: {
+        'insight_flash': 1.5,
+        'qi_surge': 1.3,
+        'meditation_deep': 1.2
+      }
+    },
+    {
+      id: 'sparring',
+      name: '对招演练',
+      description: '拆招解式，精进武艺',
+      icon: '⚔️',
+      baseExpPerTick: 1,
+      baseGoldPerTick: 0.05,
+      primaryBonus: {
+        type: 'attribute',
+        multiplier: 2.0
+      },
+      collectibleDrops: {
+        primary: ['招式残谱', '兵器谱条目'],
+        secondary: ['兵器谱']
+      },
+      eventWeightModifiers: {
+        'body_strengthen': 1.5,
+        'endurance_boost': 1.3,
+        'muscle_tear': 1.2
+      }
+    },
+    {
+      id: 'reading',
+      name: '抄经读谱',
+      description: '研读典籍，悟道参禅',
+      icon: '📖',
+      baseExpPerTick: 1.5,
+      baseGoldPerTick: 0.2,
+      primaryBonus: {
+        type: 'insight',
+        multiplier: 1.8
+      },
+      collectibleDrops: {
+        primary: ['武学批注', '古籍批注'],
+        secondary: ['心法残页']
+      },
+      eventWeightModifiers: {
+        'enlightenment': 1.5,
+        'wisdom_gain': 1.3,
+        'confusion': 0.8
+      }
+    }
+  ],
+
+  // 收集物掉落配置（武学收集系统）
+  collectibles: {
+    // 心法残页系列（闭门练功）
+    '心法残页': {
+      name: '心法残页',
+      rarity: 'common',
+      description: '记录着内功心法片段的残破纸页',
+      icon: '📜'
+    },
+    '武学典籍': {
+      name: '武学典籍',
+      rarity: 'fine',
+      description: '完整的武学修炼典籍',
+      icon: '📕'
+    },
+    '上乘心法夹页': {
+      name: '上乘心法夹页',
+      rarity: 'rare',
+      description: '记载着上乘内功心法的夹页',
+      icon: '📘'
+    },
+    '失传心法残篇': {
+      name: '失传心法残篇',
+      rarity: 'epic',
+      description: '江湖失传的内功心法残篇',
+      icon: '📙'
+    },
+    // 招式残谱系列（对招演练）
+    '招式残谱': {
+      name: '招式残谱',
+      rarity: 'common',
+      description: '记录着招式要诀的残破谱页',
+      icon: '📋'
+    },
+    '兵器谱条目': {
+      name: '兵器谱条目',
+      rarity: 'fine',
+      description: '江湖兵器谱上的条目记录',
+      icon: '⚔️'
+    },
+    '上乘招式残谱': {
+      name: '上乘招式残谱',
+      rarity: 'rare',
+      description: '记载着上乘招式的残谱',
+      icon: '🗡️'
+    },
+    '失传剑谱': {
+      name: '失传剑谱',
+      rarity: 'epic',
+      description: '江湖失传的精妙剑谱',
+      icon: '🔪'
+    },
+    // 武学批注系列（抄经读谱）
+    '武学批注': {
+      name: '武学批注',
+      rarity: 'common',
+      description: '前人对武学典籍的批注心得',
+      icon: '✍️'
+    },
+    '古籍批注': {
+      name: '古籍批注',
+      rarity: 'fine',
+      description: '古籍上的武学批注',
+      icon: '📖'
+    },
+    '江湖典故': {
+      name: '江湖典故',
+      rarity: 'common',
+      description: '江湖上的奇闻轶事',
+      icon: '📚'
+    },
+    '失传典籍': {
+      name: '失传典籍',
+      rarity: 'epic',
+      description: '江湖失传的武学典籍',
+      icon: '📕'
+    }
+  },
+
+  // 稀有度配置
+  rarities: {
+    common: {
+      name: '寻常',
+      dropWeight: 60,
+      color: '#9ca3af'
+    },
+    fine: {
+      name: '上乘',
+      dropWeight: 25,
+      color: '#10b981'
+    },
+    rare: {
+      name: '绝学',
+      dropWeight: 10,
+      color: '#3b82f6'
+    },
+    epic: {
+      name: '失传',
+      dropWeight: 5,
+      color: '#8b5cf6'
+    }
+  },
+
+  // 江湖小剧场（闭关完成时的随机事件）
+  storyEvents: {
+    // 通用事件
+    general: [
+      '忽闻远处钟声悠悠，心境竟平和了几分',
+      '一阵风过，竹影婆娑，似有所悟',
+      '阳光透过窗棂，落在案上，静谧安宁',
+      '鸟鸣啾啾，更显幽静'
+    ],
+    // 闭门练功专属
+    practice: [
+      '内力运转周天，竟比往日更顺畅',
+      '吐纳之际，隐约悟得几分道理',
+      '丹田一股暖意升起，真气运转更圆融',
+      '心念一动，似有所得'
+    ],
+    // 对招演练专属
+    sparring: [
+      '拆招之际，忽觉招式有破绽',
+      '对练之中，茅塞顿开',
+      '交手百招，略有所得',
+      '身法一动，势若游龙'
+    ],
+    // 抄经读谱专属
+    reading: [
+      '翻阅旧籍，发现夹页批注',
+      '古卷所述，与自身印证',
+      '典籍所载，暗合拳理',
+      '书页翻动，悟道其中'
+    ],
+    // 稀有事件（失传物品掉落时）
+    rare: [
+      '邻桌两人压低嗓音，提到一页失传剑谱……',
+      '恍惚间，似见前辈高人演练精妙招式',
+      '灵光一闪，武学至理跃然心头',
+      '功德圆满之际，隐约感应天道'
+    ]
+  },
+
+  // 闭关事件定义（保留原有事件系统）
+  events: [
+    // ========== 正面事件 ==========
+    {
+      id: 'insight_flash',
+      type: 'positive',
+      weight: 20,
+      conditions: {
+        minElapsedPercent: 0.1
+      },
+      effects: {
+        expBonus: { min: 10, max: 30, scaleByLevel: true }
+      },
+      i18nKey: 'seclusion.event.insight_flash'
+    },
+    {
+      id: 'qi_surge',
+      type: 'positive',
+      weight: 15,
+      conditions: {
+        minElapsedPercent: 0.2,
+        requiredType: 'practice'
+      },
+      effects: {
+        expBonus: { min: 20, max: 50, scaleByLevel: true },
+        efficiencyModifier: 0.2
+      },
+      i18nKey: 'seclusion.event.qi_surge'
+    },
+    {
+      id: 'meditation_deep',
+      type: 'positive',
+      weight: 18,
+      conditions: {
+        minElapsedPercent: 0.3
+      },
+      effects: {
+        expBonus: { min: 15, max: 40, scaleByLevel: true },
+        goldBonus: { min: 5, max: 15 }
+      },
+      i18nKey: 'seclusion.event.meditation_deep'
+    },
+    {
+      id: 'body_strengthen',
+      type: 'positive',
+      weight: 12,
+      conditions: {
+        requiredType: 'sparring'
+      },
+      effects: {
+        attributeBonus: {
+          strength: 1,
+          vitality: 1
+        }
+      },
+      i18nKey: 'seclusion.event.body_strengthen'
+    },
+    {
+      id: 'enlightenment',
+      type: 'positive',
+      weight: 8,
+      conditions: {
+        minElapsedPercent: 0.5,
+        requiredType: 'reading'
+      },
+      effects: {
+        expBonus: { min: 50, max: 100, scaleByLevel: true },
+        attributeBonus: {
+          spirit: 2
+        }
+      },
+      i18nKey: 'seclusion.event.enlightenment'
+    },
+
+    // ========== 负面事件 ==========
+    {
+      id: 'qi_deviation',
+      type: 'negative',
+      weight: 10,
+      conditions: {
+        minElapsedPercent: 0.3
+      },
+      effects: {
+        hpLossPercent: 0.1,
+        efficiencyModifier: -0.2
+      },
+      i18nKey: 'seclusion.event.qi_deviation'
+    },
+    {
+      id: 'distraction',
+      type: 'negative',
+      weight: 15,
+      effects: {
+        expLossPercent: 0.05,
+        efficiencyModifier: -0.1
+      },
+      i18nKey: 'seclusion.event.distraction'
+    },
+    {
+      id: 'muscle_tear',
+      type: 'negative',
+      weight: 8,
+      conditions: {
+        requiredType: 'sparring'
+      },
+      effects: {
+        hpLossPercent: 0.15,
+        attributeBonus: {
+          strength: -1
+        }
+      },
+      i18nKey: 'seclusion.event.muscle_tear'
+    },
+    {
+      id: 'confusion',
+      type: 'negative',
+      weight: 12,
+      conditions: {
+        requiredType: 'reading'
+      },
+      effects: {
+        expLossPercent: 0.1
+      },
+      i18nKey: 'seclusion.event.confusion'
+    },
+
+    // ========== 中性事件 ==========
+    {
+      id: 'peaceful_moment',
+      type: 'neutral',
+      weight: 25,
+      effects: {
+        efficiencyModifier: 0.05
+      },
+      i18nKey: 'seclusion.event.peaceful_moment'
+    },
+    {
+      id: 'memory_flash',
+      type: 'neutral',
+      weight: 20,
+      effects: {
+        expBonus: { min: 5, max: 15 }
+      },
+      i18nKey: 'seclusion.event.memory_flash'
+    }
+  ],
+
+  // 称号系统配置（复用 titleStore，此处为参考）
+  reputationTitles: [
+    { level: 0, title: '无名之辈', description: '江湖路人' },
+    { level: 1, title: '小有名气', description: '略有名声' },
+    { level: 2, title: '江湖新秀', description: '后起之秀' },
+    { level: 3, title: '名动一方', description: '威震一方' },
+    { level: 4, title: '一代豪侠', description: '武林传奇' }
+  ]
+}

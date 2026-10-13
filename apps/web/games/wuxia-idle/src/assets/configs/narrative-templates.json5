@@ -1,0 +1,207 @@
+// 叙事日志模板配置（JSON5）
+// 将战斗日志转换为小说化叙事
+{
+  version: '1.0.0',
+  lastUpdated: '2025-12-24',
+  
+  templates: {
+    // === 战斗事件 ===
+    'combat.attack': [
+      {
+        weight: 3,
+        brief: '{attackerName} 攻击 {defenderName}，造成 {damage} 伤害',
+        normal: '{attackerName} 挥剑斩向 {defenderName}，剑气凌厉，造成 {damage} 点伤害。',
+        drama: '{attackerName} 一声轻喝，长剑如虹，直取 {defenderName} 要害！{defenderName} 闷哼一声，气血翻涌（-{damage}）。'
+      },
+      {
+        weight: 2,
+        brief: '{attackerName} 击中 {defenderName}，{damage} 伤害',
+        normal: '{attackerName} 身形一晃，掌风呼啸，{defenderName} 受创 {damage}。',
+        drama: '电光火石间，{attackerName} 已欺身近前，一掌印在 {defenderName} 胸口，内劲透体而入（-{damage}）！'
+      },
+      {
+        weight: 2,
+        brief: '{attackerName} 出招，{defenderName} -{damage}',
+        normal: '{attackerName} 招式凌厉，{defenderName} 躲闪不及，受创 {damage}。',
+        drama: '「看招！」{attackerName} 大喝一声，拳风破空，{defenderName} 硬接这一击，踉跄后退（-{damage}）。'
+      }
+    ],
+    
+    'combat.crit': [
+      {
+        weight: 1,
+        brief: '暴击！{attackerName} 造成 {damage} 伤害',
+        normal: '{attackerName} 抓住破绽，一击命中要害，{defenderName} 重创 {damage}！',
+        drama: '「着！」{attackerName} 目光如电，这一击正中 {defenderName} 命门，{defenderName} 口吐鲜血，踉跄后退（暴击 -{damage}）！'
+      },
+      {
+        weight: 1,
+        brief: '致命一击！{damage} 伤害',
+        normal: '{attackerName} 瞅准时机，一招制敌，{defenderName} 大受重创（-{damage}）！',
+        drama: '千钧一发之际，{attackerName} 洞察先机，这一击势如破竹，{defenderName} 惨叫一声，鲜血飞溅（暴击 -{damage}）！'
+      }
+    ],
+    
+    'combat.dodge': [
+      {
+        weight: 1,
+        brief: '{defenderName} 闪避成功',
+        normal: '{defenderName} 身形灵动，堪堪避开这一击。',
+        drama: '{defenderName} 脚下生风，身形如鬼魅般飘移，{attackerName} 这一击落了个空！'
+      },
+      {
+        weight: 1,
+        brief: '{defenderName} 躲开了攻击',
+        normal: '{defenderName} 侧身一闪，险险避过 {attackerName} 的攻势。',
+        drama: '「好身法！」{attackerName} 暗自心惊，{defenderName} 轻功了得，竟能在电光火石间避开这必杀一击。'
+      }
+    ],
+    
+    'combat.skill': [
+      {
+        weight: 1,
+        brief: '{attackerName} 施展【{skillName}】，{damage} 伤害',
+        normal: '{attackerName} 施展 {skillEmoji}【{skillName}】，{defenderName} 受创 {damage}。',
+        drama: '「看招！」{attackerName} 大喝一声，{skillEmoji}【{skillName}】破空而出！{defenderName} 躲闪不及，硬生生挨了这一记（-{damage}）。'
+      },
+      {
+        weight: 1,
+        brief: '【{skillName}】命中，{damage} 伤害',
+        normal: '{attackerName} 运起内力，{skillEmoji}【{skillName}】势不可挡，{defenderName} 受创 {damage}。',
+        drama: '内力涌动间，{attackerName} 双目精光四射，{skillEmoji}【{skillName}】如惊涛骇浪般席卷而出，{defenderName} 首当其冲（-{damage}）！'
+      }
+    ],
+    
+    'combat.block': [
+      {
+        weight: 1,
+        brief: '{defenderName} 格挡成功',
+        normal: '{defenderName} 举剑格挡，化解了这一击。',
+        drama: '「铛！」金铁交鸣，{defenderName} 横剑相迎，硬生生挡下 {attackerName} 这凌厉一击！'
+      }
+    ],
+    
+    'combat.defeat': [
+      {
+        weight: 1,
+        brief: '{defenderName} 被击败',
+        normal: '{defenderName} 气力不支，轰然倒地。',
+        drama: '{defenderName} 再也支撑不住，双膝一软，颓然倒地。这一战，胜负已分。',
+        conditions: { isLastEnemy: true }
+      },
+      {
+        weight: 1,
+        brief: '{defenderName} 倒下了',
+        normal: '{defenderName} 不敌，败退而去。',
+        drama: '「啊——」{defenderName} 惨叫一声，身形踉跄，终于支撑不住倒了下去。'
+      }
+    ],
+    
+    // === 地牢事件 ===
+    'dungeon.enter': [
+      {
+        weight: 1,
+        brief: '进入【{dungeonName}】',
+        normal: '你踏入【{dungeonName}】，四周气氛陡然紧张起来。',
+        drama: '推开那扇斑驳的木门，一股阴冷的气息扑面而来。【{dungeonName}】，传闻中的凶险之地，今日你终于踏足此处。'
+      }
+    ],
+    
+    'dungeon.wave_start': [
+      {
+        weight: 1,
+        brief: '第 {waveIndex} 波：{waveTitle}',
+        normal: '第 {waveIndex} 波敌人出现——{waveTitle}！',
+        drama: '脚步声由远及近，{waveTitle}！{enemyCount} 名敌人从暗处现身，杀气腾腾。'
+      },
+      {
+        weight: 1,
+        brief: '第 {waveIndex}/{totalWaves} 波开始',
+        normal: '【{waveTitle}】——{enemyCount} 名敌人挡住去路。',
+        drama: '前方传来异动，{waveTitle}！你握紧兵刃，迎向这 {enemyCount} 名来犯之敌。',
+        conditions: { isBossWave: false }
+      },
+      {
+        weight: 1,
+        brief: 'BOSS 波：{waveTitle}',
+        normal: '最终一战——{waveTitle}！强敌现身！',
+        drama: '空气仿佛凝固，一股强大的气息压迫而来。{waveTitle}——真正的考验，现在才刚刚开始！',
+        conditions: { isBossWave: true }
+      }
+    ],
+    
+    'dungeon.wave_clear': [
+      {
+        weight: 1,
+        brief: '第 {waveIndex} 波清除',
+        normal: '第 {waveIndex} 波敌人已被击退，稍作喘息。',
+        drama: '最后一名敌人倒下，你抹去额头的汗水。第 {waveIndex} 波，过了。'
+      },
+      {
+        weight: 1,
+        brief: '波次完成 ({waveIndex}/{totalWaves})',
+        normal: '敌人尽数伏诛，你整理衣衫，继续深入。',
+        drama: '硝烟散尽，你环顾四周，确认再无敌人后，缓缓吐出一口浊气。前路漫漫，不可大意。'
+      }
+    ],
+    
+    'dungeon.finish': [
+      {
+        weight: 1,
+        brief: '通关【{dungeonName}】！',
+        normal: '恭喜！你成功通关【{dungeonName}】，获得丰厚奖励。',
+        drama: '尘埃落定，【{dungeonName}】的最后一个敌人轰然倒地。你环顾四周，这场恶战，终于结束了。'
+      }
+    ],
+    
+    'dungeon.fail': [
+      {
+        weight: 1,
+        brief: '挑战失败',
+        normal: '你在【{dungeonName}】中力竭倒下，被迫撤退。',
+        drama: '气力耗尽，你再也支撑不住。眼前一黑，意识逐渐模糊……待你醒来时，已被同伴救出【{dungeonName}】。'
+      }
+    ],
+    
+    'dungeon.abort': [
+      {
+        weight: 1,
+        brief: '主动撤退',
+        normal: '你选择暂时撤退，保存实力。',
+        drama: '审时度势，你决定暂且退出【{dungeonName}】。留得青山在，不怕没柴烧。'
+      }
+    ],
+    
+    // === 奖励事件 ===
+    'reward.get': [
+      {
+        weight: 1,
+        brief: '获得 {gold} 金币，{exp} 经验',
+        normal: '战利品：{gold} 金币，{exp} 经验值。',
+        drama: '搜刮战场，你收获颇丰：{gold} 枚金币叮当作响，{exp} 点经验入账。'
+      }
+    ],
+    
+    'reward.settlement': [
+      {
+        weight: 1,
+        brief: '结算：{gold} 金币，{exp} 经验',
+        normal: '本次挑战结算：获得 {gold} 金币，{exp} 经验值。',
+        drama: '清点战利品，此番征战收获：{gold} 金币，{exp} 经验。江湖路远，且行且珍重。'
+      }
+    ]
+  },
+  
+  // 同义词词库，用于随机替换增加文案多样性
+  synonyms: {
+    '攻击': ['斩向', '刺向', '劈向', '击向', '打向', '袭向'],
+    '伤害': ['创伤', '损伤', '重创', '伤势'],
+    '闪避': ['躲开', '避开', '闪过', '侧身避开', '飘身闪过'],
+    '暴击': ['致命一击', '要害一击', '破绽一击', '会心一击'],
+    '倒下': ['倒地', '败退', '落败', '不支'],
+    '出招': ['挥剑', '运掌', '施展', '使出'],
+    '气力': ['内力', '真气', '体力', '精力'],
+    '凌厉': ['凌厉', '凶猛', '迅捷', '刁钻'],
+    '踉跄': ['踉跄', '趔趄', '摇晃', '后退']
+  }
+}

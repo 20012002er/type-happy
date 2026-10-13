@@ -1,0 +1,103 @@
+// 门派配置
+// 定义五大派属性加成和克制关系
+
+{
+  // 五大派配置
+  sects: {
+    // 少林派 - 防御型
+    shaolin: {
+      name: '少林',
+      description: '天下武学正宗，以外家功夫见长',
+      bonuses: {
+        defense: 20,      // 防御+20%
+        hp: 15,          // 生命+15%
+        smithing: 15     // 锻造+15%
+      },
+      primaryAttribute: 'defense',
+      icon: 'temple'
+    },
+
+    // 武当派 - 内力型
+    wudang: {
+      name: '武当',
+      description: '以柔克刚，内功深厚',
+      bonuses: {
+        mp: 20,          // 内力+20%
+        recovery: 15,   // 恢复+15%
+        alchemy: 15     // 炼丹+15%
+      },
+      primaryAttribute: 'mp',
+      icon: 'taoist'
+    },
+
+    // 峨眉派 - 技巧型
+    emei: {
+      name: '峨眉',
+      description: '剑走轻灵，内外兼修',
+      bonuses: {
+        dodge: 20,      // 闪避+20%
+        crit: 15,       // 暴击+15%
+        gathering: 15  // 采集+15%
+      },
+      primaryAttribute: 'dodge',
+      icon: 'mountain'
+    },
+
+    // 华山派 - 攻击型
+    huashan: {
+      name: '华山',
+      description: '剑宗传承，攻伐无双',
+      bonuses: {
+        attack: 25,    // 攻击+25%
+        speed: 10,     // 速度+10%
+        mining: 15     // 采矿+15%
+      },
+      primaryAttribute: 'attack',
+      icon: 'sword'
+    },
+
+    // 丐帮 - 综合型
+    gaibang: {
+      name: '丐帮',
+      description: '人数众多，擅长打探消息',
+      bonuses: {
+        resources: 15, // 资源+15%
+        dodge: 10,     // 闪避+10%
+        allSkills: 5   // 全技能+5%
+      },
+      primaryAttribute: 'resources',
+      icon: 'beggar'
+    }
+  },
+
+  // 门派克制关系
+  // 进攻方对防守方获得额外加成
+  counters: {
+    shaolin: {
+      counters: 'wudang',
+      bonus: 15  // 少林 → 武当 +15%
+    },
+    wudang: {
+      counters: 'emei',
+      bonus: 10  // 武当 → 峨眉 +10%
+    },
+    emei: {
+      counters: 'huashan',
+      bonus: 10  // 峨眉 → 华山 +10%
+    },
+    huashan: {
+      counters: 'gaibang',
+      bonus: 10  // 华山 → 丐帮 +10%
+    },
+    gaibang: {
+      counters: 'shaolin',
+      bonus: 10  // 丐帮 → 少林 +10%
+    }
+  },
+
+  // 转投其他门派配置
+  transferConfig: {
+    cooldownDays: 30,   // 转投冷却天数
+    goldCost: 5000      // 转投消耗黄金
+  }
+}

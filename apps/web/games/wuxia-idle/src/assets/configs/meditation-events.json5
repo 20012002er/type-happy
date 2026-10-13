@@ -1,0 +1,51 @@
+// 冥想/打坐事件列表（JSON5）
+// - weight 为默认权重，地点可通过 meditationEventWeights 覆盖
+{
+  version: '1.0.0',
+  // 全局事件触发概率（0-1）。例如：0.1 表示平均10次tick触发1次事件。
+  triggerChance: 0.1,
+  events: [
+    // 1. 灵机一动：额外经验（按等级缩放）
+    { id: 'insight_minor', type: 'exp', amount: { min: 1, max: 3, scaleByLevel: true }, weight: 16, i18nKey: 'game.meditate.event.bonusExp' },
+
+    // 2. 钱袋颤动：额外金币
+    { id: 'pouch_jingle', type: 'gold', amount: { min: 5, max: 25 }, weight: 12, i18nKey: 'game.meditate.event.bonusGold' },
+
+    // 3. 心魔微扰：扣少量HP与当前等级经验百分比 + 负面效果
+    // 走火入魔：扣5%生命与5%当前等级经验，并附带1小时-10%EPS
+    { id: 'demonic_minor', type: 'applyEffect', effects: ['debuff_meditation_10pct_1h'], hpPercent: 0.05, expPercent: 0.05, weight: 7, i18nKey: 'game.meditate.event.demonicMinor' },
+
+    // 4. 心灵澄澈：临时效率+10%（10分钟）
+    { id: 'insight_clarity', type: 'applyEffect', effects: ['buff_meditation_10pct_10m'], weight: 6, i18nKey: 'game.meditate.event.clarity' },
+
+    // 5. 有人打扰：当前等级经验设置为1
+    // 有人打扰：将当前等级经验设置为1点
+    { id: 'interruption_minor', type: 'applyEffect', setCurrentLevelExpTo: 1, weight: 3, i18nKey: 'game.meditate.event.interruption' },
+
+    // 6. 清风徐来：小幅金币
+    { id: 'breeze', type: 'gold', amount: { min: 2, max: 8 }, weight: 10, i18nKey: 'game.meditate.event.bonusGold' },
+
+    // 7. 松涛悟意：中量经验
+    { id: 'pine_wave', type: 'exp', amount: { min: 2, max: 5, scaleByLevel: true }, weight: 10, i18nKey: 'game.meditate.event.bonusExp' },
+
+    // 8. 石上清坐：强化正向效果（再给一次 buff）
+    { id: 'stone_seat', type: 'applyEffect', effects: ['buff_meditation_20pct_5m'], weight: 3, i18nKey: 'game.meditate.event.clarity' },
+
+    // 9. 鸟鸣惊梦：扣少量HP
+    { id: 'bird_chirp', type: 'applyEffect', hpPercent: 0.03, weight: 6, i18nKey: 'game.meditate.event.demonicMinor' },
+
+    // 10. 灵感爆发：大量经验
+    { id: 'eureka', type: 'exp', amount: { min: 6, max: 14, scaleByLevel: true }, weight: 2, i18nKey: 'game.meditate.event.bonusExp' },
+
+    // 11. 杂念丛生：临时效率-20%（5分钟）
+    { id: 'distracted', type: 'applyEffect', effects: ['debuff_meditation_20pct_5m'], weight: 4, i18nKey: 'game.meditate.event.distracted' },
+
+    // 12. 心火微旺：长时小幅正向（30分钟）
+    { id: 'steady_breath', type: 'applyEffect', effects: ['buff_meditation_5pct_30m'], weight: 5, i18nKey: 'game.meditate.event.steadyBreath' },
+
+    // 彩蛋：稀有奖励（占位）
+    { id: 'easter_reward', type: 'rewardTag', tag: 'rare', weight: 1, i18nKey: 'game.meditate.event.easter' },
+  ],
+}
+
+

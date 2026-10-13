@@ -1,0 +1,607 @@
+// 炼丹配方配置
+// 所有材料来自 life-skills.json5 中的采集资源
+{
+  version: '1.0.0',
+  
+  // 丹药类别定义
+  categories: [
+    {
+      id: 'healing',
+      name: '回血丹药',
+      icon: '❤️',
+      description: '恢复生命值的丹药'
+    },
+    {
+      id: 'stamina',
+      name: '回体丹药',
+      icon: '⚡',
+      description: '恢复体力值的丹药'
+    },
+    {
+      id: 'energy',
+      name: '回内力丹药',
+      icon: '🌀',
+      description: '恢复内力值的丹药'
+    },
+    {
+      id: 'buff',
+      name: '增益丹药',
+      icon: '✨',
+      description: '临时提升属性的丹药'
+    },
+    {
+      id: 'special',
+      name: '特殊丹药',
+      icon: '🎭',
+      description: '特殊效果的丹药，可能带来意想不到的结果'
+    }
+  ],
+  
+  // 炼丹配方
+  recipes: [
+    // ========== 回血丹药 (Lv1-30) ==========
+    {
+      id: 'pill_healing_basic',
+      name: '金疮药',
+      description: '用金疮草炼制的基础疗伤药，可恢复少量生命值',
+      category: 'healing',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 5000,
+      experience: 10,
+      icon: '💊',
+      ingredients: [
+        { materialId: 'herb_jinchang', amount: 3 },
+        { materialId: 'herb_zhixue', amount: 2 }
+      ],
+      effects: [
+        { type: 'restoreHp', amount: 50, description: '立即恢复50点生命值' }
+      ]
+    },
+    
+    {
+      id: 'pill_healing_medium',
+      name: '回血丹',
+      description: '用多种草药炼制的回血丹，恢复效果显著',
+      category: 'healing',
+      quality: 'fine',
+      requiredLevel: 5,
+      craftTime: 8000,
+      experience: 20,
+      icon: '💊',
+      ingredients: [
+        { materialId: 'herb_yangxue', amount: 3 },
+        { materialId: 'herb_qingling', amount: 2 },
+        { materialId: 'herb_jinchang', amount: 5 }
+      ],
+      effects: [
+        { type: 'restoreHp', amount: 120, description: '立即恢复120点生命值' }
+      ]
+    },
+    
+    {
+      id: 'pill_healing_advanced',
+      name: '大还丹',
+      description: '以人参、灵芝为主药炼制的大还丹，疗伤圣药',
+      category: 'healing',
+      quality: 'rare',
+      requiredLevel: 11,
+      craftTime: 12000,
+      experience: 40,
+      icon: '💊',
+      ingredients: [
+        { materialId: 'herb_renshen', amount: 2 },
+        { materialId: 'herb_lingzhi', amount: 2 },
+        { materialId: 'herb_yangxue', amount: 3 }
+      ],
+      effects: [
+        { type: 'restoreHp', amount: 250, description: '立即恢复250点生命值' }
+      ]
+    },
+    
+    {
+      id: 'pill_healing_master',
+      name: '九转回魂丹',
+      description: '传说中的仙丹，可起死回生',
+      category: 'healing',
+      quality: 'epic',
+      requiredLevel: 21,
+      craftTime: 20000,
+      experience: 120,
+      icon: '💊',
+      ingredients: [
+        { materialId: 'herb_qiannian_renshen', amount: 1 },
+        { materialId: 'herb_xuelian', amount: 1 },
+        { materialId: 'herb_lingzhi', amount: 3 },
+        { materialId: 'fish_lingyu', amount: 2 }
+      ],
+      effects: [
+        { type: 'restoreHp', amount: 500, description: '立即恢复500点生命值' },
+        { type: 'restoreHpPercent', amount: 0.3, description: '额外恢复30%最大生命值' }
+      ]
+    },
+    
+    // ========== 回体丹药 (Lv1-25) ==========
+    {
+      id: 'pill_stamina_basic',
+      name: '回气丸',
+      description: '用回气草炼制的基础丹药，恢复少量体力',
+      category: 'stamina',
+      quality: 'common',
+      requiredLevel: 3,
+      craftTime: 5000,
+      experience: 15,
+      icon: '⚡',
+      ingredients: [
+        { materialId: 'herb_huiqi', amount: 4 },
+        { materialId: 'herb_qingling', amount: 2 }
+      ],
+      effects: [
+        { type: 'restoreStamina', amount: 30, description: '立即恢复30点体力' }
+      ]
+    },
+    
+    {
+      id: 'pill_stamina_medium',
+      name: '凝气丹',
+      description: '凝聚内力的丹药，快速恢复体力',
+      category: 'stamina',
+      quality: 'fine',
+      requiredLevel: 8,
+      craftTime: 9000,
+      experience: 25,
+      icon: '⚡',
+      ingredients: [
+        { materialId: 'herb_huiqi', amount: 5 },
+        { materialId: 'herb_yangxue', amount: 3 },
+        { materialId: 'fish_caoyu', amount: 2 }
+      ],
+      effects: [
+        { type: 'restoreStamina', amount: 60, description: '立即恢复60点体力' }
+      ]
+    },
+    
+    {
+      id: 'pill_stamina_advanced',
+      name: '聚灵丹',
+      description: '聚天地灵气而成的丹药，大幅恢复体力',
+      category: 'stamina',
+      quality: 'rare',
+      requiredLevel: 15,
+      craftTime: 13000,
+      experience: 50,
+      icon: '⚡',
+      ingredients: [
+        { materialId: 'herb_renshen', amount: 2 },
+        { materialId: 'herb_heshouwu', amount: 2 },
+        { materialId: 'fish_lingyu', amount: 1 }
+      ],
+      effects: [
+        { type: 'restoreStamina', amount: 120, description: '立即恢复120点体力' },
+        { type: 'buffEnergyRegen', amount: 2, duration: 300, description: '5分钟内内力恢复速度+2/秒' }
+      ]
+    },
+    
+    // ========== 回内力丹药 (Lv1-20) ==========
+    {
+      id: 'pill_energy_basic',
+      name: '养气丹',
+      description: '用灵草炼制的基础丹药，可恢复少量内力',
+      category: 'energy',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 5000,
+      experience: 10,
+      icon: '🌀',
+      ingredients: [
+        { materialId: 'herb_qingling', amount: 3 },
+        { materialId: 'herb_biling', amount: 2 }
+      ],
+      effects: [
+        { type: 'restoreEnergy', amount: 30, description: '立即恢复30点内力' }
+      ]
+    },
+    
+    {
+      id: 'pill_energy_medium',
+      name: '培元丹',
+      description: '培固根元的丹药，显著恢复内力',
+      category: 'energy',
+      quality: 'fine',
+      requiredLevel: 6,
+      craftTime: 8000,
+      experience: 20,
+      icon: '🌀',
+      ingredients: [
+        { materialId: 'herb_yangxue', amount: 2 },
+        { materialId: 'herb_qingling', amount: 3 },
+        { materialId: 'herb_biling', amount: 3 }
+      ],
+      effects: [
+        { type: 'restoreEnergy', amount: 60, description: '立即恢复60点内力' }
+      ]
+    },
+    
+    {
+      id: 'pill_energy_advanced',
+      name: '归元丹',
+      description: '归于本元的高级丹药，大幅恢复内力',
+      category: 'energy',
+      quality: 'rare',
+      requiredLevel: 11,
+      craftTime: 12000,
+      experience: 40,
+      icon: '🌀',
+      ingredients: [
+        { materialId: 'herb_renshen', amount: 1 },
+        { materialId: 'herb_lingzhi', amount: 2 },
+        { materialId: 'herb_qingling', amount: 4 }
+      ],
+      effects: [
+        { type: 'restoreEnergy', amount: 120, description: '立即恢复120点内力' }
+      ]
+    },
+    
+    // ========== 增益丹药 (Lv2-30) ==========
+    {
+      id: 'pill_buff_basic_strength',
+      name: '练力丸',
+      description: '初级增力丹药，短暂提升力量',
+      category: 'buff',
+      quality: 'common',
+      requiredLevel: 2,
+      craftTime: 6000,
+      experience: 12,
+      icon: '💪',
+      ingredients: [
+        { materialId: 'herb_jinchang', amount: 2 },
+        { materialId: 'herb_yangxue', amount: 2 },
+        { materialId: 'wood_song', amount: 1 }
+      ],
+      effects: [
+        { type: 'buffAttack', amount: 5, duration: 180, description: '3分钟内攻击力+5' }
+      ]
+    },
+    
+    {
+      id: 'pill_buff_basic_defense',
+      name: '护体丸',
+      description: '初级防御丹药，短暂提升防御',
+      category: 'buff',
+      quality: 'common',
+      requiredLevel: 3,
+      craftTime: 6000,
+      experience: 15,
+      icon: '🛡️',
+      ingredients: [
+        { materialId: 'herb_zhixue', amount: 3 },
+        { materialId: 'ore_tiekuang', amount: 2 },
+        { materialId: 'wood_yang', amount: 1 }
+      ],
+      effects: [
+        { type: 'buffDefense', amount: 5, duration: 180, description: '3分钟内防御力+5' }
+      ]
+    },
+    
+    {
+      id: 'pill_buff_basic_speed',
+      name: '迅捷丹',
+      description: '初级轻功丹药，短暂提升速度',
+      category: 'buff',
+      quality: 'common',
+      requiredLevel: 4,
+      craftTime: 7000,
+      experience: 18,
+      icon: '🏃',
+      ingredients: [
+        { materialId: 'herb_qingling', amount: 3 },
+        { materialId: 'fish_caoyu', amount: 2 },
+        { materialId: 'wood_liu', amount: 1 }
+      ],
+      effects: [
+        { type: 'buffSpeed', amount: 0.15, duration: 180, description: '3分钟内速度+15%' }
+      ]
+    },
+    
+    {
+      id: 'pill_buff_strength',
+      name: '虎骨丹',
+      description: '以虎骨草炼制，短时间内力大增',
+      category: 'buff',
+      quality: 'fine',
+      requiredLevel: 8,
+      craftTime: 10000,
+      experience: 30,
+      icon: '🐯',
+      ingredients: [
+        { materialId: 'herb_yangxue', amount: 3 },
+        { materialId: 'fish_qingyu', amount: 2 },
+        { materialId: 'ore_xuantie', amount: 1 }
+      ],
+      effects: [
+        { type: 'buffAttack', amount: 10, duration: 300, description: '5分钟内攻击力+10' }
+      ]
+    },
+    
+    {
+      id: 'pill_buff_agility',
+      name: '轻身丹',
+      description: '服用后身轻如燕，闪避大增',
+      category: 'buff',
+      quality: 'fine',
+      requiredLevel: 10,
+      craftTime: 10000,
+      experience: 35,
+      icon: '🦅',
+      ingredients: [
+        { materialId: 'herb_qingling', amount: 4 },
+        { materialId: 'fish_baiyu', amount: 2 },
+        { materialId: 'wood_liu', amount: 2 }
+      ],
+      effects: [
+        { type: 'buffDodge', amount: 0.1, duration: 300, description: '5分钟内闪避率+10%' },
+        { type: 'buffSpeed', amount: 0.2, duration: 300, description: '5分钟内速度+20%' }
+      ]
+    },
+    
+    {
+      id: 'pill_buff_defense',
+      name: '金刚丹',
+      description: '服用后皮肤如铁，防御力大增',
+      category: 'buff',
+      quality: 'rare',
+      requiredLevel: 12,
+      craftTime: 12000,
+      experience: 45,
+      icon: '🛡️',
+      ingredients: [
+        { materialId: 'ore_xuantie', amount: 3 },
+        { materialId: 'ore_hantie', amount: 2 },
+        { materialId: 'fish_xuanwugui', amount: 1 }
+      ],
+      effects: [
+        { type: 'buffDefense', amount: 15, duration: 360, description: '6分钟内防御力+15' },
+        { type: 'buffTenacity', amount: 5, duration: 360, description: '6分钟内韧性+5' }
+      ]
+    },
+    
+    {
+      id: 'pill_buff_critical',
+      name: '破甲丹',
+      description: '增强内劲穿透力，提升暴击',
+      category: 'buff',
+      quality: 'rare',
+      requiredLevel: 16,
+      craftTime: 14000,
+      experience: 60,
+      icon: '⚔️',
+      ingredients: [
+        { materialId: 'ore_chijin', amount: 2 },
+        { materialId: 'ore_zijing', amount: 2 },
+        { materialId: 'herb_lingzhi', amount: 2 }
+      ],
+      effects: [
+        { type: 'buffCritChance', amount: 0.15, duration: 300, description: '5分钟内暴击率+15%' },
+        { type: 'buffArmorPen', amount: 10, duration: 300, description: '5分钟内破防+10' }
+      ]
+    },
+    
+    {
+      id: 'pill_buff_master',
+      name: '通天丹',
+      description: '传说中的仙丹，服用后功力暴增',
+      category: 'buff',
+      quality: 'epic',
+      requiredLevel: 25,
+      craftTime: 25000,
+      experience: 150,
+      icon: '✨',
+      ingredients: [
+        { materialId: 'herb_xuelian', amount: 1 },
+        { materialId: 'herb_qiannian_renshen', amount: 1 },
+        { materialId: 'ore_lingyu', amount: 2 },
+        { materialId: 'fish_jiaolong', amount: 1 }
+      ],
+      effects: [
+        { type: 'buffAttack', amount: 30, duration: 600, description: '10分钟内攻击力+30' },
+        { type: 'buffDefense', amount: 20, duration: 600, description: '10分钟内防御力+20' },
+        { type: 'buffCritChance', amount: 0.1, duration: 600, description: '10分钟内暴击率+10%' },
+        { type: 'buffSpeed', amount: 0.15, duration: 600, description: '10分钟内速度+15%' }
+      ]
+    },
+    
+    // ========== 特殊丹药 (有趣的效果，包含风险和收益) ==========
+    {
+      id: 'pill_special_lucky_beginner',
+      name: '福运丸',
+      description: '提升少量幸运值，适合探索冒险时使用',
+      category: 'special',
+      quality: 'common',
+      requiredLevel: 1,
+      craftTime: 5000,
+      experience: 15,
+      icon: '🍀',
+      ingredients: [
+        { materialId: 'herb_jinchang', amount: 2 },
+        { materialId: 'fish_caoyu', amount: 2 },
+        { materialId: 'wood_song', amount: 1 }
+      ],
+      effects: [
+        { type: 'buffLuck', amount: 1, duration: 300, description: '5分钟内幸运+1' }
+      ]
+    },
+    
+    {
+      id: 'pill_special_risky_power',
+      name: '冒险者之药',
+      description: '冒险者常用的丹药，提升攻击但降低防御',
+      category: 'special',
+      quality: 'common',
+      requiredLevel: 3,
+      craftTime: 6000,
+      experience: 20,
+      icon: '⚠️',
+      ingredients: [
+        { materialId: 'herb_yangxue', amount: 2 },
+        { materialId: 'herb_zhixue', amount: 1 },
+        { materialId: 'ore_tiekuang', amount: 2 }
+      ],
+      effects: [
+        { type: 'buffAttack', amount: 8, duration: 240, description: '4分钟内攻击力+8' },
+        { type: 'debuffDefense', amount: 3, duration: 240, description: '4分钟内防御力-3' }
+      ]
+    },
+    
+    {
+      id: 'pill_special_curious',
+      name: '好奇丹',
+      description: '炼制失败的丹药，效果未知。据说服用后会变得无比好奇，但也会变得脆弱',
+      category: 'special',
+      quality: 'common',
+      requiredLevel: 5,
+      craftTime: 6000,
+      experience: 25,
+      icon: '❓',
+      ingredients: [
+        { materialId: 'herb_jinchang', amount: 1 },
+        { materialId: 'herb_zhixue', amount: 1 },
+        { materialId: 'wood_yang', amount: 1 }
+      ],
+      effects: [
+        { type: 'buffLuck', amount: 2, duration: 600, description: '10分钟内幸运+2（更容易触发稀有事件）' },
+        { type: 'debuffDefense', amount: 5, duration: 600, description: '10分钟内防御力-5' }
+      ]
+    },
+    
+    {
+      id: 'pill_special_fool',
+      name: '忘忧散',
+      description: '服用后忘却烦恼，但会随机影响修炼效果',
+      category: 'special',
+      quality: 'fine',
+      requiredLevel: 10,
+      craftTime: 8000,
+      experience: 30,
+      icon: '🎲',
+      ingredients: [
+        { materialId: 'herb_qingling', amount: 3 },
+        { materialId: 'herb_huiqi', amount: 2 },
+        { materialId: 'fish_jingyu', amount: 2 }
+      ],
+      effects: [
+        { type: 'randomExpGain', amount: 0.5, duration: 900, description: '15分钟内经验获取随机增减50%' },
+        { type: 'randomStaminaRegen', duration: 900, description: '15分钟内体力恢复速度随机变化' }
+      ]
+    },
+    
+    {
+      id: 'pill_special_berserker',
+      name: '狂暴丹',
+      description: '服用后攻击力暴增，但会持续受到反噬伤害',
+      category: 'special',
+      quality: 'rare',
+      requiredLevel: 15,
+      craftTime: 12000,
+      experience: 50,
+      icon: '😈',
+      ingredients: [
+        { materialId: 'ore_chijin', amount: 2 },
+        { materialId: 'herb_yangxue', amount: 3 },
+        { materialId: 'fish_yinlong', amount: 1 }
+      ],
+      effects: [
+        { type: 'buffAttack', amount: 40, duration: 300, description: '5分钟内攻击力+40' },
+        { type: 'debuffDot', amount: 3, duration: 300, description: '5分钟内每秒受到3点伤害（走火入魔）' }
+      ]
+    },
+    
+    {
+      id: 'pill_special_slowmo',
+      name: '凝神丹',
+      description: '服用后思维无比清晰，但行动会变得缓慢',
+      category: 'special',
+      quality: 'rare',
+      requiredLevel: 18,
+      craftTime: 14000,
+      experience: 65,
+      icon: '🐌',
+      ingredients: [
+        { materialId: 'herb_heshouwu', amount: 2 },
+        { materialId: 'herb_xueling', amount: 1 },
+        { materialId: 'fish_xuanwugui', amount: 1 }
+      ],
+      effects: [
+        { type: 'buffCritChance', amount: 0.25, duration: 420, description: '7分钟内暴击率+25%' },
+        { type: 'buffCritMultiplier', amount: 0.5, duration: 420, description: '7分钟内暴击伤害+50%' },
+        { type: 'debuffSpeed', amount: 0.3, duration: 420, description: '7分钟内速度-30%（时间变慢）' }
+      ]
+    },
+    
+    {
+      id: 'pill_special_chaos',
+      name: '混沌丹',
+      description: '炼制过程中走火入魔的产物，效果完全随机',
+      category: 'special',
+      quality: 'epic',
+      requiredLevel: 22,
+      craftTime: 18000,
+      experience: 100,
+      icon: '🌀',
+      ingredients: [
+        { materialId: 'herb_xuelingzhi', amount: 1 },
+        { materialId: 'ore_xingchen', amount: 1 },
+        { materialId: 'fish_jiaolong', amount: 1 },
+        { materialId: 'wood_huali', amount: 2 }
+      ],
+      effects: [
+        { type: 'randomAllStats', amount: 0.5, duration: 600, description: '10分钟内所有属性随机增减50%' },
+        { type: 'chaoticEffect', duration: 600, description: '10分钟内随机触发各种效果' }
+      ]
+    },
+
+    {
+      id: 'pill_special_rebirth',
+      name: '还魂丹',
+      description: '以九转还魂草炼制的传说丹药，濒死之际亦可重获新生',
+      category: 'special',
+      quality: 'legendary',
+      requiredLevel: 30,
+      craftTime: 20000,
+      experience: 120,
+      icon: '✨',
+      ingredients: [
+        { materialId: 'herb_jiuzhuan_huanhun', amount: 1 },
+        { materialId: 'herb_xuelingzhi', amount: 1 },
+        { materialId: 'fish_longwang', amount: 1 },
+        { materialId: 'ore_tianjing', amount: 1 }
+      ],
+      effects: [
+        { type: 'restoreHpPercent', amount: 1, description: '立即恢复100%最大生命值' },
+        { type: 'restoreEnergy', amount: 200, description: '立即恢复200点内力' },
+        { type: 'buffTenacity', amount: 0.3, duration: 600, description: '10分钟内韧性+30%' }
+      ]
+    },
+    
+    {
+      id: 'pill_special_glass_cannon',
+      name: '破釜沉舟丹',
+      description: '孤注一掷的丹药，大幅提升攻击但生命值减半',
+      category: 'special',
+      quality: 'epic',
+      requiredLevel: 28,
+      craftTime: 22000,
+      experience: 150,
+      icon: '💀',
+      ingredients: [
+        { materialId: 'herb_longxue', amount: 1 },
+        { materialId: 'ore_longjing', amount: 2 },
+        { materialId: 'fish_bixi', amount: 1 }
+      ],
+      effects: [
+        { type: 'buffAttack', amount: 80, duration: 480, description: '8分钟内攻击力+80' },
+        { type: 'buffCritChance', amount: 0.2, duration: 480, description: '8分钟内暴击率+20%' },
+        { type: 'debuffMaxHp', amount: 0.5, duration: 480, description: '8分钟内最大生命值减半（破釜沉舟）' }
+      ]
+    }
+  ]
+}
