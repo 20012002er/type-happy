@@ -22,6 +22,8 @@ services:
       args:
         # 站点对外地址,用于生成 sitemap.xml / robots.txt(SEO)
         SITE_URL: ${SITE_URL:-https://type.toby-blog.com}
+        # 设为 false 可跳过构建阶段的 Chromium 下载与全路由预渲染(最小构建资源,牺牲百度收录效果)
+        PRERENDER: ${PRERENDER:-true}
     image: type-happy-web:latest
     ports:
       - '8088:80'

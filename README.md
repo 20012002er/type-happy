@@ -44,6 +44,7 @@ docker compose up -d --build
 
 - 对外端口在 `docker-compose.yml` 的 `web.ports`(默认 `8088:80`)中修改;
 - 站点对外地址通过构建参数注入(sitemap/robots/canonical/OG 使用):`SITE_URL=https://type.toby-blog.com docker compose up -d --build`(默认即该域名);
+- 构建参数 `PRERENDER`(默认 `true`)控制是否在**构建阶段**下载 Chromium Headless Shell 并预渲染全部路由;运行镜像始终是 nginx:alpine + 静态产物(约 50MB + 7MB dist),**不含** Node/Playwright/Chromium。`PRERENDER=false docker compose build` 可获得最小构建资源占用,代价是不执行 JS 的爬虫(百度)只能抓到入口壳 meta;
 - `server` 的 3001 端口默认只在 compose 内部网络可达,需要从宿主机直连 API 时取消该服务 `ports` 的注释;
 - 两个 Dockerfile(`apps/server/Dockerfile`、`apps/web/Dockerfile`)均以**仓库根目录**为构建上下文的多阶段构建,单独构建示例:`docker build -f apps/server/Dockerfile .`;
 - nginx 反代地址为 compose 服务名 `server:3001`(`apps/web/nginx.conf`),改服务名需同步修改;`proxy_pass` 使用变量 + Docker 内置 DNS resolver,server 容器重建换 IP 后无需 reload;
@@ -70,9 +71,9 @@ pnpm build                              # 含 gen-seo(sitemap/robots)与入口�
 pnpm --filter @type-happy/web prerender # 需本机已安装 Playwright Chromium
 ```
 
-Docker 构建(web 镜像)已内置以上全部步骤:构建阶段基于 `node:22-bookworm-slim`(Playwright 不支持 alpine),安装 Chromium 后完成 build + prerender,最终镜像仍为 nginx:alpine。换域名时用 `SITE_URL` 构建参数覆盖(见「Docker 部署」)。
+Docker 构建(web 镜像)默认内置以上全部步骤:构建阶段基于 `node:22-bookworm-slim`(Playwright 不支持 alpine),仅安装 **Chromium Headless Shell**(约 100MB,无头渲染无需完整浏览器,独立层缓存)完成 build + prerender;pnpm 依赖安装用 `--filter` 裁剪,不含仓库根的 lint/format 工具。最终运行镜像仍为 nginx:alpine,不携带任何浏览器/测试组件。追求最小构建资源时可 `PRERENDER=false`(见「Docker 部署」),换域名用 `SITE_URL` 构建参数覆盖。
 
-预渲染实现要点(`scripts/prerender.mjs`):启动 server(随机高位端口,`LOG_LEVEL=silent`)与 `vite preview`(代理 `/api`)→ 4 并发访问每个路由,`networkidle` 后序列化 DOM 写入 `dist/<route>/index.html`。首页快照最后写入并可用 `save-shell.mjs` 缓存的干净壳还原,避免其污染其他路由的 SPA fallback;快照中的预渲染机地址(modulepreload 绝对链接)会被归一为相对路径。
+预渲染实现要点(`scripts/prerender.mjs`):启动 server(随机高位端口,`LOG_LEVEL=silent`)与 `vite preview`(代理 `/api`)→ 4 并发访问每个路由,`networkidle` 后序列化 DOM 写入 `dist/<route>/index.html`;浏览器通道可用 `PRERENDER_CHANNEL` 指定(Docker 内为 `chromium-headless-shell`)。首页快照最后写入并可用 `save-shell.mjs` 缓存的干净壳还原,避免其污染其他路由的 SPA fallback;快照中的预渲染机地址(modulepreload 绝对链接)会被归一为相对路径。
 
 上线后到各搜索引擎站长平台提交(一次性操作):
 

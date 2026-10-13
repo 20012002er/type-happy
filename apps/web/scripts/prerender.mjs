@@ -140,7 +140,11 @@ async function main() {
   await waitForUrl(PREVIEW_BASE + '/')
   console.log(`[prerender] preview 就绪 (:${PREVIEW_PORT}),共 ${routes.length} 个路由`)
 
-  const browser = await chromium.launch({ args: ['--no-sandbox', '--disable-dev-shm-usage'] })
+  // PRERENDER_CHANNEL 可指定浏览器通道(如 Docker 内用更小的 chromium-headless-shell)
+  const browser = await chromium.launch({
+    channel: process.env.PRERENDER_CHANNEL || undefined,
+    args: ['--no-sandbox', '--disable-dev-shm-usage'],
+  })
   try {
     const context = await browser.newContext()
     const queue = [...renderOrder]
