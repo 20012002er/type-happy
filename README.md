@@ -1,6 +1,6 @@
 # 打字乐园(type-happy)
 
-一个纯打字练习网站:三大课程(**标准指法练习 / 英文练习 / 中文练习**),SVG 虚拟键盘指法引导,中文 IME 拼音逐音节判分;另含**打字游戏模块**(消气球 / 打鸭子 / 街霸 / 放置刷装备)。成绩与游戏进度均保存在浏览器本地。无账号、无排行榜、无数据库。
+一个纯打字练习网站:三大课程(**标准指法练习 / 英文练习 / 中文练习**),SVG 虚拟键盘指法引导,中文 IME 拼音逐音节判分;另含**游戏模块**(消气球 / 打鸭子 / 街霸 / 放置刷装备 / 涂鸦跳跃)。成绩与游戏进度均保存在浏览器本地。无账号、无排行榜、无数据库。
 
 ## 快速开始
 
@@ -13,14 +13,15 @@ pnpm dev          # 同时启动后端(:3001)与前端(:5173),浏览器访问 ht
 
 常用脚本(仓库根目录):
 
-| 命令                                  | 说明                                              |
-| ------------------------------------- | ------------------------------------------------- |
-| `pnpm dev`                            | 并行启动 server + web(dev proxy `/api` → `:3001`) |
-| `pnpm build`                          | 全部构建(shared → server/web,拓扑序)              |
-| `pnpm typecheck`                      | 全部类型检查(tsc / vue-tsc)                       |
-| `pnpm lint`                           | ESLint 全仓检查                                   |
-| `pnpm format`                         | Prettier 格式化                                   |
-| `pnpm --filter @type-happy/web smoke` | 打字引擎冒烟测试(Node 内模拟浏览器事件)           |
+| 命令                                   | 说明                                               |
+| -------------------------------------- | -------------------------------------------------- |
+| `pnpm dev`                             | 并行启动 server + web(dev proxy `/api` → `:3001`)  |
+| `pnpm build`                           | 全部构建(shared → server/web,拓扑序)               |
+| `pnpm typecheck`                       | 全部类型检查(tsc / vue-tsc)                        |
+| `pnpm lint`                            | ESLint 全仓检查                                    |
+| `pnpm format`                          | Prettier 格式化                                    |
+| `pnpm --filter @type-happy/web smoke`  | 打字引擎冒烟测试(Node 内模拟浏览器事件)            |
+| `node apps/web/scripts/e2e-doodle.mjs` | 涂鸦跳跃 Playwright e2e(需先起服务,见「涂鸦跳跃」) |
 
 ## Docker 部署
 
@@ -32,18 +33,19 @@ docker compose up -d --build
 
 启动后访问 **http://localhost:8088**。`web` 容器内的 nginx 托管前端静态产物,并把 `/api` 与 `/health` 反向代理到 `server` 容器的 3001 端口;`server` 通过健康检查(`/health`)就绪后 `web` 才会启动。
 
-| 操作                     | 命令                        |
-| ------------------------ | --------------------------- |
-| 查看日志                 | `docker compose logs -f`    |
-| 停止并移除容器           | `docker compose down`       |
-| 重新构建镜像             | `docker compose build`      |
+| 操作           | 命令                     |
+| -------------- | ------------------------ |
+| 查看日志       | `docker compose logs -f` |
+| 停止并移除容器 | `docker compose down`    |
+| 重新构建镜像   | `docker compose build`   |
 
 说明:
 
 - 对外端口在 `docker-compose.yml` 的 `web.ports`(默认 `8088:80`)中修改;
 - `server` 的 3001 端口默认只在 compose 内部网络可达,需要从宿主机直连 API 时取消该服务 `ports` 的注释;
 - 两个 Dockerfile(`apps/server/Dockerfile`、`apps/web/Dockerfile`)均以**仓库根目录**为构建上下文的多阶段构建,单独构建示例:`docker build -f apps/server/Dockerfile .`;
-- nginx 反代地址写死为 compose 服务名 `server:3001`(`apps/web/nginx.conf`),改服务名需同步修改。
+- nginx 反代地址为 compose 服务名 `server:3001`(`apps/web/nginx.conf`),改服务名需同步修改;`proxy_pass` 使用变量 + Docker 内置 DNS resolver,server 容器重建换 IP 后无需 reload;
+- nginx 已开启 `absolute_redirect off`,放在 TLS 终止代理(https)之后部署时,目录补斜杠等 301 不会因 http 绝对地址被浏览器当作混合内容拦截。
 
 ## 项目结构
 
@@ -61,12 +63,15 @@ type-happy/
 │   └── web/                  # @type-happy/web:Vue 3 SPA
 │       ├── src/composables/      # useTypingEngine / useChineseEngine / useKeyGame / useFightGame / useStats
 │       ├── src/components/       # 虚拟键盘、打字区、拼音打字区、统计、结算
-│       │   └── games/            # 小游戏组件(BalloonGame / DuckGame / FighterGame 及 HUD、Overlay)
+│       │   └── games/            # 小游戏组件(BalloonGame / DuckGame / FighterGame / DoodleJumpGame 及 HUD、Overlay)
+│       ├── src/games/doodle-jump/ # 涂鸦跳跃引擎(Pixi.js:game / save / trackers / audio)
 │       ├── src/stores/           # progress.ts(练习进度)+ games.ts(游戏最高分),均为 Pinia + localStorage
 │       ├── src/utils/            # fingerMap / keyboardLayout / format
 │       ├── src/views/            # Home / CourseList / CourseDetail / Practice / GameList + 各游戏页
+│       ├── scripts/              # smoke-engines.ts(引擎冒烟)+ e2e-doodle.mjs(Playwright e2e)
 │       ├── games/vue-idle-game/  # 放置刷装备源码(vendored,Vue 2 独立构建,见「游戏模块」)
 │       ├── public/games/idle/    # vue-idle-game 构建产物,由 vite 原样托管在 /games/idle/
+│       ├── public/games/doodle/  # 涂鸦跳跃静态资源(atlas / audio / img),托管在 /games/doodle/
 │       ├── nginx.conf            # 前端容器 nginx:SPA 回退 + /api 反代
 │       └── Dockerfile            # 前端镜像(vite 产物 + nginx)
 ├── docker-compose.yml        # 一键启动 web(nginx,:8088)+ server(API,:3001)
@@ -74,7 +79,7 @@ type-happy/
 └── README.md
 ```
 
-技术栈:pnpm monorepo;前端 Vue 3 + Vite + TypeScript + Pinia + Vue Router + Tailwind CSS v4(vite 插件方式,无 tailwind.config);后端 Node + TypeScript + Fastify + zod;课程内容为静态 JSON。
+技术栈:pnpm monorepo;前端 Vue 3 + Vite + TypeScript + Pinia + Vue Router + Tailwind CSS v4(vite 插件方式,无 tailwind.config)+ Pixi.js(涂鸦跳跃渲染);后端 Node + TypeScript + Fastify + zod;课程内容为静态 JSON。
 
 ## API
 
@@ -116,16 +121,31 @@ courseId:`fingering` / `english` / `chinese`。非法 id 返回 404。
 
 ## 游戏模块
 
-入口 `/games`,四个小游戏,成绩均只保存在本机浏览器:
+入口 `/games`,五个小游戏,成绩均只保存在本机浏览器:
 
-| 游戏 | 路由 | 实现 |
-| ---- | ---- | ---- |
-| 🎈 打字消气球 | `/games/balloon` | 原生 Vue 3 组件(`useKeyGame` 共享引擎) |
-| 🦆 打字打鸭子 | `/games/duck` | 同上 |
-| 🥋 打字街霸 | `/games/fighter` | 原生 Vue 3 组件(`useFightGame`,限时打单词出招) |
-| ⚔️ 放置刷装备 | `/games/idle` | vendored 开源游戏 [vue-idle-game](https://github.com/Couy69/vue-idle-game)(MIT),iframe 嵌入 |
+| 游戏          | 路由             | 实现                                                                                        |
+| ------------- | ---------------- | ------------------------------------------------------------------------------------------- |
+| 🎈 打字消气球 | `/games/balloon` | 原生 Vue 3 组件(`useKeyGame` 共享引擎)                                                      |
+| 🦆 打字打鸭子 | `/games/duck`    | 同上                                                                                        |
+| 🥋 打字街霸   | `/games/fighter` | 原生 Vue 3 组件(`useFightGame`,限时打单词出招)                                              |
+| ⚔️ 放置刷装备 | `/games/idle`    | vendored 开源游戏 [vue-idle-game](https://github.com/Couy69/vue-idle-game)(MIT),iframe 嵌入 |
+| 🐸 涂鸦跳跃   | `/games/doodle`  | 自研 Pixi.js 引擎(`src/games/doodle-jump/`),Doodle Jump 逆向重制                            |
 
-打字类游戏的最高分/连击/局数记录在 localStorage key `type-happy:games:v1`(`stores/games.ts`)。
+打字类游戏的最高分/连击/局数记录在 localStorage key `type-happy:games:v1`(`stores/games.ts`);涂鸦跳跃的 bestScore 也汇总写入该 store。
+
+### 涂鸦跳跃(doodle-jump)
+
+- 引擎与元游戏系统位于 `apps/web/src/games/doodle-jump/`(Pixi.js 8):`game.ts`(物理/平台/怪物/道具)、`save.ts`(存档)、`trackers.ts`(成就与任务)、`audio.ts`(音效);静态资源(图集/音频/图片)在 `apps/web/public/games/doodle/`;
+- 操作:←→ / A D 移动,画面上按住拖动倾斜移动,点击(轻点)或 Space 射击,可在选项中开启方向射击;
+- 玩法内容:弹簧/蹦床/火箭等道具,怪物与 UFO,黑洞;主题解锁、成就、每局随机 3 个任务,按主题分别记录最高分/局数/击杀/死因等统计;
+- 存档在 localStorage key `type-happy:doodle-jump:v1`(版本化,损坏自动回退默认档);
+- Playwright e2e 覆盖加载、输入、死亡结算、存档持久化、任务/成就/选项界面与控制台无报错:
+
+```bash
+pnpm --filter @type-happy/web build
+pnpm --filter @type-happy/web exec vite preview --port 5199 &  # 或任意端口
+E2E_BASE=http://localhost:5199 node apps/web/scripts/e2e-doodle.mjs
+```
 
 ### 放置刷装备(vue-idle-game)
 
