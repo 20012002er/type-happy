@@ -78,16 +78,16 @@ async function boot(): Promise<void> {
   app.value = application
 
   await Assets.load([
-    { alias: 'gametiles', url: BASE + 'atlas/gametiles.json' },
-    { alias: 'projectiles', url: BASE + 'atlas/projectiles.json' },
-    { alias: 'topscore_X.png', url: BASE + 'img/topscore_X.png' },
-    { alias: 'likleft_X.png', url: BASE + 'img/likleft_X.png' },
-    { alias: 'likright_X.png', url: BASE + 'img/likright_X.png' },
-    { alias: 'likpuca_X.png', url: BASE + 'img/likpuca_X.png' },
-    { alias: 'jetpack_X.png', url: BASE + 'img/jetpack_X.png' },
-    { alias: 'propeller_X.png', url: BASE + 'img/propeller_X.png' },
-    { alias: 'shield_X.png', url: BASE + 'img/shield_X.png' },
-    { alias: 'springshoesup_X.png', url: BASE + 'img/springshoesup_X.png' },
+    { alias: 'gametiles', src: BASE + 'atlas/gametiles.json' },
+    { alias: 'projectiles', src: BASE + 'atlas/projectiles.json' },
+    { alias: 'topscore_X.png', src: BASE + 'img/topscore_X.png' },
+    { alias: 'likleft_X.png', src: BASE + 'img/likleft_X.png' },
+    { alias: 'likright_X.png', src: BASE + 'img/likright_X.png' },
+    { alias: 'likpuca_X.png', src: BASE + 'img/likpuca_X.png' },
+    { alias: 'jetpack_X.png', src: BASE + 'img/jetpack_X.png' },
+    { alias: 'propeller_X.png', src: BASE + 'img/propeller_X.png' },
+    { alias: 'shield_X.png', src: BASE + 'img/shield_X.png' },
+    { alias: 'springshoesup_X.png', src: BASE + 'img/springshoesup_X.png' },
   ])
 
   const [font, missionsRaw, ms, as, ss, gs, ts] = await Promise.all([
@@ -117,6 +117,9 @@ async function boot(): Promise<void> {
     onGameOver: (r) => finishRun(r),
   })
   game.value = g
+  if (import.meta.env.DEV) {
+    ;(window as unknown as Record<string, unknown>).__doodle = { game: g, save, screen }
+  }
   application.ticker.add((t) => g.update(Math.min(0.033, t.deltaMS / 1000)))
   bindInput(application)
 }
