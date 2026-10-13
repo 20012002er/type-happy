@@ -17,6 +17,8 @@ export const gamePaths = [
   '/games/doodle',
 ]
 
+export const labPaths = ['/labs/boids']
+
 /** 全站需要收录/预渲染的路由(sitemap 与 prerender 共用一份清单) */
 export function collectRoutes() {
   const routes = [
@@ -24,6 +26,8 @@ export function collectRoutes() {
     { path: '/courses', priority: '0.9', changefreq: 'weekly' },
     { path: '/games', priority: '0.9', changefreq: 'weekly' },
     ...gamePaths.map((p) => ({ path: p, priority: '0.7', changefreq: 'monthly' })),
+    { path: '/labs', priority: '0.8', changefreq: 'weekly' },
+    ...labPaths.map((p) => ({ path: p, priority: '0.6', changefreq: 'monthly' })),
   ]
   const dataDir = path.join(repoRoot, 'apps/server/src/data')
   for (const courseId of ['fingering', 'english', 'chinese']) {

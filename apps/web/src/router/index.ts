@@ -119,6 +119,26 @@ const router = createRouter({
         ld: 'VideoGame',
       },
     },
+    {
+      path: '/labs',
+      name: 'labs',
+      component: () => import('../views/LabListView.vue'),
+      meta: {
+        title: '实验室',
+        description:
+          '打字乐园实验室:展示正在开发中的实验性功能,验证成熟后会完全融入网站。当前有群鸟算法(Boids)集群模拟等实验,免费即开即玩。',
+      },
+    },
+    {
+      path: '/labs/boids',
+      name: 'lab-boids',
+      component: () => import('../views/BoidsLabView.vue'),
+      meta: {
+        title: '群鸟算法',
+        description:
+          '群鸟算法(Boids)在线模拟:100~1000 只白色发光粒子鸟,遵循分离、对齐、聚合三大规则,从混乱个体逐渐合并为一个整体。移动鼠标引导鸟群、点击惊散,基于 PixiJS 渲染,免费无需注册。',
+      },
+    },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
   scrollBehavior: () => ({ top: 0 }),

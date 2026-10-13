@@ -107,6 +107,13 @@ useHead({
           >
             打字游戏
           </RouterLink>
+          <RouterLink
+            to="/labs"
+            class="rounded-md px-3 py-1.5 text-slate-600 transition hover:bg-slate-100 hover:text-slate-900"
+            active-class="!text-indigo-600"
+          >
+            实验室
+          </RouterLink>
         </nav>
       </div>
     </header>
