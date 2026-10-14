@@ -23,7 +23,7 @@ import { RouterLink } from 'vue-router'
 
     <div class="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <iframe
-        src="/games/idle/index.html"
+        src="/games/idle/game.html"
         title="放置刷装备"
         class="block h-[calc(100vh-16rem)] min-h-[560px] w-full border-0"
       />

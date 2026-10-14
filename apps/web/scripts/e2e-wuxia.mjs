@@ -27,7 +27,7 @@ await page.goto(BASE + '/games/wuxia')
 await page.waitForSelector('h1')
 ok('h1 显示游戏名', (await page.locator('h1').textContent())?.includes('武侠放置'))
 const iframe = page.locator('iframe[title="武侠放置"]')
-ok('iframe 存在且指向构建产物', (await iframe.getAttribute('src')) === '/games/wuxia/index.html')
+ok('iframe 存在且指向构建产物', (await iframe.getAttribute('src')) === '/games/wuxia/game.html')
 ok('页面含 SEO 特性介绍文案', await page.locator('text=五大门派').first().isVisible())
 
 console.log('== iframe 内游戏挂载 ==')

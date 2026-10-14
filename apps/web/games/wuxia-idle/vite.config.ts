@@ -5,7 +5,8 @@ import { fileURLToPath, URL } from 'node:url'
 // https://vitejs.dev/config/
 export default defineConfig({
   // 集成到 type-happy 主站:构建产物由主站静态托管在 /games/wuxia/,
-  // 资源引用需以该路径为前缀(产物 rsync 到 apps/web/public/games/wuxia/)
+  // 资源引用需以该路径为前缀。产物 rsync 到 apps/web/public/games/wuxia/ 后,
+  // 入口需改名为 game.html(避让主站 /games/wuxia 路由的预渲染快照,见主站 README)
   base: '/games/wuxia/',
   plugins: [
     vue()

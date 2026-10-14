@@ -74,7 +74,7 @@ pnpm --filter @type-happy/web prerender # 需本机已安装 Playwright Chromium
 
 Docker 构建(web 镜像)默认内置以上全部步骤:构建阶段基于 `node:22-bookworm-slim`(Playwright 不支持 alpine),仅安装 **Chromium Headless Shell**(约 100MB,无头渲染无需完整浏览器,独立层缓存)完成 build + prerender;pnpm 依赖安装用 `--filter` 裁剪,不含仓库根的 lint/format 工具。最终运行镜像仍为 nginx:alpine,不携带任何浏览器/测试组件。追求最小构建资源时可 `PRERENDER=false`(见「Docker 部署」),换域名用 `SITE_URL` 构建参数覆盖。
 
-预渲染实现要点(`scripts/prerender.mjs`):启动 server(随机高位端口,`LOG_LEVEL=silent`)与 `vite preview`(代理 `/api`)→ 4 并发访问每个路由,`networkidle` 后序列化 DOM 写入 `dist/<route>/index.html`;浏览器通道可用 `PRERENDER_CHANNEL` 指定(Docker 内为 `chromium-headless-shell`)。首页快照最后写入并可用 `save-shell.mjs` 缓存的干净壳还原,避免其污染其他路由的 SPA fallback;快照中的预渲染机地址(modulepreload 绝对链接)会被归一为相对路径。
+预渲染实现要点(`scripts/prerender.mjs`):启动 server(随机高位端口,`LOG_LEVEL=silent`)与 `vite preview`(代理 `/api`)→ 4 并发访问每个路由,`networkidle` 后序列化 DOM 写入 `dist/<route>/index.html`;浏览器通道可用 `PRERENDER_CHANNEL` 指定(Docker 内为 `chromium-headless-shell`)。首页快照最后写入并可用 `save-shell.mjs` 缓存的干净壳还原,避免其污染其他路由的 SPA fallback;快照中的预渲染机地址(modulepreload 绝对链接)会被归一为相对路径。快照写入前会检查与 `public/` 静态产物同名冲突(iframe 游戏入口因此改名为 `game.html`),冲突时直接报错终止而非静默覆盖。
 
 上线后到各搜索引擎站长平台提交(一次性操作):
 
@@ -107,8 +107,8 @@ type-happy/
 │       ├── games/vue-idle-game/  # 放置刷装备源码(vendored,Vue 2 独立构建,见「游戏模块」)
 │       ├── games/wuxia-idle/     # 武侠放置源码(vendored,Vue 3 + Vite 独立构建,见「游戏模块」)
 │       ├── public/               # 站点图标(favicon.svg/.ico、apple-touch-icon、icon-192/512、manifest.webmanifest)与 og-cover
-│       ├── public/games/idle/    # vue-idle-game 构建产物,由 vite 原样托管在 /games/idle/
-│       ├── public/games/wuxia/   # wuxia-idle 构建产物,由 vite 原样托管在 /games/wuxia/
+│       ├── public/games/idle/    # vue-idle-game 构建产物(入口 game.html),托管在 /games/idle/
+│       ├── public/games/wuxia/   # wuxia-idle 构建产物(入口 game.html),托管在 /games/wuxia/
 │       ├── public/games/doodle/  # 涂鸦跳跃静态资源(atlas / audio / img),托管在 /games/doodle/
 │       ├── nginx.conf            # 前端容器 nginx:SPA 回退 + /api 反代
 │       └── Dockerfile            # 前端镜像(vite 产物 + nginx)
@@ -190,7 +190,7 @@ E2E_BASE=http://localhost:5199 node apps/web/scripts/e2e-doodle.mjs
 
 - 源码位于 `apps/web/games/vue-idle-game/`(Vue 2 + vue-cli 独立子项目,**不在** pnpm workspace 与 ESLint/tsconfig 范围内,自带 `node_modules` 与 npm 脚本);
 - 已做本地化改造:移除云端接口(couy.xyz 建议提交/拉取)与百度统计,**无任何外部请求**,存档仅用浏览器 localStorage(游戏内支持导出/导入存档文本);
-- 构建产物提交在 `apps/web/public/games/idle/`,由 vite 作为静态资源托管在 `/games/idle/`,主站页面 `IdleGameView.vue` 以 iframe 嵌入;
+- 构建产物提交在 `apps/web/public/games/idle/`,由 vite 作为静态资源托管在 `/games/idle/`,主站页面 `IdleGameView.vue` 以 iframe 嵌入;**入口文件为 `game.html`**(而非 index.html):`/games/idle` 路由的预渲染快照会写入 `dist/games/idle/index.html`,同名游戏入口会被快照覆盖,导致 iframe 里显示主站页面,改名避让(`prerender.mjs` 已内置冲突检测,再冲突会直接报错);
 - 修改源码后重新构建并同步产物:
 
 ```bash
@@ -198,14 +198,15 @@ cd apps/web/games/vue-idle-game
 npm install --legacy-peer-deps   # 首次
 npm run build                    # 内置 --openssl-legacy-provider,兼容新版 Node
 rsync -a --delete dist/ ../../public/games/idle/
+mv ../../public/games/idle/index.html ../../public/games/idle/game.html
 ```
 
 ### 武侠放置(WuXiaIdle)
 
 - 源码位于 `apps/web/games/wuxia-idle/`(Vue 3 + Vite 独立子项目,**不在** pnpm workspace 与 ESLint/tsconfig/prettier 范围内,安装依赖需加 `--ignore-workspace`);
 - 古典武侠文字放置游戏:五大门派、真相之路主线、生活技能、闭关护镖等,**无任何外部请求**,存档仅用浏览器 localStorage(key 均为 `wuxia*` 前缀,与主站不冲突);
-- 集成改造(相对上游仅三处):`vite.config.ts` 增加 `base: '/games/wuxia/'`;路由由 `createWebHistory` 改为 `createWebHashHistory`(iframe 以 `index.html` 地址嵌入时 history 模式无法匹配根路由);`index.html` 补全中文 TDK;
-- 构建产物提交在 `apps/web/public/games/wuxia/`,由 vite 作为静态资源托管在 `/games/wuxia/`,主站页面 `WuxiaGameView.vue` 以 iframe 嵌入;
+- 集成改造(相对上游仅三处):`vite.config.ts` 增加 `base: '/games/wuxia/'`;路由由 `createWebHistory` 改为 `createWebHashHistory`(iframe 以静态文件地址嵌入时 history 模式无法匹配根路由);`index.html` 补全中文 TDK;
+- 构建产物提交在 `apps/web/public/games/wuxia/`,由 vite 作为静态资源托管在 `/games/wuxia/`,主站页面 `WuxiaGameView.vue` 以 iframe 嵌入;**入口文件为 `game.html`**(而非 index.html),避让 `/games/wuxia` 路由的预渲染快照,原因同「放置刷装备」;
 - 上游存在 36 个历史遗留的 `vue-tsc` 类型错误(集中在 services 层,与集成改造无关),故构建用 `pnpm build`(纯 vite,不做类型检查);游戏自带 47 个 vitest 单测可独立运行;
 - 修改源码后重新构建并同步产物:
 
@@ -215,6 +216,7 @@ pnpm install --ignore-workspace  # 首次
 pnpm test                        # 游戏自身 vitest 单测(可选)
 pnpm build
 rsync -a --delete dist/ ../../public/games/wuxia/
+mv ../../public/games/wuxia/index.html ../../public/games/wuxia/game.html
 ```
 
 - Playwright e2e 验证集成页与 iframe 内游戏挂载、交互、存档与无控制台报错:

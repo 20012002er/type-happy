@@ -30,7 +30,7 @@ const features = [
 
     <div class="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
       <iframe
-        src="/games/wuxia/index.html"
+        src="/games/wuxia/game.html"
         title="武侠放置"
         class="block h-[calc(100vh-16rem)] min-h-[560px] w-full border-0"
       />
