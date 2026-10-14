@@ -226,7 +226,7 @@ const unlockedAchs = computed(() => Object.keys(save.achievements).filter((k) =>
 </script>
 
 <template>
-  <div class="relative mx-auto aspect-[2/3] w-full max-w-[420px] overflow-hidden rounded-xl border border-slate-200 bg-[#fbfaf4] shadow-sm">
+  <div class="relative mx-auto aspect-[2/3] w-full max-w-[420px] overflow-hidden rounded-xl border border-stone-200 bg-[#fbfaf4] shadow-sm">
     <div ref="host" class="absolute inset-0" />
 
     <div v-if="tutorialStep >= 0" class="pointer-events-none absolute inset-x-0 top-1/3 flex justify-center">
@@ -235,17 +235,17 @@ const unlockedAchs = computed(() => Object.keys(save.achievements).filter((k) =>
 
     <div v-if="screen === 'menu'" class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-[#fbfaf4]/95 p-6">
       <h2 class="text-3xl font-bold text-lime-700">doodle jump</h2>
-      <p class="text-xs text-slate-500">web 重制版 · 数据仅存本机</p>
+      <p class="text-xs text-stone-500">web 重制版 · 数据仅存本机</p>
       <button class="w-40 rounded-lg bg-lime-600 py-2 font-semibold text-white hover:bg-lime-500" @click="startRun">
         {{ genericStrings.PLAY ?? 'play' }}
       </button>
-      <button class="w-40 rounded-lg bg-slate-200 py-2 text-slate-700 hover:bg-slate-300" @click="screen = 'missions'">
+      <button class="w-40 rounded-lg bg-stone-200 py-2 text-stone-700 hover:bg-stone-300" @click="screen = 'missions'">
         {{ genericStrings.MISSIONS ?? 'missions' }}
       </button>
-      <button class="w-40 rounded-lg bg-slate-200 py-2 text-slate-700 hover:bg-slate-300" @click="screen = 'scores'">
+      <button class="w-40 rounded-lg bg-stone-200 py-2 text-stone-700 hover:bg-stone-300" @click="screen = 'scores'">
         {{ genericStrings.SCORES_BTN ?? 'scores' }}
       </button>
-      <button class="w-40 rounded-lg bg-slate-200 py-2 text-slate-700 hover:bg-slate-300" @click="screen = 'options'">
+      <button class="w-40 rounded-lg bg-stone-200 py-2 text-stone-700 hover:bg-stone-300" @click="screen = 'options'">
         {{ genericStrings.OPTIONS ?? 'options' }}
       </button>
     </div>
@@ -259,13 +259,13 @@ const unlockedAchs = computed(() => Object.keys(save.achievements).filter((k) =>
       <button class="mt-3 w-40 rounded-lg bg-lime-600 py-2 font-semibold hover:bg-lime-500" @click="startRun">
         {{ genericStrings.PLAYAGAIN ?? 'play again' }}
       </button>
-      <button class="w-40 rounded-lg bg-slate-200 py-2 text-slate-700 hover:bg-slate-300" @click="screen = 'menu'">
+      <button class="w-40 rounded-lg bg-stone-200 py-2 text-stone-700 hover:bg-stone-300" @click="screen = 'menu'">
         {{ genericStrings.MENU ?? 'menu' }}
       </button>
     </div>
 
     <div v-else-if="screen === 'options'" class="absolute inset-0 flex flex-col gap-3 overflow-y-auto bg-[#fbfaf4]/97 p-5 text-sm">
-      <h3 class="text-lg font-bold text-slate-800">{{ genericStrings.OPTIONS ?? 'options' }}</h3>
+      <h3 class="text-lg font-bold text-stone-800">{{ genericStrings.OPTIONS ?? 'options' }}</h3>
       <label class="flex items-center justify-between">
         <span>{{ genericStrings.SOUNDS ?? 'sounds' }}</span>
         <input v-model="save.settings.sound" type="checkbox" @change="persist(); audio.enabled = save.settings.sound" />
@@ -276,16 +276,16 @@ const unlockedAchs = computed(() => Object.keys(save.achievements).filter((k) =>
       </label>
       <label class="flex items-center justify-between gap-2">
         <span>{{ genericStrings.GAMEOVER_NAME ?? 'your name:' }}</span>
-        <input v-model="save.name" class="w-32 rounded border border-slate-300 px-2 py-1" @change="persist" />
+        <input v-model="save.name" class="w-32 rounded border border-stone-300 px-2 py-1" @change="persist" />
       </label>
-      <button class="mt-auto rounded-lg bg-slate-200 py-2 text-slate-700 hover:bg-slate-300" @click="screen = 'menu'">
+      <button class="mt-auto rounded-lg bg-stone-200 py-2 text-stone-700 hover:bg-stone-300" @click="screen = 'menu'">
         {{ genericStrings.CLOSE_BTN ?? 'close' }}
       </button>
     </div>
 
     <div v-else-if="screen === 'scores'" class="absolute inset-0 flex flex-col gap-2 overflow-y-auto bg-[#fbfaf4]/97 p-5 text-xs">
-      <h3 class="text-lg font-bold text-slate-800">{{ statsStrings.HIGHSCORES_TITLE ?? 'scores & stats' }}</h3>
-      <div v-if="stats" class="grid grid-cols-2 gap-x-4 gap-y-1 text-slate-600">
+      <h3 class="text-lg font-bold text-stone-800">{{ statsStrings.HIGHSCORES_TITLE ?? 'scores & stats' }}</h3>
+      <div v-if="stats" class="grid grid-cols-2 gap-x-4 gap-y-1 text-stone-600">
         <span>{{ statsStrings.HIGH_SCORE }}</span><span class="text-right font-semibold">{{ stats.highScore }}</span>
         <span>{{ statsStrings.LAST_SCORE }}</span><span class="text-right font-semibold">{{ stats.lastScore }}</span>
         <span>{{ statsStrings.TOTAL_GAMES }}</span><span class="text-right font-semibold">{{ stats.plays }}</span>
@@ -302,25 +302,25 @@ const unlockedAchs = computed(() => Object.keys(save.achievements).filter((k) =>
         <span>{{ statsStrings.ABDUCTED_UFO }}</span><span class="text-right font-semibold">{{ stats.deaths.ufo }}</span>
         <span>{{ statsStrings.BLACK_HOLE }}</span><span class="text-right font-semibold">{{ stats.deaths.blackhole }}</span>
       </div>
-      <h4 class="mt-3 font-bold text-slate-800">{{ statsStrings.ACHS ?? 'achievements' }} ({{ unlockedAchs.length }})</h4>
-      <div v-for="id in unlockedAchs" :key="id" class="text-slate-600">
+      <h4 class="mt-3 font-bold text-stone-800">{{ statsStrings.ACHS ?? 'achievements' }} ({{ unlockedAchs.length }})</h4>
+      <div v-for="id in unlockedAchs" :key="id" class="text-stone-600">
         <span class="font-semibold text-lime-700">{{ achStrings[id]?.[0] ?? id }}</span>
         — {{ achStrings[id]?.[2] ?? '' }}
       </div>
-      <button class="mt-auto rounded-lg bg-slate-200 py-2 text-slate-700 hover:bg-slate-300" @click="screen = 'menu'">
+      <button class="mt-auto rounded-lg bg-stone-200 py-2 text-stone-700 hover:bg-stone-300" @click="screen = 'menu'">
         {{ genericStrings.CLOSE_BTN ?? 'close' }}
       </button>
     </div>
 
     <div v-else-if="screen === 'missions'" class="absolute inset-0 flex flex-col gap-2 overflow-y-auto bg-[#fbfaf4]/97 p-5 text-xs">
-      <h3 class="text-lg font-bold text-slate-800">{{ genericStrings.MISSIONS ?? 'missions' }}</h3>
-      <div v-for="id in save.activeMissions" :key="id" class="rounded-lg border border-slate-200 bg-white p-2">
-        <p class="font-semibold text-slate-700">{{ missionLabel(id) }}</p>
-        <p class="text-slate-500">
+      <h3 class="text-lg font-bold text-stone-800">{{ genericStrings.MISSIONS ?? 'missions' }}</h3>
+      <div v-for="id in save.activeMissions" :key="id" class="rounded-lg border border-stone-200 bg-white p-2">
+        <p class="font-semibold text-stone-700">{{ missionLabel(id) }}</p>
+        <p class="text-stone-500">
           {{ save.missions[id]?.done ? 'done!' : `${save.missions[id]?.progress ?? 0} / ${missionRequired(missionById(id)!)}` }}
         </p>
       </div>
-      <button class="mt-auto rounded-lg bg-slate-200 py-2 text-slate-700 hover:bg-slate-300" @click="screen = 'menu'">
+      <button class="mt-auto rounded-lg bg-stone-200 py-2 text-stone-700 hover:bg-stone-300" @click="screen = 'menu'">
         {{ genericStrings.CLOSE_BTN ?? 'close' }}
       </button>
     </div>

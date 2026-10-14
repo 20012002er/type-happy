@@ -2,85 +2,23 @@
 import { computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { useGamesStore } from '../stores/games'
+import { GAMES } from '../games/list'
 import { useItemListSeo } from '../composables/useSeo'
 
 const games = useGamesStore()
 
-interface GameMeta {
-  id: string
-  title: string
-  desc: string
-  to: string
-  gradient: string
-  badge: string
-  /** 成绩展示定制(放置类无连击概念) */
-  stats?: { scoreLabel?: string; playsUnit?: string; hideCombo?: boolean }
-}
-
-const list: GameMeta[] = [
-  {
-    id: 'balloon',
-    title: '打字消气球',
-    desc: '彩色气球从底部升起,每个气球带一个键位。按下对应键位扎破气球,别让它们飘到顶部!',
-    to: '/games/balloon',
-    gradient: 'from-sky-400 to-indigo-400',
-    badge: '🎈',
-  },
-  {
-    id: 'duck',
-    title: '打字打鸭子',
-    desc: '鸭子从草丛中飞出,身上带一个键位。按下对应键位,让猎人开枪击落它们,别让鸭子飞走!',
-    to: '/games/duck',
-    gradient: 'from-lime-400 to-emerald-500',
-    badge: '🦆',
-  },
-  {
-    id: 'fighter',
-    title: '打字街霸',
-    desc: '隆 VS 肯!限时打出随机英文单词即可出招:短词波动拳、中词龙卷旋风脚、长词升龙拳;打错或超时会被反击。先打空对方血量获胜!',
-    to: '/games/fighter',
-    gradient: 'from-orange-400 to-rose-500',
-    badge: '🥋',
-  },
-  {
-    id: 'idle',
-    title: '放置刷装备',
-    desc: '全随机的放置类刷装备小游戏:挂机打怪、掉落随机词条装备、强化升级,看看你能刷出什么样的极品!(开源游戏 vue-idle-game)',
-    to: '/games/idle',
-    gradient: 'from-violet-400 to-fuchsia-500',
-    badge: '⚔️',
-  },
-  {
-    id: 'doodle',
-    title: '涂鸦跳跃',
-    desc: '逆向重制版 Doodle Jump:倾斜/键盘移动、点击射击,踩平台躲怪物吃道具一路向上。纯本地运行,成绩与进度只存在浏览器里。',
-    to: '/games/doodle',
-    gradient: 'from-lime-300 to-green-500',
-    badge: '🐸',
-  },
-  {
-    id: 'wulin',
-    title: '放置武林',
-    desc: '水墨武侠放置 RPG(玩法致敬《放置江湖》):闯十章节地图、拜七大门派、修五十余式武学,挂机历练、闭关练功、三世传承,离线也在成长!(自研 Vue + PixiJS)',
-    to: '/games/wulin',
-    gradient: 'from-amber-400 to-rose-500',
-    badge: '🏯',
-    stats: { scoreLabel: '最高评价', playsUnit: '次', hideCombo: true },
-  },
-]
-
-const records = computed(() => list.map((g) => ({ ...g, best: games.bestOf(g.id) })))
+const records = computed(() => GAMES.map((g) => ({ ...g, best: games.bestOf(g.id) })))
 
 useItemListSeo(
   '打字游戏',
-  computed(() => list.map((g) => ({ name: g.title, path: g.to }))),
+  computed(() => GAMES.map((g) => ({ name: g.title, path: g.to }))),
 )
 </script>
 
 <template>
   <div class="mx-auto max-w-5xl px-4 py-10">
-    <h1 class="text-2xl font-bold text-slate-900">打字游戏</h1>
-    <p class="mt-1 text-sm text-slate-500">
+    <h1 class="text-2xl font-bold text-stone-900">打字游戏</h1>
+    <p class="mt-1 text-sm text-stone-500">
       边玩边练指法。看准键位、快速敲击,挑战你的最高分。成绩仅保存在本机浏览器中。
     </p>
 
@@ -89,7 +27,7 @@ useItemListSeo(
         v-for="g in records"
         :key="g.id"
         :to="g.to"
-        class="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-lg"
+        class="group flex flex-col overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-lg"
       >
         <div
           class="relative flex h-36 items-center justify-center bg-gradient-to-br"
@@ -106,10 +44,10 @@ useItemListSeo(
           </span>
         </div>
         <div class="flex flex-1 flex-col p-5">
-          <h2 class="font-semibold text-slate-900 group-hover:text-indigo-600">{{ g.title }}</h2>
-          <p class="mt-1.5 flex-1 text-sm leading-relaxed text-slate-500">{{ g.desc }}</p>
+          <h2 class="font-semibold text-stone-900 group-hover:text-brand-600">{{ g.title }}</h2>
+          <p class="mt-1.5 flex-1 text-sm leading-relaxed text-stone-500">{{ g.desc }}</p>
           <div class="mt-4 flex items-center justify-between">
-            <span class="text-xs text-slate-400">
+            <span class="text-xs text-stone-400">
               {{
                 g.best
                   ? `已玩 ${g.best.plays} ${g.stats?.playsUnit ?? '局'}${g.stats?.hideCombo ? '' : ` · 最高连击 ${g.best.bestCombo}`}`
@@ -117,7 +55,7 @@ useItemListSeo(
               }}
             </span>
             <span
-              class="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white transition group-hover:bg-indigo-500"
+              class="inline-flex items-center gap-1 rounded-lg bg-brand-600 px-3 py-1.5 text-xs font-medium text-white transition group-hover:bg-brand-500"
             >
               开始游戏
               <svg

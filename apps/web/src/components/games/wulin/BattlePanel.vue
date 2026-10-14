@@ -79,7 +79,11 @@ function canAgain(): boolean {
     <div class="flex items-center justify-between border-b border-[#e4dac0] px-3 py-1.5">
       <p class="text-xs font-semibold text-stone-700">
         ⚔️ {{ npcDef?.title ? `${npcDef.title} · ` : '' }}{{ npcDef?.name ?? '战斗' }}
-        <span v-if="state?.mode === 'spar'" class="ml-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] text-emerald-700">切磋</span>
+        <span
+          v-if="state?.mode === 'spar'"
+          class="ml-1 rounded bg-emerald-100 px-1.5 py-0.5 text-[10px] text-emerald-700"
+          >切磋</span
+        >
       </p>
       <div class="flex items-center gap-1">
         <button
@@ -94,21 +98,44 @@ function canAgain(): boolean {
       </div>
     </div>
 
-    <div class="wl-scroll min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-2 font-serif text-xs leading-relaxed">
+    <div
+      class="wl-scroll min-h-0 flex-1 space-y-1 overflow-y-auto px-3 py-2 font-serif text-xs leading-relaxed"
+    >
       <p v-for="(l, i) in logs" :key="i" :class="logColor(l.kind)">{{ l.text }}</p>
     </div>
 
-    <div v-if="!over" class="flex flex-wrap items-center gap-1.5 border-t border-[#e4dac0] px-3 py-2">
-      <button v-for="q in quickItems" :key="q.id" class="wl-btn wl-btn-ghost !px-2 !py-1 text-[11px]" @click="useQuick(q.id)">
+    <div
+      v-if="!over"
+      class="flex flex-wrap items-center gap-1.5 border-t border-[#e4dac0] px-3 py-2"
+    >
+      <button
+        v-for="q in quickItems"
+        :key="q.id"
+        class="wl-btn wl-btn-ghost !px-2 !py-1 text-[11px]"
+        @click="useQuick(q.id)"
+      >
         {{ q.name }}×{{ q.count }}
       </button>
       <span v-if="!quickItems.length" class="text-[11px] text-stone-400">没有可用的药品</span>
-      <button class="wl-btn wl-btn-danger ml-auto !px-3 !py-1 text-[11px]" @click="flee">逃跑</button>
+      <button class="wl-btn wl-btn-danger ml-auto !px-3 !py-1 text-[11px]" @click="flee">
+        逃跑
+      </button>
     </div>
 
     <div v-else class="wl-fade-in border-t border-[#e4dac0] px-3 py-2.5">
-      <p class="text-center font-serif text-sm font-bold" :class="win ? 'text-emerald-700' : fled ? 'text-stone-500' : 'text-red-800'">
-        {{ win ? (state?.mode === 'spar' ? '切磋获胜!' : '大获全胜!') : fled ? '你逃出了战斗' : '败北……' }}
+      <p
+        class="text-center font-serif text-sm font-bold"
+        :class="win ? 'text-emerald-700' : fled ? 'text-stone-500' : 'text-red-800'"
+      >
+        {{
+          win
+            ? state?.mode === 'spar'
+              ? '切磋获胜!'
+              : '大获全胜!'
+            : fled
+              ? '你逃出了战斗'
+              : '败北……'
+        }}
       </p>
       <div class="mt-2 flex justify-center gap-2">
         <button v-if="win && canAgain()" class="wl-btn" @click="emit('again')">再战</button>

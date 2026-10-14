@@ -23,7 +23,11 @@ const bagList = computed(() => {
   return Object.entries(char.value.bag)
     .filter(([id, n]) => n > 0 && itemById.get(id))
     .map(([id, n]) => ({ id, n, def: itemById.get(id)! }))
-    .sort((a, b) => (order[a.def.kind as keyof typeof order] ?? 9) - (order[b.def.kind as keyof typeof order] ?? 9))
+    .sort(
+      (a, b) =>
+        (order[a.def.kind as keyof typeof order] ?? 9) -
+        (order[b.def.kind as keyof typeof order] ?? 9),
+    )
 })
 
 const bagCount = computed(() => bagList.value.length)
@@ -73,23 +77,44 @@ function armorDef(id: string | undefined) {
       <h4 class="text-xs font-semibold text-stone-500">穿戴</h4>
       <div class="mt-2 flex items-center justify-between rounded-lg bg-white/70 px-3 py-2">
         <div>
-          <p class="text-xs font-semibold text-stone-700">兵刃:{{ char.weapon ? itemById.get(char.weapon)?.name : '空手' }}</p>
+          <p class="text-xs font-semibold text-stone-700">
+            兵刃:{{ char.weapon ? itemById.get(char.weapon)?.name : '空手' }}
+          </p>
           <p v-if="char.weapon" class="text-[10px] text-stone-400">
-            攻击 +{{ itemById.get(char.weapon)?.weapon?.atk }} · 重量 {{ itemById.get(char.weapon)?.weapon?.weight }}
+            攻击 +{{ itemById.get(char.weapon)?.weapon?.atk }} · 重量
+            {{ itemById.get(char.weapon)?.weapon?.weight }}
           </p>
         </div>
-        <button v-if="char.weapon" class="wl-btn wl-btn-ghost !px-2 !py-1 text-[11px]" @click="unequipW">卸下</button>
+        <button
+          v-if="char.weapon"
+          class="wl-btn wl-btn-ghost !px-2 !py-1 text-[11px]"
+          @click="unequipW"
+        >
+          卸下
+        </button>
       </div>
       <div class="mt-1.5 grid grid-cols-1 gap-1.5">
-        <div v-for="[slot, label] in ARMOR_SLOTS" :key="slot" class="flex items-center justify-between rounded-lg bg-white/70 px-3 py-1.5">
+        <div
+          v-for="[slot, label] in ARMOR_SLOTS"
+          :key="slot"
+          class="flex items-center justify-between rounded-lg bg-white/70 px-3 py-1.5"
+        >
           <p class="text-xs text-stone-600">
             {{ label }}:
             <b class="text-stone-800">{{ armorDef(char.armor[slot])?.name ?? '无' }}</b>
             <span v-if="armorDef(char.armor[slot])?.armor" class="text-[10px] text-stone-400">
-              防 +{{ armorDef(char.armor[slot])?.armor?.def }} 护 +{{ armorDef(char.armor[slot])?.armor?.prot }}
+              防 +{{ armorDef(char.armor[slot])?.armor?.def }} 护 +{{
+                armorDef(char.armor[slot])?.armor?.prot
+              }}
             </span>
           </p>
-          <button v-if="char.armor[slot]" class="wl-btn wl-btn-ghost !px-2 !py-0.5 text-[10px]" @click="unequipA(slot)">卸下</button>
+          <button
+            v-if="char.armor[slot]"
+            class="wl-btn wl-btn-ghost !px-2 !py-0.5 text-[10px]"
+            @click="unequipA(slot)"
+          >
+            卸下
+          </button>
         </div>
       </div>
     </section>
@@ -97,7 +122,12 @@ function armorDef(id: string | undefined) {
     <section class="wl-card">
       <div class="flex items-center justify-between">
         <h4 class="text-xs font-semibold text-stone-500">背包 {{ bagCount }}/{{ char.bagCap }}</h4>
-        <button v-if="char.bagCap < BAG_CAP_MAX" class="wl-btn wl-btn-ghost !px-2 !py-1 text-[11px]" :disabled="char.silver < upgradeCost" @click="upgrade">
+        <button
+          v-if="char.bagCap < BAG_CAP_MAX"
+          class="wl-btn wl-btn-ghost !px-2 !py-1 text-[11px]"
+          :disabled="char.silver < upgradeCost"
+          @click="upgrade"
+        >
           扩容 +5(碎银 {{ fmt(upgradeCost) }})
         </button>
       </div>
@@ -106,14 +136,40 @@ function armorDef(id: string | undefined) {
           <div class="flex items-baseline justify-between">
             <p class="text-xs font-semibold text-stone-700">
               {{ it.def.name }} <span class="text-stone-400">×{{ it.n }}</span>
-              <span v-if="it.def.weapon" class="ml-1 text-[10px] text-stone-400">攻+{{ it.def.weapon.atk }}</span>
-              <span v-if="it.def.armor" class="ml-1 text-[10px] text-stone-400">防+{{ it.def.armor.def }}</span>
+              <span v-if="it.def.weapon" class="ml-1 text-[10px] text-stone-400"
+                >攻+{{ it.def.weapon.atk }}</span
+              >
+              <span v-if="it.def.armor" class="ml-1 text-[10px] text-stone-400"
+                >防+{{ it.def.armor.def }}</span
+              >
             </p>
             <div class="flex shrink-0 gap-1">
-              <button v-if="it.def.kind === 'weapon'" class="wl-btn !px-2 !py-0.5 text-[10px]" @click="equipW(it.id)">装备</button>
-              <button v-if="it.def.kind === 'armor'" class="wl-btn !px-2 !py-0.5 text-[10px]" @click="equipA(it.id)">装备</button>
-              <button v-if="it.def.kind === 'consumable'" class="wl-btn !px-2 !py-0.5 text-[10px]" @click="use(it.id)">使用</button>
-              <button v-if="it.def.kind !== 'quest'" class="wl-btn wl-btn-ghost !px-2 !py-0.5 text-[10px]" @click="sell(it.id)">
+              <button
+                v-if="it.def.kind === 'weapon'"
+                class="wl-btn !px-2 !py-0.5 text-[10px]"
+                @click="equipW(it.id)"
+              >
+                装备
+              </button>
+              <button
+                v-if="it.def.kind === 'armor'"
+                class="wl-btn !px-2 !py-0.5 text-[10px]"
+                @click="equipA(it.id)"
+              >
+                装备
+              </button>
+              <button
+                v-if="it.def.kind === 'consumable'"
+                class="wl-btn !px-2 !py-0.5 text-[10px]"
+                @click="use(it.id)"
+              >
+                使用
+              </button>
+              <button
+                v-if="it.def.kind !== 'quest'"
+                class="wl-btn wl-btn-ghost !px-2 !py-0.5 text-[10px]"
+                @click="sell(it.id)"
+              >
                 卖{{ fmt(Math.max(1, Math.floor((it.def.price ?? 10) * 0.5))) }}
               </button>
             </div>

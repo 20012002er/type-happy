@@ -5,6 +5,20 @@
     ui-sans-serif, system-ui, -apple-system, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei',
     sans-serif;
   --font-mono: ui-monospace, 'SF Mono', 'Cascadia Code', Menlo, Consolas, 'PingFang SC', monospace;
+
+  /* 品牌色 · 翡翠青(jade):按钮、链接、高亮、导航激活态的主色。
+     与暖灰 stone 中性色 + amber 强调色构成冷暖平衡的基础配色。 */
+  --color-brand-50: #f1fbf8;
+  --color-brand-100: #d8f5ec;
+  --color-brand-200: #b2e9dc;
+  --color-brand-300: #80d7c6;
+  --color-brand-400: #46bfac;
+  --color-brand-500: #1ca392;
+  --color-brand-600: #0c8478;
+  --color-brand-700: #0d6a61;
+  --color-brand-800: #0f544e;
+  --color-brand-900: #0f4640;
+  --color-brand-950: #042925;
 }
 
 @keyframes caret-blink {

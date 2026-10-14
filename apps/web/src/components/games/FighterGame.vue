@@ -254,7 +254,7 @@ const howTo = [
 <template>
   <div
     ref="area"
-    class="relative h-[68vh] max-h-[680px] min-h-[450px] w-full select-none overflow-hidden rounded-2xl border border-slate-800/60 shadow-xl"
+    class="relative h-[68vh] max-h-[680px] min-h-[450px] w-full select-none overflow-hidden rounded-2xl border border-stone-800/60 shadow-xl"
     :class="shakeCls"
     :style="{ '--u': uPx + 'px' }"
   >
@@ -298,7 +298,7 @@ const howTo = [
     <!-- 飞鸟 -->
     <svg
       viewBox="0 0 24 10"
-      class="bird-fly absolute right-[-8%] top-[14%] z-0 w-6 text-indigo-950/70"
+      class="bird-fly absolute right-[-8%] top-[14%] z-0 w-6 text-brand-950/70"
       aria-hidden="true"
     >
       <path
@@ -311,7 +311,7 @@ const howTo = [
     </svg>
     <svg
       viewBox="0 0 24 10"
-      class="bird-fly absolute right-[-14%] top-[19%] z-0 w-4 text-indigo-950/55"
+      class="bird-fly absolute right-[-14%] top-[19%] z-0 w-4 text-brand-950/55"
       style="animation-delay: -7s; animation-duration: 21s"
       aria-hidden="true"
     >
@@ -384,7 +384,7 @@ const howTo = [
     />
     <!-- 灯笼 -->
     <div class="lantern-sway absolute left-[17%] top-0 z-0" style="animation-delay: -1.3s">
-      <div class="mx-auto h-9 w-px bg-slate-950/70" />
+      <div class="mx-auto h-9 w-px bg-stone-950/70" />
       <div
         class="relative mx-auto h-9 w-7 rounded-[45%] border border-red-950/70 bg-gradient-to-b from-red-500 via-red-600 to-red-800 shadow-[0_0_20px_rgba(251,113,133,0.55)]"
       >
@@ -399,7 +399,7 @@ const howTo = [
       </div>
     </div>
     <div class="lantern-sway absolute right-[15%] top-0 z-0">
-      <div class="mx-auto h-6 w-px bg-slate-950/70" />
+      <div class="mx-auto h-6 w-px bg-stone-950/70" />
       <div
         class="relative mx-auto h-8 w-6 rounded-[45%] border border-red-950/70 bg-gradient-to-b from-red-500 via-red-600 to-red-800 shadow-[0_0_18px_rgba(251,113,133,0.5)]"
       >
@@ -430,7 +430,7 @@ const howTo = [
     <div
       v-for="(c, i) in CROWD"
       :key="i"
-      class="crowd-bob absolute bottom-[14.4%] z-[2] w-[2.6%] rounded-t-full bg-slate-950/55"
+      class="crowd-bob absolute bottom-[14.4%] z-[2] w-[2.6%] rounded-t-full bg-stone-950/55"
       :style="{
         left: c.left + '%',
         height: c.h + 'px',
@@ -700,14 +700,14 @@ const howTo = [
       <div class="w-[38%] max-w-xs flex-1">
         <div class="mb-1 flex items-baseline gap-1.5">
           <span
-            class="inline-block -skew-x-12 border border-white/25 bg-slate-900/85 px-2 py-px text-xs font-black italic tracking-wider text-yellow-300 shadow"
+            class="inline-block -skew-x-12 border border-white/25 bg-stone-900/85 px-2 py-px text-xs font-black italic tracking-wider text-yellow-300 shadow"
           >
             RYU
           </span>
           <span class="text-[11px] font-bold text-white/85 drop-shadow">隆</span>
         </div>
         <div
-          class="relative h-5 -skew-x-[14deg] overflow-hidden rounded-sm border-2 border-black/80 bg-slate-950 shadow-[0_2px_6px_rgba(0,0,0,0.5)]"
+          class="relative h-5 -skew-x-[14deg] overflow-hidden rounded-sm border-2 border-black/80 bg-stone-950 shadow-[0_2px_6px_rgba(0,0,0,0.5)]"
         >
           <div
             class="hp-ghost absolute inset-y-0 left-0"
@@ -736,7 +736,7 @@ const howTo = [
       <!-- 中央计时/分数 -->
       <div class="mt-0.5 flex w-16 shrink-0 flex-col items-center">
         <div
-          class="rounded-md border-2 border-black/80 bg-slate-950/90 px-2 py-0.5 text-center shadow-[0_2px_6px_rgba(0,0,0,0.5)]"
+          class="rounded-md border-2 border-black/80 bg-stone-950/90 px-2 py-0.5 text-center shadow-[0_2px_6px_rgba(0,0,0,0.5)]"
         >
           <span
             class="text-2xl font-black italic tabular-nums leading-tight"
@@ -756,13 +756,13 @@ const howTo = [
         <div class="mb-1 flex items-baseline gap-1.5">
           <span class="text-[11px] font-bold text-white/85 drop-shadow">肯</span>
           <span
-            class="inline-block skew-x-12 border border-white/25 bg-slate-900/85 px-2 py-px text-xs font-black italic tracking-wider text-yellow-300 shadow"
+            class="inline-block skew-x-12 border border-white/25 bg-stone-900/85 px-2 py-px text-xs font-black italic tracking-wider text-yellow-300 shadow"
           >
             KEN
           </span>
         </div>
         <div
-          class="relative h-5 w-full skew-x-[14deg] overflow-hidden rounded-sm border-2 border-black/80 bg-slate-950 shadow-[0_2px_6px_rgba(0,0,0,0.5)]"
+          class="relative h-5 w-full skew-x-[14deg] overflow-hidden rounded-sm border-2 border-black/80 bg-stone-950 shadow-[0_2px_6px_rgba(0,0,0,0.5)]"
         >
           <div
             class="hp-ghost absolute inset-y-0 right-0"
@@ -793,7 +793,7 @@ const howTo = [
     <div class="absolute bottom-2 right-3 z-30 flex items-center gap-1.5">
       <button
         type="button"
-        class="rounded-md border border-white/25 bg-slate-900/75 px-2.5 py-1 text-xs font-medium text-yellow-200 shadow backdrop-blur transition hover:bg-slate-800 disabled:opacity-40"
+        class="rounded-md border border-white/25 bg-stone-900/75 px-2.5 py-1 text-xs font-medium text-yellow-200 shadow backdrop-blur transition hover:bg-stone-800 disabled:opacity-40"
         :disabled="!canPause"
         @click="fight.togglePause()"
       >
@@ -801,7 +801,7 @@ const howTo = [
       </button>
       <button
         type="button"
-        class="rounded-md border border-white/25 bg-slate-900/75 px-2.5 py-1 text-xs font-medium text-yellow-200 shadow backdrop-blur transition hover:bg-slate-800"
+        class="rounded-md border border-white/25 bg-stone-900/75 px-2.5 py-1 text-xs font-medium text-yellow-200 shadow backdrop-blur transition hover:bg-stone-800"
         @click="fight.restart()"
       >
         重开
@@ -814,7 +814,7 @@ const howTo = [
       class="pointer-events-none absolute inset-x-0 bottom-[2.5%] z-20 flex flex-col items-center gap-2 px-4"
     >
       <div
-        class="flex items-center gap-2 rounded-xl border-2 border-amber-400/40 bg-slate-950/80 px-4 py-2.5 shadow-[0_4px_18px_rgba(0,0,0,0.55)] backdrop-blur"
+        class="flex items-center gap-2 rounded-xl border-2 border-amber-400/40 bg-stone-950/80 px-4 py-2.5 shadow-[0_4px_18px_rgba(0,0,0,0.55)] backdrop-blur"
       >
         <span
           class="mr-1 hidden items-center gap-1 rounded-md px-2 py-0.5 text-[11px] font-black italic sm:inline-flex"
@@ -836,7 +836,7 @@ const howTo = [
             i < fight.typed.value
               ? 'chip-ok bg-emerald-500 text-white'
               : i === fight.typed.value
-                ? 'chip-cur bg-white text-slate-900'
+                ? 'chip-cur bg-white text-stone-900'
                 : 'bg-white/10 text-white/85'
           "
         >
@@ -844,7 +844,7 @@ const howTo = [
         </span>
       </div>
       <div
-        class="h-2 w-60 overflow-hidden rounded-full border border-black/50 bg-slate-950/70 sm:w-72"
+        class="h-2 w-60 overflow-hidden rounded-full border border-black/50 bg-stone-950/70 sm:w-72"
       >
         <div
           class="h-full rounded-full"
@@ -908,10 +908,10 @@ const howTo = [
     <!-- ============ 覆盖层:开始 / 暂停 / 结算 ============ -->
     <div
       v-if="fight.status.value !== 'running'"
-      class="absolute inset-0 z-40 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+      class="absolute inset-0 z-40 flex items-center justify-center bg-stone-950/60 p-4 backdrop-blur-sm"
     >
       <div
-        class="w-full max-w-md rounded-2xl border-2 border-amber-400/50 bg-slate-900/95 p-6 text-center shadow-2xl"
+        class="w-full max-w-md rounded-2xl border-2 border-amber-400/50 bg-stone-900/95 p-6 text-center shadow-2xl"
       >
         <!-- 开始 -->
         <template v-if="fight.status.value === 'idle'">
@@ -919,7 +919,7 @@ const howTo = [
           <div class="mt-1 text-3xl font-black italic text-white">
             隆 <span class="mx-1 text-rose-500">VS</span> 肯
           </div>
-          <ul class="mx-auto mt-4 space-y-1.5 text-left text-sm text-slate-300">
+          <ul class="mx-auto mt-4 space-y-1.5 text-left text-sm text-stone-300">
             <li v-for="(line, i) in howTo" :key="i" class="flex gap-2">
               <span class="mt-0.5 text-amber-400/70">•</span>
               <span>{{ line }}</span>
@@ -932,13 +932,13 @@ const howTo = [
           >
             开始对战 FIGHT!
           </button>
-          <p class="mt-2 text-[11px] text-slate-400">或按 空格 / 回车 开始,Esc 暂停</p>
+          <p class="mt-2 text-[11px] text-stone-400">或按 空格 / 回车 开始,Esc 暂停</p>
         </template>
 
         <!-- 暂停 -->
         <template v-else-if="fight.status.value === 'paused'">
           <h2 class="text-xl font-black italic text-yellow-300">已暂停</h2>
-          <p class="mt-1 text-sm text-slate-300">
+          <p class="mt-1 text-sm text-stone-300">
             隆 {{ fight.hpRyu.value }} : {{ fight.hpKen.value }} 肯
           </p>
           <div class="mt-5 flex gap-2">
@@ -951,13 +951,13 @@ const howTo = [
             </button>
             <button
               type="button"
-              class="rounded-xl border border-slate-600 bg-slate-800 px-4 py-3 text-sm font-medium text-slate-200 transition hover:bg-slate-700"
+              class="rounded-xl border border-stone-600 bg-stone-800 px-4 py-3 text-sm font-medium text-stone-200 transition hover:bg-stone-700"
               @click="fight.restart()"
             >
               重开
             </button>
           </div>
-          <p class="mt-2 text-[11px] text-slate-400">按 Esc / 空格 继续</p>
+          <p class="mt-2 text-[11px] text-stone-400">按 Esc / 空格 继续</p>
         </template>
 
         <!-- 结算 -->
@@ -982,37 +982,37 @@ const howTo = [
           >
             PERFECT!
           </div>
-          <div class="mt-4 rounded-xl border border-white/10 bg-slate-800/80 p-4">
-            <div class="text-xs text-slate-400">总输出伤害</div>
+          <div class="mt-4 rounded-xl border border-white/10 bg-stone-800/80 p-4">
+            <div class="text-xs text-stone-400">总输出伤害</div>
             <div class="text-4xl font-black tabular-nums text-amber-300">
               {{ fight.score.value }}
             </div>
           </div>
           <div class="mt-3 grid grid-cols-3 gap-2 text-center">
-            <div class="rounded-lg bg-slate-800/80 py-2">
+            <div class="rounded-lg bg-stone-800/80 py-2">
               <div class="text-lg font-bold tabular-nums text-emerald-400">
                 {{ fight.cleared.value }}
               </div>
-              <div class="text-[11px] text-slate-400">打对单词</div>
+              <div class="text-[11px] text-stone-400">打对单词</div>
             </div>
-            <div class="rounded-lg bg-slate-800/80 py-2">
+            <div class="rounded-lg bg-stone-800/80 py-2">
               <div class="text-lg font-bold tabular-nums text-amber-400">
                 {{ fight.bestCombo.value }}
               </div>
-              <div class="text-[11px] text-slate-400">最高连击</div>
+              <div class="text-[11px] text-stone-400">最高连击</div>
             </div>
-            <div class="rounded-lg bg-slate-800/80 py-2">
+            <div class="rounded-lg bg-stone-800/80 py-2">
               <div class="text-lg font-bold tabular-nums text-rose-400">
                 {{ fight.failed.value }}
               </div>
-              <div class="text-[11px] text-slate-400">失误/超时</div>
+              <div class="text-[11px] text-stone-400">失误/超时</div>
             </div>
           </div>
-          <div class="mt-3 flex items-center justify-center gap-3 text-xs text-slate-400">
+          <div class="mt-3 flex items-center justify-center gap-3 text-xs text-stone-400">
             <span>用时 {{ formatDuration(fight.elapsed.value * 1000) }}</span>
-            <span class="text-slate-600">|</span>
+            <span class="text-stone-600">|</span>
             <span>承受伤害 {{ fight.taken.value }}</span>
-            <span v-if="best" class="text-slate-600">|</span>
+            <span v-if="best" class="text-stone-600">|</span>
             <span v-if="best">历史最佳 {{ best.bestScore }}</span>
           </div>
           <button
@@ -1022,7 +1022,7 @@ const howTo = [
           >
             再来一局 REMATCH
           </button>
-          <p class="mt-2 text-[11px] text-slate-400">
+          <p class="mt-2 text-[11px] text-stone-400">
             按 空格 / 回车 重开 ·
             <RouterLink to="/games" class="text-amber-300 hover:underline">返回游戏列表</RouterLink>
           </p>

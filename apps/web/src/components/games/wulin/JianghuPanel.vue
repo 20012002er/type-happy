@@ -4,7 +4,14 @@ import { DAILY_TASKS, HARVEST_TASKS, SIGNIN_CYCLE } from '../../../games/wulin/c
 import { STORY_CHAPTERS, chapterById } from '../../../games/wulin/data'
 import { fmt, fmtDur, fmtRate } from '../../../games/wulin/format'
 import { roomOf, spotKey } from '../../../games/wulin/sim'
-import { dailyCount, dailyReady, dailyUnlocked, harvestReady, harvestUnlocked, canSignin } from '../../../games/wulin/sim/quests'
+import {
+  dailyCount,
+  dailyReady,
+  dailyUnlocked,
+  harvestReady,
+  harvestUnlocked,
+  canSignin,
+} from '../../../games/wulin/sim/quests'
 import type { WulinUi } from './context'
 
 const props = defineProps<{ ui: WulinUi }>()
@@ -18,7 +25,9 @@ const quest = computed(() => props.ui.sim.questInfo())
 const roomNpcs = computed(() => props.ui.sim.roomNpcs(room.value))
 const showTravel = ref(false)
 
-const idleChapter = computed(() => (save.value.idle.chapter ? chapterById.get(save.value.idle.chapter) : null))
+const idleChapter = computed(() =>
+  save.value.idle.chapter ? chapterById.get(save.value.idle.chapter) : null,
+)
 const idleRates = computed(() => {
   const id = save.value.idle.chapter
   return id ? props.ui.sim.idleRateFor(id) : null
@@ -85,7 +94,9 @@ function doSignin(): void {
 }
 
 function pickedFlags(): boolean[] {
-  return (room.value.pickups ?? []).map((_, i) => progress.value.picked.includes(`${room.value.id}:${i}`))
+  return (room.value.pickups ?? []).map((_, i) =>
+    progress.value.picked.includes(`${room.value.id}:${i}`),
+  )
 }
 
 function spotLeft(i: number): number {
@@ -113,7 +124,12 @@ const signinIdx = computed(() => save.value.daily.signin % SIGNIN_CYCLE.length)
         <h3 class="font-serif text-base font-bold text-stone-800">
           {{ chapter.title }} · {{ room.name }}
         </h3>
-        <button class="text-[11px] text-amber-700 underline underline-offset-2" @click="showTravel = true">游历各地</button>
+        <button
+          class="text-[11px] text-amber-700 underline underline-offset-2"
+          @click="showTravel = true"
+        >
+          游历各地
+        </button>
       </div>
       <p class="mt-1 font-serif text-xs leading-relaxed text-stone-500">{{ room.desc }}</p>
 
@@ -127,7 +143,12 @@ const signinIdx = computed(() => save.value.daily.signin % SIGNIN_CYCLE.length)
       </div>
 
       <div v-if="room.exits.length" class="mt-2 flex flex-wrap gap-1.5">
-        <button v-for="ex in room.exits" :key="ex.to" class="wl-btn wl-btn-ghost !px-2.5 !py-1 text-[11px]" @click="move(ex.to)">
+        <button
+          v-for="ex in room.exits"
+          :key="ex.to"
+          class="wl-btn wl-btn-ghost !px-2.5 !py-1 text-[11px]"
+          @click="move(ex.to)"
+        >
           {{ ex.dir }} → {{ roomOf(ex.to)?.room.name ?? '?' }}
         </button>
       </div>
@@ -181,7 +202,9 @@ const signinIdx = computed(() => save.value.daily.signin % SIGNIN_CYCLE.length)
     <section class="wl-card">
       <div class="flex items-center justify-between">
         <h4 class="text-xs font-semibold text-stone-500">挂机闯荡</h4>
-        <span v-if="idleChapter" class="text-[11px] text-stone-400">正在:{{ idleChapter.title }}</span>
+        <span v-if="idleChapter" class="text-[11px] text-stone-400"
+          >正在:{{ idleChapter.title }}</span
+        >
       </div>
       <div v-if="idleRates" class="mt-1.5 flex gap-2 text-[11px] text-stone-600">
         <span class="rounded bg-[#f1ead8] px-2 py-1">经验 {{ fmtRate(idleRates.exp) }}</span>
@@ -189,7 +212,13 @@ const signinIdx = computed(() => save.value.daily.signin % SIGNIN_CYCLE.length)
         <span class="rounded bg-[#f1ead8] px-2 py-1">潜能 {{ fmtRate(idleRates.potential) }}</span>
       </div>
       <div class="mt-2 flex flex-wrap gap-1.5">
-        <button v-if="save.idle.chapter" class="wl-btn wl-btn-ghost !px-2.5 !py-1 text-[11px]" @click="stopIdle">停止挂机</button>
+        <button
+          v-if="save.idle.chapter"
+          class="wl-btn wl-btn-ghost !px-2.5 !py-1 text-[11px]"
+          @click="stopIdle"
+        >
+          停止挂机
+        </button>
         <button
           v-for="cid in progress.unlocked.filter((x) => x !== 'rb')"
           :key="cid"
@@ -209,10 +238,16 @@ const signinIdx = computed(() => save.value.daily.signin % SIGNIN_CYCLE.length)
     <section class="wl-card">
       <h4 class="text-xs font-semibold text-stone-500">差事(定时)</h4>
       <div class="mt-1.5 space-y-1">
-        <div v-for="t in HARVEST_TASKS" :key="t.id" class="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5">
+        <div
+          v-for="t in HARVEST_TASKS"
+          :key="t.id"
+          class="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5"
+        >
           <div>
             <p class="text-xs text-stone-700">{{ t.name }}</p>
-            <p class="text-[10px] text-stone-400">经验 +{{ fmt(t.exp) }} · {{ t.cdHours > 0 ? `${t.cdHours} 小时一次` : '随手可做' }}</p>
+            <p class="text-[10px] text-stone-400">
+              经验 +{{ fmt(t.exp) }} · {{ t.cdHours > 0 ? `${t.cdHours} 小时一次` : '随手可做' }}
+            </p>
           </div>
           <button
             v-if="harvestUnlocked(simCtx(), t)"
@@ -231,16 +266,26 @@ const signinIdx = computed(() => save.value.daily.signin % SIGNIN_CYCLE.length)
     <section class="wl-card">
       <div class="flex items-center justify-between">
         <h4 class="text-xs font-semibold text-stone-500">每日历练</h4>
-        <button class="wl-btn wl-btn-gold !px-2.5 !py-1 text-[11px]" :disabled="!canSignin(simCtx())" @click="doSignin">
+        <button
+          class="wl-btn wl-btn-gold !px-2.5 !py-1 text-[11px]"
+          :disabled="!canSignin(simCtx())"
+          @click="doSignin"
+        >
           签到({{ SIGNIN_CYCLE[signinIdx].label }})
         </button>
       </div>
       <div class="mt-1.5 space-y-1">
-        <div v-for="t in DAILY_TASKS" :key="t.id" class="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5">
+        <div
+          v-for="t in DAILY_TASKS"
+          :key="t.id"
+          class="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5"
+        >
           <div class="min-w-0">
             <p class="text-xs text-stone-700">
               {{ t.name }}
-              <span class="text-[10px] text-stone-400">{{ dailyCount(simCtx(), t.id) }}/{{ t.limit }}</span>
+              <span class="text-[10px] text-stone-400"
+                >{{ dailyCount(simCtx(), t.id) }}/{{ t.limit }}</span
+              >
             </p>
             <p class="truncate text-[10px] text-stone-400">{{ t.desc }}</p>
           </div>
@@ -258,8 +303,14 @@ const signinIdx = computed(() => save.value.daily.signin % SIGNIN_CYCLE.length)
     </section>
 
     <!-- 游历弹窗 -->
-    <div v-if="showTravel" class="absolute inset-0 z-30 flex items-center justify-center bg-black/40 p-4" @click.self="showTravel = false">
-      <div class="wl-fade-in max-h-[80%] w-full max-w-sm overflow-y-auto rounded-2xl border border-[#d8cdb2] bg-[#f7f2e6] p-4">
+    <div
+      v-if="showTravel"
+      class="absolute inset-0 z-30 flex items-center justify-center bg-black/40 p-4"
+      @click.self="showTravel = false"
+    >
+      <div
+        class="wl-fade-in max-h-[80%] w-full max-w-sm overflow-y-auto rounded-2xl border border-[#d8cdb2] bg-[#f7f2e6] p-4"
+      >
         <h4 class="font-serif text-sm font-bold text-stone-800">游历 · 第一卷《风起青萍》</h4>
         <div class="mt-2 space-y-1.5">
           <button
@@ -269,9 +320,17 @@ const signinIdx = computed(() => save.value.daily.signin % SIGNIN_CYCLE.length)
             :disabled="!progress.unlocked.includes(c.id)"
             @click="travel(c.id)"
           >
-            <span class="text-xs font-semibold text-stone-700">第{{ '一二三四五六七八九十'[c.index - 1] }}章 · {{ c.title }}</span>
+            <span class="text-xs font-semibold text-stone-700"
+              >第{{ '一二三四五六七八九十'[c.index - 1] }}章 · {{ c.title }}</span
+            >
             <span class="text-[10px] text-stone-400">
-              {{ progress.unlocked.includes(c.id) ? (progress.chaptersDone.includes(c.id) ? '已通关' : `主线 ${progress.questByChapter?.[c.id] ?? 0}/${c.quest.length}`) : '未解锁' }}
+              {{
+                progress.unlocked.includes(c.id)
+                  ? progress.chaptersDone.includes(c.id)
+                    ? '已通关'
+                    : `主线 ${progress.questByChapter?.[c.id] ?? 0}/${c.quest.length}`
+                  : '未解锁'
+              }}
             </span>
           </button>
         </div>

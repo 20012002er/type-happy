@@ -64,8 +64,8 @@ useItemListSeo(
 
 <template>
   <div class="mx-auto max-w-5xl px-4 py-10">
-    <h1 class="text-2xl font-bold text-slate-900">全部课程</h1>
-    <p class="mt-1 text-sm text-slate-500">选择一个课程开始练习,关卡按顺序逐步解锁。</p>
+    <h1 class="text-2xl font-bold text-stone-900">全部课程</h1>
+    <p class="mt-1 text-sm text-stone-500">选择一个课程开始练习,关卡按顺序逐步解锁。</p>
 
     <div
       v-if="error"
@@ -78,7 +78,7 @@ useItemListSeo(
       <div
         v-for="i in loadingCards"
         :key="i"
-        class="h-44 animate-pulse rounded-xl border border-slate-200 bg-white"
+        class="h-44 animate-pulse rounded-xl border border-stone-200 bg-white"
       />
     </div>
 
@@ -87,10 +87,10 @@ useItemListSeo(
         v-for="card in cards"
         :key="card.course.id"
         :to="`/courses/${card.course.id}`"
-        class="group flex flex-col rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-indigo-200 hover:shadow-md"
+        class="group flex flex-col rounded-xl border border-stone-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-brand-200 hover:shadow-md"
       >
         <div
-          class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-50 text-indigo-600"
+          class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 text-brand-600"
         >
           <svg
             viewBox="0 0 24 24"
@@ -102,20 +102,20 @@ useItemListSeo(
             <path :d="courseIcons[card.course.id]" />
           </svg>
         </div>
-        <h2 class="mt-3 font-semibold text-slate-900 group-hover:text-indigo-600">
+        <h2 class="mt-3 font-semibold text-stone-900 group-hover:text-brand-600">
           {{ card.course.title }}
         </h2>
-        <p class="mt-1.5 flex-1 text-sm leading-relaxed text-slate-500">
+        <p class="mt-1.5 flex-1 text-sm leading-relaxed text-stone-500">
           {{ card.course.description }}
         </p>
         <div class="mt-4">
-          <div class="flex items-center justify-between text-xs text-slate-400">
+          <div class="flex items-center justify-between text-xs text-stone-400">
             <span>{{ card.course.lessonCount }} 关</span>
             <span v-if="card.lessons.length">
               已完成 {{ completedOf(card) }}/{{ card.lessons.length }}
             </span>
           </div>
-          <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-slate-100">
+          <div class="mt-1.5 h-1.5 overflow-hidden rounded-full bg-stone-100">
             <div
               class="h-full rounded-full bg-emerald-500 transition-all"
               :style="{ width: `${percentOf(card)}%` }"

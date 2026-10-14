@@ -193,7 +193,7 @@ const flashFinger = computed<FingerId | null>(() =>
       <div
         v-for="f in FINGERS"
         :key="f.id"
-        class="flex items-center gap-1.5 text-xs text-slate-500"
+        class="flex items-center gap-1.5 text-xs text-stone-500"
       >
         <span class="h-2.5 w-2.5 rounded-full" :style="{ backgroundColor: f.color }" />
         {{ f.name }}

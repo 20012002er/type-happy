@@ -80,7 +80,7 @@ const progress = computed(
       :show-fingers="true"
     />
 
-    <p v-if="!isPinyin" class="text-center text-xs text-slate-400">
+    <p v-if="!isPinyin" class="text-center text-xs text-stone-400">
       点击页面任意位置后直接开始输入,退格键可修正;最后一个字符输入正确后自动结算。
     </p>
   </div>

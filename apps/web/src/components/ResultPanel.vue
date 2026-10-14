@@ -27,7 +27,7 @@ function deltaText(current: number, prev: number): string {
 
 <template>
   <div
-    class="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm"
+    class="fixed inset-0 z-40 flex items-center justify-center bg-stone-900/50 p-4 backdrop-blur-sm"
     role="dialog"
     aria-modal="true"
   >
@@ -51,43 +51,43 @@ function deltaText(current: number, prev: number): string {
             <path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z" />
           </svg>
         </div>
-        <h2 class="text-xl font-bold text-slate-900">
+        <h2 class="text-xl font-bold text-stone-900">
           {{ isNewBest ? '新纪录!' : '练习完成' }}
         </h2>
       </div>
 
       <div class="mt-5 text-center">
-        <div class="text-6xl font-bold tabular-nums text-indigo-600">
+        <div class="text-6xl font-bold tabular-nums text-brand-600">
           {{ props.primary === 'cpm' ? result.cpm : result.wpm }}
         </div>
-        <div class="mt-1 text-sm text-slate-400">
+        <div class="mt-1 text-sm text-stone-400">
           {{ props.primary === 'cpm' ? '字/分钟' : 'WPM(词/分钟)' }}
         </div>
       </div>
 
       <div class="mt-5 grid grid-cols-3 gap-3 text-center">
-        <div class="rounded-lg bg-slate-50 p-3">
-          <div class="text-lg font-semibold tabular-nums text-slate-700">
+        <div class="rounded-lg bg-stone-50 p-3">
+          <div class="text-lg font-semibold tabular-nums text-stone-700">
             {{ props.primary === 'cpm' ? result.wpm : result.cpm }}
           </div>
-          <div class="text-xs text-slate-400">{{ props.primary === 'cpm' ? 'WPM' : '字/分' }}</div>
+          <div class="text-xs text-stone-400">{{ props.primary === 'cpm' ? 'WPM' : '字/分' }}</div>
         </div>
-        <div class="rounded-lg bg-slate-50 p-3">
-          <div class="text-lg font-semibold tabular-nums text-slate-700">
+        <div class="rounded-lg bg-stone-50 p-3">
+          <div class="text-lg font-semibold tabular-nums text-stone-700">
             {{ formatAccuracy(result.accuracy) }}
           </div>
-          <div class="text-xs text-slate-400">准确率</div>
+          <div class="text-xs text-stone-400">准确率</div>
         </div>
-        <div class="rounded-lg bg-slate-50 p-3">
-          <div class="text-lg font-semibold tabular-nums text-slate-700">
+        <div class="rounded-lg bg-stone-50 p-3">
+          <div class="text-lg font-semibold tabular-nums text-stone-700">
             {{ formatDuration(result.durationMs) }}
           </div>
-          <div class="text-xs text-slate-400">用时</div>
+          <div class="text-xs text-stone-400">用时</div>
         </div>
       </div>
 
-      <div v-if="prevBest" class="mt-4 rounded-lg border border-slate-100 bg-slate-50/60 p-3">
-        <div class="flex items-center justify-between text-xs text-slate-500">
+      <div v-if="prevBest" class="mt-4 rounded-lg border border-stone-100 bg-stone-50/60 p-3">
+        <div class="flex items-center justify-between text-xs text-stone-500">
           <span>历史最佳</span>
           <span class="tabular-nums">
             {{ props.primary === 'cpm' ? prevBest.cpm : prevBest.wpm }}
@@ -96,7 +96,7 @@ function deltaText(current: number, prev: number): string {
           </span>
         </div>
         <div class="mt-1.5 flex items-center justify-between text-xs">
-          <span class="text-slate-500">本次对比</span>
+          <span class="text-stone-500">本次对比</span>
           <span
             class="font-semibold tabular-nums"
             :class="
@@ -118,7 +118,7 @@ function deltaText(current: number, prev: number): string {
       <div class="mt-6 flex flex-col gap-2">
         <div class="flex gap-2">
           <button
-            class="flex-1 rounded-lg bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-indigo-500"
+            class="flex-1 rounded-lg bg-brand-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-brand-500"
             @click="emit('restart')"
           >
             再练一次
@@ -132,7 +132,7 @@ function deltaText(current: number, prev: number): string {
           </button>
         </div>
         <button
-          class="rounded-lg border border-slate-200 px-4 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-slate-50"
+          class="rounded-lg border border-stone-200 px-4 py-2.5 text-sm font-medium text-stone-600 transition hover:bg-stone-50"
           @click="emit('back')"
         >
           返回关卡列表

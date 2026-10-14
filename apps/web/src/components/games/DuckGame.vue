@@ -110,7 +110,7 @@ const howTo = [
 <template>
   <div
     ref="area"
-    class="relative h-[62vh] max-h-[640px] min-h-[430px] w-full select-none overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-b from-sky-300 via-sky-100 to-lime-50 shadow-sm"
+    class="relative h-[62vh] max-h-[640px] min-h-[430px] w-full select-none overflow-hidden rounded-2xl border border-stone-200 bg-gradient-to-b from-sky-300 via-sky-100 to-lime-50 shadow-sm"
     :class="shaking ? 'game-shake' : ''"
   >
     <!-- 太阳 + 云 -->

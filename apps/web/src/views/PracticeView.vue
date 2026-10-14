@@ -116,29 +116,29 @@ function goNext(): void {
 
 <template>
   <div class="mx-auto max-w-4xl px-4 py-8">
-    <div class="flex flex-wrap items-center gap-2 text-sm text-slate-500">
-      <RouterLink to="/courses" class="transition hover:text-indigo-600">全部课程</RouterLink>
-      <span class="text-slate-300">/</span>
-      <RouterLink :to="`/courses/${courseId}`" class="transition hover:text-indigo-600">
+    <div class="flex flex-wrap items-center gap-2 text-sm text-stone-500">
+      <RouterLink to="/courses" class="transition hover:text-brand-600">全部课程</RouterLink>
+      <span class="text-stone-300">/</span>
+      <RouterLink :to="`/courses/${courseId}`" class="transition hover:text-brand-600">
         {{ courseTitle || courseId }}
       </RouterLink>
-      <span class="text-slate-300">/</span>
-      <span class="text-slate-700">{{ lesson?.title ?? lessonId }}</span>
+      <span class="text-stone-300">/</span>
+      <span class="text-stone-700">{{ lesson?.title ?? lessonId }}</span>
     </div>
 
     <div v-if="loading" class="mt-6 space-y-4">
-      <div class="h-24 animate-pulse rounded-xl bg-slate-100" />
-      <div class="h-40 animate-pulse rounded-xl bg-slate-100" />
+      <div class="h-24 animate-pulse rounded-xl bg-stone-100" />
+      <div class="h-40 animate-pulse rounded-xl bg-stone-100" />
     </div>
 
     <div
       v-else-if="notFound"
-      class="mt-10 rounded-xl border border-slate-200 bg-white p-10 text-center"
+      class="mt-10 rounded-xl border border-stone-200 bg-white p-10 text-center"
     >
-      <p class="font-medium text-slate-700">关卡不存在</p>
+      <p class="font-medium text-stone-700">关卡不存在</p>
       <RouterLink
         :to="`/courses/${courseId}`"
-        class="mt-4 inline-block rounded-lg bg-indigo-600 px-4 py-2 text-sm text-white hover:bg-indigo-500"
+        class="mt-4 inline-block rounded-lg bg-brand-600 px-4 py-2 text-sm text-white hover:bg-brand-500"
       >
         返回关卡列表
       </RouterLink>
@@ -154,28 +154,28 @@ function goNext(): void {
     <template v-else-if="lesson">
       <div class="mt-4 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h1 class="text-xl font-bold text-slate-900">
+          <h1 class="text-xl font-bold text-stone-900">
             <span
               v-if="currentIndex >= 0"
-              class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-600"
+              class="mr-2 inline-flex h-6 w-6 items-center justify-center rounded-full bg-brand-100 text-xs font-semibold text-brand-600"
             >
               {{ lesson.index }}
             </span>
             {{ lesson.title }}
           </h1>
-          <p v-if="lesson.description" class="mt-1.5 text-sm text-slate-500">
+          <p v-if="lesson.description" class="mt-1.5 text-sm text-stone-500">
             {{ lesson.description }}
           </p>
         </div>
         <div
           v-if="progress.progressOf(lesson.id)"
-          class="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs text-slate-500 shadow-sm"
+          class="rounded-lg border border-stone-200 bg-white px-3 py-1.5 text-xs text-stone-500 shadow-sm"
         >
           历史最佳
-          <span class="ml-1 font-semibold tabular-nums text-indigo-600">
+          <span class="ml-1 font-semibold tabular-nums text-brand-600">
             {{ progress.bestOf(lesson.id)?.wpm }} WPM
           </span>
-          <span class="mx-1 text-slate-300">|</span>
+          <span class="mx-1 text-stone-300">|</span>
           练习
           <span class="ml-1 font-semibold tabular-nums">{{
             progress.progressOf(lesson.id)?.attempts

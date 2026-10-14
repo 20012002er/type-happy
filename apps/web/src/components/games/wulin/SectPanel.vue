@@ -75,7 +75,9 @@ function buy(id: string): void {
           <h4 class="font-serif text-sm font-bold text-stone-800">
             {{ s.name }}
             <span class="ml-1 rounded bg-stone-200/80 px-1 py-0.5 text-[9px] text-stone-500">
-              {{ s.kind === 'righteous' ? '名门正派' : s.kind === 'neutral' ? '中立门派' : '隐藏门派' }}
+              {{
+                s.kind === 'righteous' ? '名门正派' : s.kind === 'neutral' ? '中立门派' : '隐藏门派'
+              }}
             </span>
           </h4>
           <span class="text-[10px] text-stone-400">{{ location(s) }}</span>
@@ -97,27 +99,43 @@ function buy(id: string): void {
       <section class="wl-card">
         <h4 class="font-serif text-sm font-bold text-stone-800">
           {{ mySect.name }}
-          <span class="ml-1 text-[10px] font-normal text-stone-400">{{ mySect.master ? npcById.get(mySect.master)?.name : '' }} 门下</span>
+          <span class="ml-1 text-[10px] font-normal text-stone-400"
+            >{{ mySect.master ? npcById.get(mySect.master)?.name : '' }} 门下</span
+          >
         </h4>
         <p class="mt-1 text-[11px] leading-relaxed text-stone-500">{{ mySect.desc }}</p>
         <div class="mt-2 flex gap-2 text-[11px] text-stone-600">
           <span class="rounded bg-[#f1ead8] px-2 py-1">贡献 {{ fmt(char.contribution) }}</span>
           <span class="rounded bg-[#f1ead8] px-2 py-1">威望 {{ fmt(char.prestige) }}</span>
-          <button class="wl-btn wl-btn-ghost !px-2 !py-1 text-[11px]" @click="kowtow">磕头(+5 潜能)</button>
+          <button class="wl-btn wl-btn-ghost !px-2 !py-1 text-[11px]" @click="kowtow">
+            磕头(+5 潜能)
+          </button>
         </div>
       </section>
 
       <section class="wl-card">
         <h4 class="text-xs font-semibold text-stone-500">师门任务</h4>
         <div class="mt-1.5 space-y-1">
-          <div v-for="(t, i) in mySect.tasks" :key="t.name" class="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5">
+          <div
+            v-for="(t, i) in mySect.tasks"
+            :key="t.name"
+            class="flex items-center justify-between rounded-lg bg-white/70 px-2.5 py-1.5"
+          >
             <div class="min-w-0">
-              <p class="text-xs text-stone-700">{{ t.name }} <span class="text-[10px] text-stone-400">{{ t.level }} 级</span></p>
+              <p class="text-xs text-stone-700">
+                {{ t.name }} <span class="text-[10px] text-stone-400">{{ t.level }} 级</span>
+              </p>
               <p class="truncate text-[10px] text-stone-400">
-                {{ t.desc }} · 贡献+{{ t.reward.contribution }} 威望+{{ t.reward.prestige }} 经验+{{ fmt(t.reward.exp) }}
+                {{ t.desc }} · 贡献+{{ t.reward.contribution }} 威望+{{ t.reward.prestige }} 经验+{{
+                  fmt(t.reward.exp)
+                }}
               </p>
             </div>
-            <button class="wl-btn shrink-0 !px-2 !py-1 text-[11px]" :disabled="level < t.level || taskCd(i) > 0" @click="doTask(i)">
+            <button
+              class="wl-btn shrink-0 !px-2 !py-1 text-[11px]"
+              :disabled="level < t.level || taskCd(i) > 0"
+              @click="doTask(i)"
+            >
               {{ level < t.level ? `${t.level}级` : taskCd(i) > 0 ? fmtDur(taskCd(i)) : '领任务' }}
             </button>
           </div>
@@ -134,7 +152,9 @@ function buy(id: string): void {
             :disabled="char.contribution < e.cost"
             @click="buy(e.id)"
           >
-            <p class="text-[11px] font-semibold text-stone-700">{{ itemById.get(e.id)?.name ?? e.id }}</p>
+            <p class="text-[11px] font-semibold text-stone-700">
+              {{ itemById.get(e.id)?.name ?? e.id }}
+            </p>
             <p class="text-[10px] text-amber-700">贡献 {{ e.cost }}</p>
           </button>
         </div>

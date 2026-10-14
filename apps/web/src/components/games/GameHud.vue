@@ -25,7 +25,7 @@ const emit = defineEmits<{ pause: []; restart: [] }>()
       <div class="pointer-events-auto flex items-center gap-1.5">
         <button
           type="button"
-          class="rounded-lg border border-white/40 bg-white/70 px-2.5 py-1 text-xs font-medium text-slate-700 shadow-sm backdrop-blur transition hover:bg-white disabled:opacity-40"
+          class="rounded-lg border border-white/40 bg-white/70 px-2.5 py-1 text-xs font-medium text-stone-700 shadow-sm backdrop-blur transition hover:bg-white disabled:opacity-40"
           :disabled="status !== 'running' && status !== 'paused'"
           @click="emit('pause')"
         >
@@ -33,7 +33,7 @@ const emit = defineEmits<{ pause: []; restart: [] }>()
         </button>
         <button
           type="button"
-          class="rounded-lg border border-white/40 bg-white/70 px-2.5 py-1 text-xs font-medium text-slate-700 shadow-sm backdrop-blur transition hover:bg-white"
+          class="rounded-lg border border-white/40 bg-white/70 px-2.5 py-1 text-xs font-medium text-stone-700 shadow-sm backdrop-blur transition hover:bg-white"
           @click="emit('restart')"
         >
           重开

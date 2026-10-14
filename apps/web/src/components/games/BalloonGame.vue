@@ -86,7 +86,7 @@ const howTo = [
 <template>
   <div
     ref="area"
-    class="relative h-[62vh] max-h-[640px] min-h-[430px] w-full select-none overflow-hidden rounded-2xl border border-slate-200 bg-gradient-to-b from-sky-400 via-sky-200 to-indigo-50 shadow-sm"
+    class="relative h-[62vh] max-h-[640px] min-h-[430px] w-full select-none overflow-hidden rounded-2xl border border-stone-200 bg-gradient-to-b from-sky-400 via-sky-200 to-brand-50 shadow-sm"
     :class="shaking ? 'game-shake' : ''"
   >
     <!-- 装饰云朵 -->

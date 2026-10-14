@@ -12,7 +12,9 @@ const name = ref('')
 const gender = ref<Gender>('male')
 const originId = ref('orphan')
 
-const roll = reactive<{ attrs: Attrs; appearance: number; fortune: number }>(rollOrigin(originId.value))
+const roll = reactive<{ attrs: Attrs; appearance: number; fortune: number }>(
+  rollOrigin(originId.value),
+)
 
 function reroll(): void {
   const r = rollOrigin(originId.value)
@@ -44,7 +46,14 @@ function start(): void {
     props.ui.toast('名号最长 8 个字')
     return
   }
-  props.ui.sim.createCharacter(n, gender.value, originId.value, roll.attrs, roll.appearance, roll.fortune)
+  props.ui.sim.createCharacter(
+    n,
+    gender.value,
+    originId.value,
+    roll.attrs,
+    roll.appearance,
+    roll.fortune,
+  )
   props.ui.toast(`${n},自此踏入江湖。`, true)
 }
 </script>
@@ -53,7 +62,9 @@ function start(): void {
   <div class="flex h-full flex-col overflow-y-auto bg-[#f7f2e6] px-5 py-6">
     <div class="text-center">
       <h2 class="font-serif text-3xl font-bold tracking-widest text-stone-800">放置武林</h2>
-      <p class="mt-1 text-xs tracking-wider text-stone-500">机制致敬《放置江湖》· 文字水墨 · 纯本地存档</p>
+      <p class="mt-1 text-xs tracking-wider text-stone-500">
+        机制致敬《放置江湖》· 文字水墨 · 纯本地存档
+      </p>
     </div>
 
     <div class="mx-auto mt-5 w-full max-w-md space-y-4">
@@ -76,7 +87,9 @@ function start(): void {
             </button>
             <button
               class="px-3 text-sm"
-              :class="gender === 'female' ? 'bg-stone-800 text-amber-50' : 'bg-white text-stone-600'"
+              :class="
+                gender === 'female' ? 'bg-stone-800 text-amber-50' : 'bg-white text-stone-600'
+              "
               @click="gender = 'female'"
             >
               女
@@ -92,7 +105,11 @@ function start(): void {
             v-for="o in ORIGINS"
             :key="o.id"
             class="rounded-lg border p-2.5 text-left transition"
-            :class="originId === o.id ? 'border-amber-600 bg-amber-50' : 'border-[#d8cdb2] bg-white hover:border-amber-400'"
+            :class="
+              originId === o.id
+                ? 'border-amber-600 bg-amber-50'
+                : 'border-[#d8cdb2] bg-white hover:border-amber-400'
+            "
             @click="pickOrigin(o.id)"
           >
             <p class="text-sm font-semibold text-stone-800">{{ o.name }}</p>
@@ -104,14 +121,22 @@ function start(): void {
       <section class="rounded-xl border border-[#d8cdb2] bg-white/60 p-4">
         <div class="flex items-center justify-between">
           <h3 class="text-sm font-semibold text-stone-700">
-            先天属性 <span class="text-xs text-stone-400">(四维合计 {{ attrTotal }}/{{ ATTR_TOTAL }})</span>
+            先天属性
+            <span class="text-xs text-stone-400">(四维合计 {{ attrTotal }}/{{ ATTR_TOTAL }})</span>
           </h3>
-          <button class="rounded-lg bg-stone-700 px-3 py-1.5 text-xs text-amber-50 hover:bg-stone-600" @click="reroll">
+          <button
+            class="rounded-lg bg-stone-700 px-3 py-1.5 text-xs text-amber-50 hover:bg-stone-600"
+            @click="reroll"
+          >
             重新投掷
           </button>
         </div>
         <div class="mt-2 grid grid-cols-2 gap-2">
-          <div v-for="[k, label, hint] in attrNames" :key="k" class="rounded-lg bg-[#f1ead8] px-3 py-2">
+          <div
+            v-for="[k, label, hint] in attrNames"
+            :key="k"
+            class="rounded-lg bg-[#f1ead8] px-3 py-2"
+          >
             <p class="flex items-baseline justify-between text-xs text-stone-500">
               {{ label }}
               <span class="font-serif text-lg font-bold text-stone-800">{{ roll.attrs[k] }}</span>
@@ -127,7 +152,9 @@ function start(): void {
             福缘 <b class="text-amber-700">{{ roll.fortune }}</b>
             <i class="not-italic text-[10px] text-stone-400">(挂机收益 +{{ roll.fortune * 2 }}%)</i>
           </span>
-          <span class="flex items-center text-[10px] text-stone-400">合计 {{ roll.appearance + roll.fortune }}/{{ EXTRA_TOTAL }}</span>
+          <span class="flex items-center text-[10px] text-stone-400"
+            >合计 {{ roll.appearance + roll.fortune }}/{{ EXTRA_TOTAL }}</span
+          >
         </div>
         <p class="mt-2 text-[11px] leading-relaxed text-stone-400">
           提示:悟性不影响战斗,只加快练功;福缘提升挂机与任务收益。属性可在多次投掷中挑选,传承后还有属性点补足。
