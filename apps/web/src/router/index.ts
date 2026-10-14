@@ -61,7 +61,7 @@ const router = createRouter({
       meta: {
         title: '打字游戏',
         description:
-          '免费打字游戏合集:打字消气球、打字打鸭子、打字街霸、放置刷装备、武侠放置、涂鸦跳跃、放置武林,边玩边练打字,最高分与进度保存在本地浏览器,无需注册。',
+          '免费打字游戏合集:打字消气球、打字打鸭子、打字街霸、放置刷装备、涂鸦跳跃、放置武林,边玩边练打字,最高分与进度保存在本地浏览器,无需注册。',
       },
     },
     {
@@ -105,17 +105,6 @@ const router = createRouter({
         title: '放置刷装备',
         description:
           '放置刷装备:全随机的放置类挂机小游戏,打怪掉落随机词条装备、强化升级,看看你能刷出什么样的极品!本地存档,免费无需注册。',
-        ld: 'VideoGame',
-      },
-    },
-    {
-      path: '/games/wuxia',
-      name: 'game-wuxia',
-      component: () => import('../views/WuxiaGameView.vue'),
-      meta: {
-        title: '武侠放置',
-        description:
-          '武侠放置:古典武侠题材的文字放置挂机游戏,加入少林、武当等五大门派,修炼武功绝学、锻造装备、护镖闯荡江湖,追查沈百万之死的真相。进度本地保存,免费无需注册。',
         ld: 'VideoGame',
       },
     },

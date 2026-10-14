@@ -107,7 +107,7 @@ async function snapshot(context, route) {
     // 运行时注入的 modulepreload 链接会带上预渲染机的绝对地址,归一为相对路径
     const html = `<!doctype html>\n${(await page.content()).replaceAll(PREVIEW_BASE, '')}`
     const rel = route.path === '/' ? 'index.html' : path.join(route.path.slice(1), 'index.html')
-    // 快照不得覆盖 public/ 里的同名静态产物:iframe 游戏(如 /games/wuxia、/games/idle)的
+    // 快照不得覆盖 public/ 里的同名静态产物:iframe 游戏(如 /games/idle)的
     // 入口曾因此被快照顶掉,导致 iframe 里显示主站页面。游戏入口已改名 game.html 避让;
     // 若将来再引入同名冲突,这里直接报错终止,而不是静默覆盖。
     const publicTwin = path.join(webRoot, 'public', rel)

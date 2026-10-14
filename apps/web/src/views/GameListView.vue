@@ -51,14 +51,6 @@ const list: GameMeta[] = [
     badge: '⚔️',
   },
   {
-    id: 'wuxia',
-    title: '武侠放置',
-    desc: '古典武侠文字放置游戏:加入五大门派、修炼武功绝学、锻造装备、护镖闯荡江湖,追查二十年前沈百万之死的真相,挂机也在成长!(开源游戏 WuXiaIdle)',
-    to: '/games/wuxia',
-    gradient: 'from-slate-400 to-slate-600',
-    badge: '🗡️',
-  },
-  {
     id: 'doodle',
     title: '涂鸦跳跃',
     desc: '逆向重制版 Doodle Jump:倾斜/键盘移动、点击射击,踩平台躲怪物吃道具一路向上。纯本地运行,成绩与进度只存在浏览器里。',
