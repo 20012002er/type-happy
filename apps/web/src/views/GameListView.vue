@@ -13,6 +13,8 @@ interface GameMeta {
   to: string
   gradient: string
   badge: string
+  /** 成绩展示定制(放置类无连击概念) */
+  stats?: { scoreLabel?: string; playsUnit?: string; hideCombo?: boolean }
 }
 
 const list: GameMeta[] = [
@@ -64,6 +66,15 @@ const list: GameMeta[] = [
     gradient: 'from-lime-300 to-green-500',
     badge: '🐸',
   },
+  {
+    id: 'wulin',
+    title: '放置武林',
+    desc: '水墨武侠放置 RPG(玩法致敬《放置江湖》):闯十章节地图、拜七大门派、修五十余式武学,挂机历练、闭关练功、三世传承,离线也在成长!(自研 Vue + PixiJS)',
+    to: '/games/wulin',
+    gradient: 'from-amber-400 to-rose-500',
+    badge: '🏯',
+    stats: { scoreLabel: '最高评价', playsUnit: '次', hideCombo: true },
+  },
 ]
 
 const records = computed(() => list.map((g) => ({ ...g, best: games.bestOf(g.id) })))
@@ -99,7 +110,7 @@ useItemListSeo(
             v-if="g.best"
             class="absolute right-3 top-3 rounded-full bg-black/25 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur-sm"
           >
-            最高分 {{ g.best.bestScore }}
+            {{ g.stats?.scoreLabel ?? '最高分' }} {{ g.best.bestScore }}
           </span>
         </div>
         <div class="flex flex-1 flex-col p-5">
@@ -107,7 +118,11 @@ useItemListSeo(
           <p class="mt-1.5 flex-1 text-sm leading-relaxed text-slate-500">{{ g.desc }}</p>
           <div class="mt-4 flex items-center justify-between">
             <span class="text-xs text-slate-400">
-              {{ g.best ? `已玩 ${g.best.plays} 局 · 最高连击 ${g.best.bestCombo}` : '还没玩过' }}
+              {{
+                g.best
+                  ? `已玩 ${g.best.plays} ${g.stats?.playsUnit ?? '局'}${g.stats?.hideCombo ? '' : ` · 最高连击 ${g.best.bestCombo}`}`
+                  : '还没玩过'
+              }}
             </span>
             <span
               class="inline-flex items-center gap-1 rounded-lg bg-indigo-600 px-3 py-1.5 text-xs font-medium text-white transition group-hover:bg-indigo-500"

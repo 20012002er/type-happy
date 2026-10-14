@@ -1,6 +1,6 @@
 # 打字乐园(type-happy)
 
-一个纯打字练习网站:三大课程(**标准指法练习 / 英文练习 / 中文练习**),SVG 虚拟键盘指法引导,中文 IME 拼音逐音节判分;另含**游戏模块**(消气球 / 打鸭子 / 街霸 / 放置刷装备 / 武侠放置 / 涂鸦跳跃)。成绩与游戏进度均保存在浏览器本地。无账号、无排行榜、无数据库。
+一个纯打字练习网站:三大课程(**标准指法练习 / 英文练习 / 中文练习**),SVG 虚拟键盘指法引导,中文 IME 拼音逐音节判分;另含**游戏模块**(消气球 / 打鸭子 / 街霸 / 放置刷装备 / 武侠放置 / 涂鸦跳跃 / 放置武林)。成绩与游戏进度均保存在浏览器本地。无账号、无排行榜、无数据库。
 
 ## 快速开始
 
@@ -24,6 +24,7 @@ pnpm dev          # 同时启动后端(:3001)与前端(:5173),浏览器访问 ht
 | `pnpm --filter @type-happy/web prerender` | 预渲染全部路由为静态 HTML(SEO,见「SEO」章节)          |
 | `node apps/web/scripts/e2e-doodle.mjs`    | 涂鸦跳跃 Playwright e2e(需 dev server,见「涂鸦跳跃」) |
 | `node apps/web/scripts/e2e-wuxia.mjs`     | 武侠放置 Playwright e2e(需 dev server,见「武侠放置」) |
+| `node apps/web/scripts/e2e-wulin.mjs`     | 放置武林 Playwright e2e(需 dev server,见「放置武林」) |
 
 ## Docker 部署
 
@@ -98,12 +99,13 @@ type-happy/
 │   └── web/                  # @type-happy/web:Vue 3 SPA
 │       ├── src/composables/      # useTypingEngine / useChineseEngine / useKeyGame / useFightGame / useStats / useSeo
 │       ├── src/components/       # 虚拟键盘、打字区、拼音打字区、统计、结算
-│       │   └── games/            # 小游戏组件(BalloonGame / DuckGame / FighterGame / DoodleJumpGame 及 HUD、Overlay)
+│       │   └── games/            # 小游戏组件(BalloonGame / DuckGame / FighterGame / DoodleJumpGame / WulinGame 及 HUD、Overlay;wulin/ 为放置武林面板组件)
 │       ├── src/games/doodle-jump/ # 涂鸦跳跃引擎(Pixi.js:game / save / trackers / audio)
+│       ├── src/games/wulin/       # 放置武林引擎(sim 模拟层 / data 内容数据 / render Pixi 水墨渲染 / save / audio)
 │       ├── src/stores/           # progress.ts(练习进度)+ games.ts(游戏最高分),均为 Pinia + localStorage
 │       ├── src/utils/            # fingerMap / keyboardLayout / format
 │       ├── src/views/            # Home / CourseList / CourseDetail / Practice / GameList + 各游戏页
-│       ├── scripts/              # smoke-engines.ts(引擎冒烟)+ e2e-doodle.mjs / e2e-wuxia.mjs(Playwright e2e)+ gen-seo/prerender/save-shell(SEO 构建管线)+ gen-icons.mjs(图标生成)
+│       ├── scripts/              # smoke-engines.ts(引擎冒烟)+ e2e-doodle.mjs / e2e-wuxia.mjs / e2e-wulin.mjs(Playwright e2e)+ gen-seo/prerender/save-shell(SEO 构建管线)+ gen-icons.mjs(图标生成)
 │       ├── games/vue-idle-game/  # 放置刷装备源码(vendored,Vue 2 独立构建,见「游戏模块」)
 │       ├── games/wuxia-idle/     # 武侠放置源码(vendored,Vue 3 + Vite 独立构建,见「游戏模块」)
 │       ├── public/               # 站点图标(favicon.svg/.ico、apple-touch-icon、icon-192/512、manifest.webmanifest)与 og-cover
@@ -117,7 +119,7 @@ type-happy/
 └── README.md
 ```
 
-技术栈:pnpm monorepo;前端 Vue 3 + Vite + TypeScript + Pinia + Vue Router + Tailwind CSS v4(vite 插件方式,无 tailwind.config)+ Pixi.js(涂鸦跳跃渲染);后端 Node + TypeScript + Fastify + zod;课程内容为静态 JSON。
+技术栈:pnpm monorepo;前端 Vue 3 + Vite + TypeScript + Pinia + Vue Router + Tailwind CSS v4(vite 插件方式,无 tailwind.config)+ Pixi.js(涂鸦跳跃与放置武林渲染);后端 Node + TypeScript + Fastify + zod;课程内容为静态 JSON。
 
 ## API
 
@@ -159,7 +161,7 @@ courseId:`fingering` / `english` / `chinese`。非法 id 返回 404。
 
 ## 游戏模块
 
-入口 `/games`,六个小游戏,成绩均只保存在本机浏览器:
+入口 `/games`,七个小游戏,成绩均只保存在本机浏览器:
 
 | 游戏          | 路由             | 实现                                                                                        |
 | ------------- | ---------------- | ------------------------------------------------------------------------------------------- |
@@ -169,8 +171,9 @@ courseId:`fingering` / `english` / `chinese`。非法 id 返回 404。
 | ⚔️ 放置刷装备 | `/games/idle`    | vendored 开源游戏 [vue-idle-game](https://github.com/Couy69/vue-idle-game)(MIT),iframe 嵌入 |
 | 🗡️ 武侠放置   | `/games/wuxia`   | vendored 开源游戏 [WuXiaIdle](https://github.com/wuuJiawei/WuXiaIdle)(仅供学习/个人使用),iframe 嵌入 |
 | 🐸 涂鸦跳跃   | `/games/doodle`  | 自研 Pixi.js 引擎(`src/games/doodle-jump/`),Doodle Jump 逆向重制                            |
+| 🏯 放置武林   | `/games/wulin`   | 自研 Vue 3 + Pixi.js(`src/games/wulin/`),武侠放置 RPG,玩法致敬《放置江湖》、内容原创        |
 
-打字类游戏的最高分/连击/局数记录在 localStorage key `type-happy:games:v1`(`stores/games.ts`);涂鸦跳跃的 bestScore 也汇总写入该 store。
+打字类游戏的最高分/连击/局数记录在 localStorage key `type-happy:games:v1`(`stores/games.ts`);涂鸦跳跃的 bestScore 与放置武林的综合评价也汇总写入该 store。
 
 ### 涂鸦跳跃(doodle-jump)
 
@@ -184,6 +187,26 @@ courseId:`fingering` / `english` / `chinese`。非法 id 返回 404。
 # e2e 依赖 window.__doodle 调试钩子,仅 DEV 构建暴露,须跑 dev server(而非 preview)
 pnpm --filter @type-happy/web exec vite --port 5199 &
 E2E_BASE=http://localhost:5199 node apps/web/scripts/e2e-doodle.mjs
+```
+
+### 放置武林(wulin)
+
+水墨风武侠放置 RPG,**玩法机制致敬《放置江湖》、全部内容(门派/章节/NPC/武学/文案)原创**;自研 Vue 3 + Pixi.js 8,纯 SPA 内嵌(非 iframe),无任何外部请求:
+
+- 引擎位于 `apps/web/src/games/wulin/`,三层分离:
+  - `sim/`:纯 TS 模拟层(`character` 属性/面板公式、`combat` 行动条战斗、`training` 请教/练功/闭关/研究/打坐、`idle` 挂机与离线结算、`quests` 收菜/每日/签到/师门任务、`inheritance` 传承、`index` WulinSim 编排器),时钟可注入(`timeOffset`),全部懒结算(时间戳差分),离线可精确快进;
+  - `data/`:类型化内容数据(4 出身、7 门派、55 式武学、~60 NPC、10 章 + 传承副本地图、~70 物品);
+  - `render/`:Pixi 水墨渲染(`ink.ts` 程序化剪影小人/山水背景/墨迹粒子,`battleScene.ts` 战斗场景,`mapScene.ts` 房间地图),**零外部美术素材**,音效由 `audio.ts` WebAudio 程序合成;
+- UI 为 Vue + Tailwind DOM(`components/games/WulinGame.vue` 壳 + `components/games/wulin/` 五个标签面板与 NPC/战斗子面板),Pixi 画布只负责战斗与地图;
+- 核心机制(借鉴原作):行动条战斗(黄条 3.0/招式前后摇/PVE 连击 100%-60%-40% 递减/部位命中/加力/主动技能残页解锁)、先天+后天四维属性、武学等级 ≤ 人物等级且 ≤ 基本武学+1、挂机收益×综合评价×福缘×传承、精神恢复=(离线分钟/3)²、三世传承(救弟子→培养四维→属性点 30/40/50);
+- 双档节奏:速成(全局 ×5,默认)/ 标准,设置页可切换,只影响后续收益与冷却;
+- 存档在 localStorage key `type-happy:wulin:v1`(版本化,损坏自动回退默认档,支持导出/导入 base64 文本);综合评价通过 `stores/games.ts` 汇总到游戏列表卡;
+- Playwright e2e 覆盖建角、主线推进、行走、战斗胜负、拾取、章节完成、挂机快进、收菜/签到、五面板渲染、打坐、存档持久化与完整传承流程:
+
+```bash
+# e2e 依赖 window.__wulin 调试钩子(sim/fastForward/createTest 等),仅 DEV 构建暴露
+pnpm --filter @type-happy/web exec vite --port 5199 &
+E2E_BASE=http://localhost:5199 node apps/web/scripts/e2e-wulin.mjs
 ```
 
 ### 放置刷装备(vue-idle-game)

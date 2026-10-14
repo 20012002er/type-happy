@@ -912,3 +912,75 @@
 .petal-fall {
   animation: petal-fall 7.5s linear infinite;
 }
+
+/* ===== 放置武林(wulin)通用样式 ===== */
+.wl-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+  border-radius: 0.5rem;
+  background: #292524;
+  padding: 0.375rem 0.875rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: #fffbeb;
+  transition:
+    background 0.15s ease,
+    transform 0.1s ease;
+  cursor: pointer;
+  user-select: none;
+}
+.wl-btn:hover {
+  background: #44403c;
+}
+.wl-btn:active {
+  transform: scale(0.96);
+}
+.wl-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.wl-btn-danger {
+  background: #7f1d1d;
+}
+.wl-btn-danger:hover {
+  background: #991b1b;
+}
+.wl-btn-gold {
+  background: #92610e;
+}
+.wl-btn-gold:hover {
+  background: #a8730f;
+}
+.wl-btn-ghost {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid #d8cdb2;
+  color: #44403c;
+}
+.wl-btn-ghost:hover {
+  background: #fdf6e3;
+}
+.wl-card {
+  border-radius: 0.75rem;
+  border: 1px solid #e4dac0;
+  background: rgba(255, 255, 255, 0.66);
+  padding: 0.75rem;
+}
+.wl-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #c9bda0 transparent;
+}
+@keyframes wl-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.wl-fade-in {
+  animation: wl-fade-in 0.22s ease-out;
+}

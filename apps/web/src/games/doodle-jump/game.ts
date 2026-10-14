@@ -287,10 +287,13 @@ export class DoodleGame {
     this.platforms.push(p)
 
     if (h > 600 && Math.random() < Math.min(0.2, (h - 600) / 9000)) this.spawnMonster(y - rand(40, 120))
+    // 每个分支是独立的 Math.random() 采样,条件文本相同但语义不同
+    /* eslint-disable no-dupe-else-if */
     if (Math.random() < 0.012) this.spawnPowerup('jetpack', rand(20, WORLD_W - 60), y - rand(20, 80))
     else if (Math.random() < 0.012) this.spawnPowerup('propeller', rand(20, WORLD_W - 60), y - rand(20, 80))
     else if (Math.random() < 0.01) this.spawnPowerup('springshoes', rand(20, WORLD_W - 60), y - rand(20, 80))
     else if (Math.random() < 0.006) this.spawnPowerup('shield', rand(20, WORLD_W - 60), y - rand(20, 80))
+    /* eslint-enable no-dupe-else-if */
     if (h > 2500 && Math.random() < 0.006) this.spawnHazard('ufo', y - rand(60, 140))
     if (h > 9000 && Math.random() < 0.004) this.spawnHazard('blackhole', y - rand(60, 140))
   }

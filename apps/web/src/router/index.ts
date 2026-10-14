@@ -61,7 +61,7 @@ const router = createRouter({
       meta: {
         title: '打字游戏',
         description:
-          '免费打字游戏合集:打字消气球、打字打鸭子、打字街霸、放置刷装备、武侠放置、涂鸦跳跃,边玩边练打字,最高分与进度保存在本地浏览器,无需注册。',
+          '免费打字游戏合集:打字消气球、打字打鸭子、打字街霸、放置刷装备、武侠放置、涂鸦跳跃、放置武林,边玩边练打字,最高分与进度保存在本地浏览器,无需注册。',
       },
     },
     {
@@ -127,6 +127,17 @@ const router = createRouter({
         title: '涂鸦跳跃',
         description:
           '涂鸦跳跃:重制自经典 Doodle Jump 的免费网页游戏,踩平台、躲怪物、吃弹簧火箭道具一路向上,支持键盘与触屏操作,含主题解锁、成就与任务,进度本地保存。',
+        ld: 'VideoGame',
+      },
+    },
+    {
+      path: '/games/wulin',
+      name: 'game-wulin',
+      component: () => import('../views/WulinGameView.vue'),
+      meta: {
+        title: '放置武林',
+        description:
+          '放置武林:水墨风武侠放置 RPG(玩法致敬《放置江湖》),闯十章节地图、拜七大门派、修炼五十余式武学,挂机历练、每日任务、闭关练功、三世传承,进度本地保存,免费无需注册。',
         ld: 'VideoGame',
       },
     },

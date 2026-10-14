@@ -4,6 +4,10 @@
  */
 import { useTypingEngine } from '../src/composables/useTypingEngine'
 import { useChineseEngine } from '../src/composables/useChineseEngine'
+import { WulinSim } from '../src/games/wulin/sim'
+import { defaultSave, exportSave, importSave } from '../src/games/wulin/save'
+import { charLevel, panel, rollOrigin, skillLevelCap } from '../src/games/wulin/sim/character'
+import { expForLevel } from '../src/games/wulin/constants'
 
 let failures = 0
 let checks = 0
@@ -203,6 +207,98 @@ const source = [
   assert('cn: 结算成绩', engine.result.value !== null && engine.result.value.accuracy === 0)
   t.handleKeydown(keyEvent('Backspace'))
   assert('cn: finished 后退格无效', engine.pos.value === 1)
+}
+
+/* ---------------- wulin sim(放置武林) ---------------- */
+
+{
+  const save = defaultSave()
+  const sim = new WulinSim(save)
+  const r = rollOrigin('martial')
+  sim.createCharacter('冒烟侠', 'male', 'martial', r.attrs, r.appearance, r.fortune)
+  const char = save.char!
+  assert(
+    'wulin: 四维合计 80',
+    char.innate.arm + char.innate.agi + char.innate.bone + char.innate.ins === 80,
+    char.innate,
+  )
+  assert('wulin: 武学世家自带 20 级基本功', char.skills['bs-fist']?.level === 20)
+  assert('wulin: 默认装备四基本功', char.equipped.output === 'bs-fist' && char.equipped.internal === 'bs-internal')
+
+  const p = panel(char)
+  assert('wulin: 面板数值为正', p.atk > 0 && p.hpMax > 0 && p.mpMax > 0 && p.speed > 0.2 && p.hit > 0, p)
+
+  // 战斗:新手 vs lv3 狗腿
+  const fightErr = sim.startFight('wang-lackey', 'duel')
+  assert('wulin: 可发起战斗', fightErr === null, fightErr)
+  for (let i = 0; i < 6000 && sim.combat && !sim.combat.state.over; i++) sim.tickCombat(0.05)
+  assert('wulin: 击败 lv3 恶霸', sim.combat?.state.winner === 'player', sim.combat?.state.winner)
+  sim.finishCombat()
+  assert('wulin: 战斗获得经验', char.exp > 0, char.exp)
+  assert('wulin: 战斗后无残留', sim.combat === null)
+
+  // 武学等级上限规则:非基本 ≤ min(人物等级, 基本+1)
+  char.skills['bs-sword'] = { level: 50, exp: 0, activeUnlocked: false }
+  char.skills['pub-sword'] = { level: 1, exp: 0, activeUnlocked: false }
+  const cap = skillLevelCap(char, 'pub-sword')
+  assert('wulin: 武学受等级/基本功双重上限', cap === Math.min(charLevel(char), 51), { cap, lv: charLevel(char) })
+
+  // 挂机 1 小时
+  sim.startIdle('c1')
+  const expBefore = char.exp
+  sim.fastForward(3600e3)
+  assert('wulin: 挂机一小时有经验', char.exp > expBefore, [expBefore, char.exp])
+
+  // 离线结算:精神恢复 + 江湖快报
+  const save2 = structuredClone(save)
+  save2.char!.spirit = 0
+  save2.lastSeen -= 36 * 60e3
+  const sim2 = new WulinSim(save2)
+  assert('wulin: 离线快报生成', sim2.offlineReport !== null && sim2.offlineReport.minutes >= 35)
+  assert('wulin: 离线精神恢复至上限', save2.char!.spirit === 120, save2.char!.spirit)
+
+  // 传承全流程
+  char.exp = expForLevel(320)
+  for (const k of ['bs-fist', 'bs-parry', 'bs-light', 'bs-internal']) {
+    char.skills[k] = { level: 400, exp: 0, activeUnlocked: false }
+  }
+  assert('wulin: 320 级可开启传承', sim.rebirthAvailable())
+  assert('wulin: 开启传承任务', sim.startRebirthQuest() === null)
+  sim.travelTo('rb')
+  assert('wulin: 抵达荒谷', save.progress.chapter === 'rb')
+  const rbErr = sim.startFight('rb-judge', 'duel')
+  assert('wulin: 可挑战判官', rbErr === null, rbErr)
+  for (let i = 0; i < 20000 && sim.combat && !sim.combat.state.over; i++) sim.tickCombat(0.05)
+  assert('wulin: 越级击败判官', sim.combat?.state.winner === 'player', sim.combat?.state.winner)
+  sim.finishCombat()
+  assert('wulin: 解救孩童(stage2)', save.rebirth.stage === 2 && !!save.rebirth.disciple)
+  char.bag['med-gold'] = 5
+  for (let i = 0; i < 80 && !sim.discipleReady(); i++) {
+    char.spirit = 500
+    for (const k of ['arm', 'agi', 'bone', 'ins'] as const) sim.trainDisciple(k)
+    sim.fastForward(3600e3)
+  }
+  assert('wulin: 弟子四维圆满', sim.discipleReady())
+  assert('wulin: 确认传承', sim.doRebirth('小冒烟') === null)
+  assert('wulin: 传承后 1 世 + 30 属性点', char.rebirths === 1 && char.attrPoints === 30)
+  assert('wulin: 新身姓名与等级重置', char.name === '小冒烟' && charLevel(char) < 10)
+  assert('wulin: 武学清空仅留基本功 50 级', Object.keys(char.skills).length === 4 && char.skills['bs-fist']?.level === 50)
+  assert('wulin: 物品保留', char.bag['med-gold'] === 5)
+
+  // 存档导出导入往返
+  const text = exportSave(save)
+  const back = importSave(text)
+  assert('wulin: 存档往返一致', back?.char?.name === '小冒烟' && back?.char?.rebirths === 1)
+  assert('wulin: 损坏存档回退默认', importSave('not-a-save') === null)
+
+  // 平衡探针:中局角色在 c10 的挂机时薪(速成档)
+  char.exp = expForLevel(130)
+  char.skills['bs-sword'] = { level: 150, exp: 0, activeUnlocked: false }
+  char.skills['hs-sword2'] = { level: 130, exp: 0, activeUnlocked: false }
+  char.equipped = { output: 'hs-sword2', internal: 'bs-internal', lightness: 'bs-light', parry: 'bs-parry' }
+  const rate = sim.idleRateFor('c10')!
+  console.log(`     [balance] c10 速成档挂机 ≈ ${Math.round(rate.exp)} exp/h,${Math.round(rate.silver)} 银/h`)
+  assert('wulin: 中局挂机时薪在合理区间', rate.exp > 5000 && rate.exp < 800000, rate)
 }
 
 console.log(`\n${checks - failures}/${checks} passed`)

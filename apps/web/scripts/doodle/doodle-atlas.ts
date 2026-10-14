@@ -12,8 +12,8 @@ function decodePng(buf: Buffer): PngImage {
   let pos = 8
   let width = 0
   let height = 0
-  let bitDepth = 0
-  let colorType = 0
+  let bitDepth: number
+  let colorType: number
   const idat: Buffer[] = []
   while (pos < buf.length) {
     const len = buf.readUInt32BE(pos)
