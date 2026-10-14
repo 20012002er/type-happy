@@ -287,9 +287,8 @@ export interface Disciple {
 export interface GameProgress {
   chapter: string
   room: string
-  questStep: number
-  /** 每章主线进度(chapterId → 已完成步数) */
-  questByChapter?: Record<string, number>
+  /** 每章主线已完成步骤下标(chapterId → 步骤集合,任意顺序完成) */
+  questByChapter?: Record<string, number[]>
   unlocked: string[]
   defeated: string[]
   picked: string[]

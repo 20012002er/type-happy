@@ -143,7 +143,6 @@ export function doRebirth(ctx: SimCtx, discipleName: string): string | null {
   // 剧情:章节保留解锁,头目可再战
   save.progress.room = 'c1-dock'
   save.progress.chapter = 'c1'
-  save.progress.questStep = 0
   save.progress.questByChapter = {}
   save.progress.defeated = []
   save.progress.picked = []

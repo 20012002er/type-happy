@@ -135,11 +135,12 @@ const signinIdx = computed(() => save.value.daily.signin % SIGNIN_CYCLE.length)
 
       <div class="mt-2 rounded-lg bg-[#f1ead8] px-3 py-2">
         <p class="text-[11px] font-semibold text-stone-600">
-          主线 · {{ quest.done ? '已完成' : `${quest.step}/${quest.total}` }}
+          主线 · {{ quest.finished ? '已完成' : `${quest.done}/${quest.total}` }}
         </p>
         <p class="mt-0.5 text-xs leading-relaxed text-stone-700">
           {{ quest.desc ?? '本章主线已了结,可在此挂机历练,或前往下一处地界。' }}
         </p>
+        <p class="mt-0.5 text-[10px] text-stone-400">步骤不分先后,全部完成即通关本章。</p>
       </div>
 
       <div v-if="room.exits.length" class="mt-2 flex flex-wrap gap-1.5">
@@ -328,7 +329,7 @@ const signinIdx = computed(() => save.value.daily.signin % SIGNIN_CYCLE.length)
                 progress.unlocked.includes(c.id)
                   ? progress.chaptersDone.includes(c.id)
                     ? '已通关'
-                    : `主线 ${progress.questByChapter?.[c.id] ?? 0}/${c.quest.length}`
+                    : `主线 ${ui.sim.questInfoOf(c.id).done}/${c.quest.length}`
                   : '未解锁'
               }}
             </span>

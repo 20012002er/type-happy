@@ -118,12 +118,10 @@ export class MapScene {
       label.y = GROUND_Y + 4
       const holder = new Container()
       holder.addChild(g, label)
-      if (!n.defeated) {
-        holder.eventMode = 'static'
-        holder.cursor = 'pointer'
-        holder.hitArea = new Rectangle(x - 26, y - 44, 52, GROUND_Y + 20 - (y - 44))
-        holder.on('pointertap', () => cb.onNpc(n.id))
-      }
+      holder.eventMode = 'static'
+      holder.cursor = 'pointer'
+      holder.hitArea = new Rectangle(x - 26, y - 44, 52, GROUND_Y + 20 - (y - 44))
+      holder.on('pointertap', () => cb.onNpc(n.id))
       this.layer.addChild(holder)
     })
 

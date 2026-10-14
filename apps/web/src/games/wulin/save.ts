@@ -6,7 +6,6 @@ export function defaultProgress(): WulinSave['progress'] {
   return {
     chapter: 'c1',
     room: 'c1-dock',
-    questStep: 0,
     questByChapter: {},
     unlocked: ['c1'],
     defeated: [],
@@ -39,12 +38,18 @@ export function defaultSave(): WulinSave {
 
 function sanitize(parsed: Partial<WulinSave>): WulinSave {
   const base = defaultSave()
+  const rawQb = parsed.progress?.questByChapter
+  const questByChapter: Record<string, number[]> = {}
+  for (const [k, v] of Object.entries(rawQb ?? {})) {
+    // 兼容旧档:数字(已完成步数)→ 连续下标数组
+    questByChapter[k] = typeof v === 'number' ? Array.from({ length: v }, (_, i) => i) : Array.isArray(v) ? v : []
+  }
   return {
     ...base,
     ...parsed,
     version: 1,
     settings: { ...base.settings, ...(parsed.settings ?? {}) },
-    progress: { ...base.progress, ...(parsed.progress ?? {}) },
+    progress: { ...base.progress, ...(parsed.progress ?? {}), questByChapter },
     training: { ...base.training, ...(parsed.training ?? {}) },
     seclusion: { ...base.seclusion, ...(parsed.seclusion ?? {}) },
     idle: { ...base.idle, ...(parsed.idle ?? {}) },

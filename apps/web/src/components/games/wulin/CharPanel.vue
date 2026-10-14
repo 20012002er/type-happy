@@ -10,7 +10,7 @@ import {
   evaluation,
   spiritMax,
 } from '../../../games/wulin/sim/character'
-import { exportSave, importSave, clearSave } from '../../../games/wulin/save'
+import { exportSave, importSave } from '../../../games/wulin/save'
 import type { AttrKey, Pace } from '../../../games/wulin/types'
 import type { WulinUi } from './context'
 
@@ -111,13 +111,16 @@ function doImport(): void {
     props.ui.toast('存档文本无效')
     return
   }
+  // 禁用回写,防止 pagehide 用旧档覆盖刚写入的新档
+  props.ui.sim.prepareReplace()
   localStorage.setItem('type-happy:wulin:v1', JSON.stringify(s))
   location.reload()
 }
 
 function doReset(): void {
   if (!confirm('确定重置存档?一世江湖将烟消云散。')) return
-  clearSave()
+  // 禁用回写并清空,防止 pagehide 把内存旧档写回
+  props.ui.sim.hardReset()
   location.reload()
 }
 </script>

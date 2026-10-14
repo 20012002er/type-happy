@@ -48,7 +48,7 @@ await page.getByRole('button', { name: /摆渡老周/ }).first().click()
 await page.waitForSelector('text=摆渡老周')
 await page.getByRole('button', { name: '交谈', exact: true }).click()
 await page.waitForTimeout(300)
-const step1 = await page.evaluate(() => window.__wulin.save.progress.questByChapter?.c1 ?? 0)
+const step1 = await page.evaluate(() => (window.__wulin.save.progress.questByChapter?.c1 ?? []).length)
 ok('quest step advanced after talk', step1 === 1, String(step1))
 await page.locator('button', { hasText: '✕' }).first().click()
 
@@ -78,7 +78,7 @@ const winner = await page.evaluate(() => window.__wulin.sim.combat?.state.winner
 ok('player wins vs lv3 thug', winner === 'player', String(winner))
 await page.getByRole('button', { name: '离开战场' }).click()
 await page.waitForFunction(() => !window.__wulin.sim.combat, null, { timeout: 5000 })
-const step2 = await page.evaluate(() => window.__wulin.save.progress.questByChapter?.c1 ?? 0)
+const step2 = await page.evaluate(() => (window.__wulin.save.progress.questByChapter?.c1 ?? []).length)
 ok('quest step advanced after defeat', step2 === 2, String(step2))
 const expGained = await page.evaluate(() => window.__wulin.save.char.exp)
 ok('combat exp gained', expGained > 0, String(expGained))
@@ -86,7 +86,7 @@ ok('combat exp gained', expGained > 0, String(expGained))
 console.log('== pickup & chapter 1 finale ==')
 await page.getByRole('button', { name: /翻找此处/ }).first().click()
 await page.waitForTimeout(300)
-const step3 = await page.evaluate(() => window.__wulin.save.progress.questByChapter?.c1 ?? 0)
+const step3 = await page.evaluate(() => (window.__wulin.save.progress.questByChapter?.c1 ?? []).length)
 ok('hairpin picked, step 3', step3 === 3, String(step3))
 await page.getByRole('button', { name: /张家大院/ }).first().click()
 await page.waitForTimeout(700)
@@ -221,6 +221,72 @@ const s3 = await page.evaluate(() => {
   return { name: c.name, rebirths: c.rebirths, points: c.attrPoints, level: window.__wulin.sim.level(), sect: c.sect }
 })
 ok('rebirth completed', s3.rebirths === 1 && s3.name === '小侠' && s3.points === 30 && s3.level < 50 && s3.sect === null, JSON.stringify(s3))
+
+console.log('== regression: out-of-order boss & save reset ==')
+const ctx2 = await browser.newContext()
+const page2 = await ctx2.newPage()
+const errs2 = []
+page2.on('pageerror', (e) => errs2.push(e.message))
+await page2.goto(BASE + '/games/wulin')
+await page2.waitForFunction(() => !!window.__wulin, null, { timeout: 20000 })
+await page2.evaluate(() => window.__wulin.createTest('乱序侠', 'martial'))
+await page2.waitForTimeout(400)
+// 跳过前置步骤,直奔张家大院先杀张无良
+await page2.evaluate(() => {
+  const w = window.__wulin
+  w.sim.moveTo('c1-yard')
+  w.sim.moveTo('c1-wood')
+  w.sim.moveTo('c1-manor')
+  const c = w.save.char
+  c.exp = 20000
+  for (const k of ['bs-fist', 'bs-parry', 'bs-light', 'bs-internal']) c.skills[k].level = 60
+  w.startFight('zhang-bully', 'duel')
+})
+await page2.waitForFunction(() => window.__wulin.sim.combat?.state.over === true, null, { timeout: 90000 })
+await page2.getByRole('button', { name: '离开战场' }).click()
+await page2.waitForTimeout(300)
+// 回头补齐其余步骤
+await page2.evaluate(() => window.__wulin.sim.travelTo('c1'))
+await page2.waitForTimeout(300)
+await page2.getByRole('button', { name: /摆渡老周/ }).first().click()
+await page2.getByRole('button', { name: '交谈', exact: true }).click()
+await page2.locator('button', { hasText: '✕' }).first().click()
+await page2.evaluate(() => {
+  const w = window.__wulin
+  w.sim.moveTo('c1-path')
+  w.sim.moveTo('c1-shrine')
+  w.sim.moveTo('c1-reed')
+})
+await page2.waitForTimeout(300)
+await page2.getByRole('button', { name: /恶霸王五/ }).first().click()
+await page2.getByRole('button', { name: '决斗', exact: true }).click()
+await page2.waitForFunction(() => window.__wulin.sim.combat?.state.over === true, null, { timeout: 90000 })
+await page2.getByRole('button', { name: '离开战场' }).click()
+await page2.waitForTimeout(200)
+await page2.getByRole('button', { name: /翻找此处/ }).first().click()
+await page2.waitForTimeout(300)
+const c1done2 = await page2.evaluate(() => window.__wulin.save.progress.chaptersDone.includes('c1'))
+ok('out-of-order boss still completes chapter', c1done2 === true, String(c1done2))
+const canRefight = await page2.evaluate(() => {
+  window.__wulin.sim.travelTo('c1')
+  window.__wulin.sim.moveTo('c1-yard')
+  window.__wulin.sim.moveTo('c1-wood')
+  window.__wulin.sim.moveTo('c1-manor')
+  return window.__wulin.sim.canFight('zhang-bully')
+})
+ok('defeated boss re-fightable', canRefight === true, String(canRefight))
+// 重置存档:确认弹窗后应回到建角页且 localStorage 清空
+page2.on('dialog', (d) => void d.accept())
+await page2.locator('nav button', { hasText: '人物' }).first().click()
+await page2.waitForTimeout(300)
+await page2.getByRole('button', { name: '重置存档' }).click()
+await page2.waitForFunction(() => localStorage.getItem('type-happy:wulin:v1') === null, null, {
+  timeout: 15000,
+})
+await page2.getByRole('button', { name: '踏入江湖' }).waitFor({ timeout: 15000 })
+ok('reset clears save & returns to creation', true)
+ok('regression page no errors', errs2.length === 0, JSON.stringify(errs2.slice(0, 3)))
+await ctx2.close()
 
 console.log('== console cleanliness ==')
 ok('no console/page errors', consoleErrors.length === 0, JSON.stringify(consoleErrors.slice(0, 5)))

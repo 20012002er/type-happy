@@ -116,7 +116,7 @@ function buildRoomView(): RoomView | null {
       id: n.id,
       name: n.name,
       hostile: n.hostile,
-      defeated: n.hostile && save.progress.defeated.includes(n.id),
+      defeated: sim.isDefeatedBoss(n.id),
     })),
     picked: (room.pickups ?? []).map((_, i) => save.progress.picked.includes(`${room.id}:${i}`)),
     spotLeft: (room.train ?? []).map((s, i) => Math.max(0, s.cap - (save.progress.trains[spotKey(room.id, i)] ?? 0))),
@@ -302,6 +302,7 @@ onMounted(() => {
 })
 
 function onLeave(): void {
+  if (sim.persistDisabled) return
   sim.persist()
   if (save.char) gamesStore.recordScore('wulin', evaluation(save.char), 0)
 }

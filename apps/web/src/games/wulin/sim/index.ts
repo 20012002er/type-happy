@@ -1,6 +1,6 @@
 import { BAG_CAP0, BAG_CAP_MAX, REBIRTH_LEVELS, SPOT_EXP_GAIN, SPOT_HP_COST, bagUpgradeCost, expForLevel } from '../constants'
 import { CHAPTERS, chapter as chapterOf, itemById, npcById, sectById, skillById } from '../data'
-import { persistSave } from '../save'
+import { persistSave, clearSave } from '../save'
 import type {
   ArmorSlot,
   AttrKey,
@@ -70,7 +70,10 @@ export class WulinSim {
 
   constructor(save: WulinSave, onPersist?: () => void) {
     this.save = save
-    this.onPersist = onPersist ?? (() => persistSave(save))
+    const raw = onPersist ?? (() => persistSave(save))
+    this.onPersist = () => {
+      if (!this.persistDisabled) raw()
+    }
     rollDaily(this.ctxOrThrow())
     // 先离线结算(依赖 lastSeen 差分),再进入常规结算
     this.offlineReport = settleOffline(this.ctxOrThrow()) ?? null
@@ -136,7 +139,7 @@ export class WulinSim {
     this.save.progress = {
       chapter: 'c1',
       room: 'c1-dock',
-      questStep: 0,
+      questByChapter: {},
       unlocked: ['c1'],
       defeated: [],
       picked: [],
@@ -183,7 +186,6 @@ export class WulinSim {
     }
     return out
   }
-
   moveTo(roomId: string): string | null {
     const target = roomOf(roomId)
     if (!target) return '去不了那里'
@@ -290,9 +292,15 @@ export class WulinSim {
   // ============ 战斗 ============
   canFight(npcId: string): boolean {
     const def = npcById.get(npcId)
-    if (!def) return false
-    if (BOSS_IDS.has(npcId) && this.save.progress.defeated.includes(npcId)) return false
+    if (!def?.hostile) return false
+    // 传承判官每世只战一次;其余头目可再战(避免提前击败导致主线死锁)
+    if (npcId === 'rb-judge') return this.save.rebirth.stage === 1 && !this.save.progress.defeated.includes(npcId)
     return true
+  }
+
+  /** 剧情头目是否已击败过(地图上做褪色展示) */
+  isDefeatedBoss(npcId: string): boolean {
+    return BOSS_IDS.has(npcId) && this.save.progress.defeated.includes(npcId)
   }
 
   startFight(npcId: string, mode: CombatMode = 'duel'): string | null {
@@ -411,41 +419,47 @@ export class WulinSim {
     return { exp, silver }
   }
 
-  // ============ 主线推进 ============
-  questInfo(): { chapter: ChapterDef; step: number; total: number; desc: string | null; done: boolean } {
-    const ch = chapterOf(this.save.progress.chapter)
-    const done = this.save.progress.chaptersDone.includes(ch.id)
-    const step = done ? ch.quest.length : this.currentStep()
-    const desc = done ? null : (ch.quest[step]?.desc ?? null)
-    return { chapter: ch, step, total: ch.quest.length, desc, done }
+  // ============ 主线推进(步骤集合制:任意顺序完成,全部完成即通关) ============
+  completedSteps(chapterId: string): number[] {
+    const v = this.save.progress.questByChapter?.[chapterId]
+    return Array.isArray(v) ? v : []
   }
 
-  questInfoOf(chapterId: string): { step: number; total: number; done: boolean } {
-    const ch = chapterOf(chapterId)
-    const done = this.save.progress.chaptersDone.includes(chapterId)
-    const step = done ? ch.quest.length : (this.save.progress.questByChapter?.[chapterId] ?? 0)
-    return { step, total: ch.quest.length, done }
-  }
-
-  currentStep(): number {
-    const ch = chapterOf(this.save.progress.chapter)
-    return this.save.progress.questByChapter?.[ch.id] ?? 0
-  }
-
-  setCurrentStep(chapterId: string, step: number): void {
+  private markStep(chapterId: string, idx: number): void {
     if (!this.save.progress.questByChapter) this.save.progress.questByChapter = {}
-    this.save.progress.questByChapter[chapterId] = step
-    if (chapterId === this.save.progress.chapter) this.save.progress.questStep = step
+    const arr = (this.save.progress.questByChapter[chapterId] ??= [])
+    if (!arr.includes(idx)) arr.push(idx)
+  }
+
+  questInfo(): { chapter: ChapterDef; done: number; total: number; desc: string | null; finished: boolean } {
+    const ch = chapterOf(this.save.progress.chapter)
+    const doneArr = this.completedSteps(ch.id)
+    const finished = this.save.progress.chaptersDone.includes(ch.id) || doneArr.length >= ch.quest.length
+    const nextIdx = ch.quest.findIndex((_, i) => !doneArr.includes(i))
+    return {
+      chapter: ch,
+      done: doneArr.length,
+      total: ch.quest.length,
+      desc: finished ? null : (ch.quest[nextIdx]?.desc ?? null),
+      finished,
+    }
+  }
+
+  questInfoOf(chapterId: string): { done: number; total: number; finished: boolean } {
+    const ch = chapterOf(chapterId)
+    const doneArr = this.completedSteps(chapterId)
+    const finished = this.save.progress.chaptersDone.includes(chapterId) || doneArr.length >= ch.quest.length
+    return { done: doneArr.length, total: ch.quest.length, finished }
   }
 
   advanceQuest(type: 'defeat' | 'talk' | 'pickup' | 'fetch', target: string): boolean {
     const chId = this.save.progress.chapter
     const ch = chapterOf(chId)
     if (this.save.progress.chaptersDone.includes(chId)) return false
-    const step = this.currentStep()
-    if (step >= ch.quest.length) return false
-    const cur = ch.quest[step]
-    if (!cur || cur.type !== type || cur.target !== target) return false
+    const doneArr = this.completedSteps(chId)
+    const idx = ch.quest.findIndex((s, i) => s.type === type && s.target === target && !doneArr.includes(i))
+    if (idx < 0) return false
+    const cur = ch.quest[idx]
     const char = this.requireChar()
     if (cur.give) {
       if (cur.give.exp) char.exp += Math.round(cur.give.exp * this.rate())
@@ -453,9 +467,9 @@ export class WulinSim {
       if (cur.give.potential) char.potential += Math.round(cur.give.potential * this.rate())
       if (cur.give.item) char.bag[cur.give.item] = (char.bag[cur.give.item] ?? 0) + (cur.give.count ?? 1)
     }
-    this.setCurrentStep(chId, step + 1)
+    this.markStep(chId, idx)
     this.log(`主线「${ch.title}」推进:${cur.desc}`)
-    if (step + 1 >= ch.quest.length) this.completeChapter(ch)
+    if (this.completedSteps(chId).length >= ch.quest.length) this.completeChapter(ch)
     this.onPersist()
     return true
   }
@@ -872,8 +886,23 @@ export class WulinSim {
   }
 
   // ============ 存档 ============
+  persistDisabled = false
+
   persist(): void {
     this.onPersist()
+  }
+
+  /** 重置存档:禁用回写(避免 pagehide 把旧档写回)并清空 */
+  hardReset(): void {
+    this.persistDisabled = true
+    this.combat = null
+    clearSave()
+  }
+
+  /** 导入替换前调用:禁用回写,防止旧档覆盖新档 */
+  prepareReplace(): void {
+    this.persistDisabled = true
+    this.combat = null
   }
 
   level(): number {

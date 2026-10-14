@@ -134,17 +134,13 @@ function fight(mode: 'duel' | 'spar'): void {
           v-if="defeatedBoss"
           class="mt-3 rounded-lg bg-stone-200/70 p-2 text-center text-xs text-stone-500"
         >
-          此人已败于你手,江湖再见亦是点头之交。
+          此人已败于你手;江湖路窄,仍可再战。
         </p>
 
         <div class="mt-3 flex flex-wrap gap-2">
           <button class="wl-btn" @click="talk">交谈</button>
-          <button
-            v-if="def.hostile && !defeatedBoss"
-            class="wl-btn wl-btn-danger"
-            @click="fight('duel')"
-          >
-            决斗
+          <button v-if="def.hostile" class="wl-btn wl-btn-danger" @click="fight('duel')">
+            {{ defeatedBoss ? '再战' : '决斗' }}
           </button>
           <button v-if="!def.hostile && def.level > 10" class="wl-btn" @click="fight('spar')">
             切磋
