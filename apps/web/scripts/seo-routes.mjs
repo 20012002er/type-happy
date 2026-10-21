@@ -14,9 +14,9 @@ export const gamePaths = [
   '/games/duck',
   '/games/fighter',
   '/games/idle',
-  '/games/wuxia',
   '/games/doodle',
   '/games/wulin',
+  '/games/taoyuan',
 ]
 
 export const labPaths = ['/labs/boids']
