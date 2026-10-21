@@ -8,10 +8,6 @@ export default defineConfig({
     outDir: '../../public/games/taoyuan',
     emptyOutDir: true
   },
-  esbuild: {
-    drop: ['debugger'],
-    legalComments: 'none'
-  },
   plugins: [
     vue({
       template: {

@@ -118,7 +118,7 @@
               @click="
                 openBatchBuyModal(
                   seed.cropName + '种子',
-                  `${seed.season.map(s => SEASON_NAMES[s]).join('/')}季 · ${seed.growthDays}天成熟 → 售${seed.sellPrice}文`,
+                  `${seasonListLabel(seed.season)}季 · ${seed.growthDays}天成熟 → 售${seed.sellPrice}文`,
                   discounted(seed.price),
                   () => handleBuySeed(seed.seedId),
                   () => playerStore.money >= discounted(seed.price),
@@ -134,7 +134,7 @@
                   <span v-if="seed.regrowth" class="text-success text-xs ml-1">[多茬]</span>
                 </p>
                 <p class="text-muted text-xs">
-                  {{ seed.season.map(s => SEASON_NAMES[s]).join('/') }}季 · {{ seed.growthDays }}天{{
+                  {{ seasonListLabel(seed.season) }}季 · {{ seed.growthDays }}天{{
                     seed.regrowth ? ` · 每${seed.regrowthDays}天再收` : ''
                   }}
                   → 售{{ seed.sellPrice }}文
@@ -1469,10 +1469,14 @@
     return SEASON_NAMES[season] ?? season
   }
 
+  const seasonListLabel = (seasons: Season[]): string => {
+    return seasons.map(s => SEASON_NAMES[s]).join('/')
+  }
+
   const getTravelerItemDesc = (itemId: string, quantity: number): string => {
     const crop = getCropBySeedId(itemId)
     if (crop) {
-      return `${crop.season.map(s => SEASON_NAMES[s]).join('/')}季 · ${crop.growthDays}天成熟 · 剩余${quantity}个`
+      return `${seasonListLabel(crop.season)}季 · ${crop.growthDays}天成熟 · 剩余${quantity}个`
     }
     return `剩余${quantity}个`
   }
