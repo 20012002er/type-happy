@@ -1,0 +1,40 @@
+{
+  "name": "taoyuan",
+  "title": "桃源乡",
+  "private": true,
+  "version": "3.3.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc -b && vite build",
+    "preview": "vite preview",
+    "type-check": "vue-tsc -b",
+    "format": "prettier --write \"**/*.{ts,js,vue,json,html,tsx,jsx,mts,cts}\""
+  },
+  "description": "一款文字版田园模拟经营游戏，灵感来自星露谷物语",
+  "dependencies": {
+    "@vueuse/core": "^14.2.0",
+    "crypto-js": "^4.2.0",
+    "file-saver": "^2.0.5",
+    "lucide-vue-next": "^0.563.0",
+    "pinia": "^3.0.4",
+    "qmsg": "^1.6.2",
+    "tone": "^15.1.22",
+    "vue": "^3.5.24",
+    "vue-router": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/crypto-js": "^4.2.2",
+    "@types/file-saver": "^2.0.7",
+    "@types/node": "^24.10.1",
+    "@vitejs/plugin-vue": "^6.0.1",
+    "@vue/tsconfig": "^0.8.1",
+    "autoprefixer": "^10.4.24",
+    "postcss": "^8.5.6",
+    "prettier": "^3.9.6",
+    "tailwindcss": "^3.4.19",
+    "typescript": "~5.9.3",
+    "vite": "^8.3.0",
+    "vue-tsc": "^3.1.4"
+  }
+}

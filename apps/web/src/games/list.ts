@@ -62,4 +62,13 @@ export const GAMES: GameMeta[] = [
     badge: '🏯',
     stats: { scoreLabel: '最高评价', playsUnit: '次', hideCombo: true },
   },
+  {
+    id: 'taoyuan',
+    title: '桃源乡',
+    desc: '像素中国风田园模拟经营:春耕夏种秋收冬藏,38种作物、19种动物、120层矿洞、34位村民、钓鱼育种烹饪加工,四季轮回中经营你的世外桃源!(自研 Vue + Pinia + Tone.js)',
+    to: '/games/taoyuan',
+    gradient: 'from-emerald-400 to-teal-600',
+    badge: '🌸',
+    stats: { scoreLabel: '最高评价', playsUnit: '次', hideCombo: true },
+  },
 ]

@@ -131,6 +131,17 @@ const router = createRouter({
       },
     },
     {
+      path: '/games/taoyuan',
+      name: 'game-taoyuan',
+      component: () => import('../views/TaoyuanGameView.vue'),
+      meta: {
+        title: '桃源乡',
+        description:
+          '桃源乡:像素中国风田园模拟经营游戏,春耕夏种秋收冬藏,38种作物、19种动物、120层矿洞、34位村民、钓鱼育种烹饪加工,四季轮回中经营你的世外桃源,进度本地保存,免费无需注册。',
+        ld: 'VideoGame',
+      },
+    },
+    {
       path: '/labs',
       name: 'labs',
       component: () => import('../views/LabListView.vue'),
