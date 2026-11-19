@@ -1,0 +1,21 @@
+import {
+  parseLearningSnapshot,
+  UnsupportedSchemaVersionError,
+  type LearningSnapshot,
+} from './snapshot'
+
+export function migrateLearningSnapshot(value: unknown): LearningSnapshot {
+  if (typeof value !== 'object' || value === null || Array.isArray(value)) {
+    throw new UnsupportedSchemaVersionError(undefined)
+  }
+  const candidate = value as Record<string, unknown>
+  if (candidate.schemaVersion === 1) return parseLearningSnapshot(candidate)
+  if (candidate.schemaVersion === 0) {
+    return parseLearningSnapshot({
+      ...candidate,
+      schemaVersion: 1,
+      learning: { records: [] },
+    })
+  }
+  throw new UnsupportedSchemaVersionError(candidate.schemaVersion)
+}

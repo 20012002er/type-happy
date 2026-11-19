@@ -1,0 +1,122 @@
+import { parseCourse } from '../contracts'
+import type { Course } from '../types'
+
+const course = {
+  id: 'pep-grade4-autumn-integrated-math',
+  version: 1,
+  title: '人教版四上综合计算（新旧融合）',
+  subject: 'math',
+  grade: 4,
+  semester: 'autumn',
+  textbook: '人教版新旧融合',
+  units: [
+    { id: 'oral-calculation', title: '乘除口算', order: 1 },
+    { id: 'written-multiplication', title: '多位数乘两位数', order: 2 },
+    { id: 'written-division', title: '两、三位数除以两位数', order: 3 },
+    { id: 'change-rules', title: '积与商的变化规律', order: 4 },
+    { id: 'estimation-verification', title: '乘除估算与验算', order: 5 },
+    { id: 'prior-review', title: '已学复习', order: 6 },
+  ],
+  knowledgePoints: [
+    {
+      id: 'oral-multiplication-by-one-digit',
+      courseId: 'pep-grade4-autumn-integrated-math',
+      unitId: 'oral-calculation',
+      name: '两位数或几百几十数乘一位数',
+      source: 'new-pep',
+    },
+    {
+      id: 'oral-multiplication-by-tens',
+      courseId: 'pep-grade4-autumn-integrated-math',
+      unitId: 'oral-calculation',
+      name: '两位数或几百几十数乘整十数',
+      source: 'new-pep',
+    },
+    {
+      id: 'oral-division-by-tens',
+      courseId: 'pep-grade4-autumn-integrated-math',
+      unitId: 'oral-calculation',
+      name: '整十数或几百几十数除以整十数',
+      source: 'old-pep',
+    },
+    {
+      id: 'written-multiplication-two-digits',
+      courseId: 'pep-grade4-autumn-integrated-math',
+      unitId: 'written-multiplication',
+      name: '两位数乘两位数',
+      source: 'new-pep',
+    },
+    {
+      id: 'written-multiplication-three-by-two',
+      courseId: 'pep-grade4-autumn-integrated-math',
+      unitId: 'written-multiplication',
+      name: '三位数乘两位数',
+      source: 'new-pep',
+    },
+    {
+      id: 'written-multiplication-with-zero',
+      courseId: 'pep-grade4-autumn-integrated-math',
+      unitId: 'written-multiplication',
+      name: '乘数中间或末尾有 0 的乘法',
+      source: 'new-pep',
+    },
+    {
+      id: 'written-division-by-two-digits',
+      courseId: 'pep-grade4-autumn-integrated-math',
+      unitId: 'written-division',
+      name: '两、三位数除以两位数',
+      source: 'old-pep',
+    },
+    {
+      id: 'trial-quotient-and-adjustment',
+      courseId: 'pep-grade4-autumn-integrated-math',
+      unitId: 'written-division',
+      name: '试商与调商',
+      source: 'old-pep',
+    },
+    {
+      id: 'division-with-remainder',
+      courseId: 'pep-grade4-autumn-integrated-math',
+      unitId: 'written-division',
+      name: '有余数除法',
+      source: 'old-pep',
+    },
+    {
+      id: 'product-change-rule',
+      courseId: 'pep-grade4-autumn-integrated-math',
+      unitId: 'change-rules',
+      name: '积的变化规律',
+      source: 'new-pep',
+    },
+    {
+      id: 'quotient-change-rule',
+      courseId: 'pep-grade4-autumn-integrated-math',
+      unitId: 'change-rules',
+      name: '商的变化规律',
+      source: 'old-pep',
+    },
+    {
+      id: 'multiplication-estimation',
+      courseId: 'pep-grade4-autumn-integrated-math',
+      unitId: 'estimation-verification',
+      name: '明确估法的乘法估算',
+      source: 'new-pep',
+    },
+    {
+      id: 'division-estimation-verification',
+      courseId: 'pep-grade4-autumn-integrated-math',
+      unitId: 'estimation-verification',
+      name: '除法估算与乘法验算',
+      source: 'old-pep',
+    },
+    {
+      id: 'prior-basic-calculation-review',
+      courseId: 'pep-grade4-autumn-integrated-math',
+      unitId: 'prior-review',
+      name: '乘法口诀与一位数乘除复习',
+      source: 'review',
+    },
+  ],
+} as const satisfies Course
+
+export const GRADE4_AUTUMN_MATH_COURSE: Course = parseCourse(course)

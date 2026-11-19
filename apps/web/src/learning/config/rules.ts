@@ -1,0 +1,118 @@
+const MINUTE_MS = 60_000
+const HOUR_MS = 60 * MINUTE_MS
+
+export const LEARNING_RULES = {
+  practiceRewards: {
+    withinGoal: {
+      firstCorrect: 3,
+      correctedAfterHint: 1,
+      correctedAfterExplanation: 0,
+    },
+    extraPractice: {
+      firstCorrect: 2,
+      correctedAfterHint: 1,
+      correctedAfterExplanation: 0,
+    },
+  },
+  dailyTask: {
+    defaultGoal: 30,
+    minimumGoal: 10,
+    maximumGoal: 50,
+    goalStep: 5,
+    completionReward: 20,
+    goalChangeEffective: 'next-local-day',
+  },
+  streak: {
+    milestones: [
+      { days: 3, reward: 10 },
+      { days: 7, reward: 30 },
+      { days: 14, reward: 60 },
+      { days: 30, reward: 120 },
+    ],
+    recurringAfterDays: 30,
+    recurringIntervalDays: 7,
+    recurringReward: 70,
+  },
+  paper: {
+    defaultBlueprint: {
+      oralCalculation: 6,
+      writtenMultiplication: 8,
+      writtenDivision: 10,
+      changeRules: 3,
+      estimationVerification: 3,
+    },
+    refillOrder: [
+      'writtenDivision',
+      'writtenMultiplication',
+      'oralCalculation',
+      'changeRules',
+      'estimationVerification',
+    ],
+    minimumChangeRules: 1,
+    minimumEstimationVerification: 1,
+    specialPracticeSize: 10,
+    maximumReviewRatio: 0.2,
+  },
+  farm: {
+    starterGift: {
+      unlockedPlots: 4,
+      radishSeeds: 4,
+      chickenCoopLevel: 1,
+      chickens: 1,
+      feed: 2,
+    },
+    plots: {
+      maximum: 8,
+      purchasePrices: [100, 160, 240, 320],
+    },
+    fertilizer: {
+      price: 8,
+      remainingTimeMultiplier: 0.5,
+      maximumPerCrop: 1,
+    },
+    crops: {
+      radish: { seedPrice: 6, growthMs: 5 * MINUTE_MS, harvestQuantity: 1, salePrice: 9 },
+      wheat: { seedPrice: 12, growthMs: 30 * MINUTE_MS, harvestQuantity: 1, salePrice: 18 },
+      corn: { seedPrice: 22, growthMs: 2 * HOUR_MS, harvestQuantity: 1, salePrice: 32 },
+      pumpkin: { seedPrice: 40, growthMs: 8 * HOUR_MS, harvestQuantity: 1, salePrice: 54 },
+    },
+    animals: {
+      chicken: {
+        purchasePrice: 80,
+        feedPrice: 5,
+        productionMs: HOUR_MS,
+        product: 'egg',
+        productQuantity: 1,
+        salePrice: 14,
+      },
+      cow: {
+        purchasePrice: 350,
+        feedPrice: 12,
+        productionMs: 2 * HOUR_MS,
+        product: 'milk',
+        productQuantity: 1,
+        salePrice: 32,
+      },
+    },
+    buildings: {
+      chickenCoop: {
+        initialLevel: 1,
+        initialCapacity: 2,
+        upgradePrice: 300,
+        upgradedCapacity: 4,
+      },
+      cowshed: {
+        unlockAtPlot: 6,
+        purchasePrice: 500,
+        initialCapacity: 1,
+        upgradePrice: 600,
+        upgradedCapacity: 2,
+      },
+    },
+    dailySaleIncomeCap: 60,
+    recoverySupply: {
+      radishSeeds: 2,
+      maximumClaimsPerLocalDay: 1,
+    },
+  },
+} as const
