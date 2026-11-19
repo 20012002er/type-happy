@@ -1,4 +1,8 @@
 node_modules/
 dist/
+coverage/
+test-results/
+playwright-report/
+blob-report/
 pnpm-lock.yaml
 apps/server/src/data/

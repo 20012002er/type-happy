@@ -67,7 +67,7 @@ function cleanup(exitCode = 0) {
   if (shuttingDown) return
   shuttingDown = true
   for (const child of children) child.kill('SIGTERM')
-  setTimeout(() => process.exit(exitCode), 300).unref()
+  setTimeout(() => process.exit(exitCode), 300)
 }
 
 async function waitForUrl(url, timeoutMs = 60_000) {

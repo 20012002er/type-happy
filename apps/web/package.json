@@ -9,7 +9,11 @@
     "prerender": "node scripts/prerender.mjs",
     "preview": "vite preview",
     "typecheck": "vue-tsc --noEmit -p tsconfig.json",
-    "smoke": "tsx scripts/smoke-engines.ts"
+    "smoke": "tsx scripts/smoke-engines.ts",
+    "test:unit": "vitest run",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "format:check": "prettier --check tests e2e vitest.config.ts playwright.config.ts package.json tsconfig.json scripts/prerender.mjs"
   },
   "dependencies": {
     "@type-happy/shared": "workspace:*",
@@ -20,14 +24,19 @@
     "vue-router": "^5.3.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.64.0",
     "@tailwindcss/vite": "^4.3.3",
     "@types/node": "^26.6.3",
     "@vitejs/plugin-vue": "^6.0.9",
-    "playwright": "^1.64.0",
+    "@vitest/coverage-v8": "^5.1.1",
+    "@vue/test-utils": "^2.6.0",
+    "jsdom": "^31.0.1",
+    "playwright": "1.64.0",
     "tailwindcss": "^4.3.3",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
     "vite": "^8.3.1",
+    "vitest": "^5.1.1",
     "vue-tsc": "^3.3.11"
   }
 }
