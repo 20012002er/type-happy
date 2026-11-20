@@ -29,7 +29,11 @@ function richSnapshot(): LearningSnapshot {
   ]
   snapshot.tasks.daily = { '2026-11-19': { goal: 30, completed: 4, rewarded: false } }
   snapshot.tasks.streak = { current: 2, longest: 5, lastCompletedDateKey: '2026-11-18' }
-  snapshot.farm = { starterGiftClaimed: true, inventory: { 'radish-seed': 2, egg: 0 } }
+  snapshot.farm = {
+    ...snapshot.farm,
+    starterGiftClaimed: true,
+    inventory: { 'radish-seed': 2, egg: 0 },
+  }
   return snapshot
 }
 

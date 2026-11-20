@@ -1,11 +1,12 @@
 import { parseLearningRecord } from '../contracts'
 import { assertLocalDateKey } from '../date-key'
+import { createEmptyFarmState, parseFarmState, type FarmState } from '../farm/farm-state'
 import { parsePracticeSession, type PracticeSession } from '../practice/practice-session'
 import { parseRetestPoolEntry, type RetestPoolEntry } from '../practice/retest'
 import type { LearningRecord } from '../types'
 import { createEmptyWallet, parseWalletState, type WalletState } from '../wallet/wallet'
 
-export const LEARNING_SCHEMA_VERSION = 2
+export const LEARNING_SCHEMA_VERSION = 3
 export const LEARNING_STORAGE_KEY = 'type-happy:learning:snapshot'
 
 export interface DailyTaskState {
@@ -27,10 +28,7 @@ export interface LearningSnapshot {
     streak: { current: number; longest: number; lastCompletedDateKey: string | null }
   }
   wallet: WalletState
-  farm: {
-    starterGiftClaimed: boolean
-    inventory: Readonly<Record<string, number>>
-  }
+  farm: FarmState
 }
 
 export class SnapshotValidationError extends Error {
@@ -78,7 +76,7 @@ export function createEmptyLearningSnapshot(): LearningSnapshot {
       streak: { current: 0, longest: 0, lastCompletedDateKey: null },
     },
     wallet: createEmptyWallet(),
-    farm: { starterGiftClaimed: false, inventory: {} },
+    farm: createEmptyFarmState(),
   }
 }
 
@@ -135,12 +133,6 @@ export function parseLearningSnapshot(value: unknown): LearningSnapshot {
   }
 
   parseWalletState(snapshot.wallet)
-  const farm = expectRecord(snapshot.farm, 'snapshot.farm')
-  expectBoolean(farm.starterGiftClaimed, 'snapshot.farm.starterGiftClaimed')
-  const inventory = expectRecord(farm.inventory, 'snapshot.farm.inventory')
-  Object.entries(inventory).forEach(([itemId, quantity]) => {
-    if (itemId.trim().length === 0) throw new SnapshotValidationError('物品 ID 不能为空')
-    expectInteger(quantity, `snapshot.farm.inventory.${itemId}`)
-  })
+  parseFarmState(snapshot.farm)
   return snapshot as unknown as LearningSnapshot
 }

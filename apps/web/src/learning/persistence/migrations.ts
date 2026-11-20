@@ -1,3 +1,4 @@
+import { createEmptyFarmState } from '../farm/farm-state'
 import {
   parseLearningSnapshot,
   UnsupportedSchemaVersionError,
@@ -9,9 +10,16 @@ export function migrateLearningSnapshot(value: unknown): LearningSnapshot {
     throw new UnsupportedSchemaVersionError(undefined)
   }
   const candidate = value as Record<string, unknown>
-  if (candidate.schemaVersion === 2) return parseLearningSnapshot(candidate)
+  if (candidate.schemaVersion === 3) return parseLearningSnapshot(candidate)
+  if (candidate.schemaVersion === 2) {
+    return migrateLearningSnapshot({
+      ...candidate,
+      schemaVersion: 3,
+      farm: { ...createEmptyFarmState(), ...(candidate.farm as Record<string, unknown>) },
+    })
+  }
   if (candidate.schemaVersion === 1) {
-    return parseLearningSnapshot({
+    return migrateLearningSnapshot({
       ...candidate,
       schemaVersion: 2,
       practice: { sessions: {}, retestPool: [] },

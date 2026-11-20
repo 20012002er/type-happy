@@ -3,6 +3,15 @@ import { defineFixture } from '../helpers/fixtures'
 
 export const createLearningSnapshotFixture = defineFixture(() => createEmptyLearningSnapshot())
 
+export const createLegacyV2SnapshotFixture = defineFixture(() => {
+  const current = createEmptyLearningSnapshot()
+  return {
+    ...current,
+    schemaVersion: 2,
+    farm: { starterGiftClaimed: true, inventory: { 'radish-seed': 2 } },
+  }
+})
+
 export const createLegacyV1SnapshotFixture = defineFixture(() => {
   const current = createEmptyLearningSnapshot()
   return {

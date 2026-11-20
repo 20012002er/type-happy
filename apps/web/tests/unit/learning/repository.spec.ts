@@ -18,6 +18,7 @@ import {
   createLearningSnapshotFixture,
   createLegacyV0SnapshotFixture,
   createLegacyV1SnapshotFixture,
+  createLegacyV2SnapshotFixture,
 } from '../../fixtures/learning'
 import { MemoryStorage } from '../../helpers/memory-storage'
 
@@ -125,16 +126,31 @@ describe('schema fixtures and migrations', () => {
     const legacy = createLegacyV0SnapshotFixture()
     const migrated = migrateLearningSnapshot(legacy)
 
-    expect(migrated.schemaVersion).toBe(2)
+    expect(migrated.schemaVersion).toBe(3)
     expect(migrated.revision).toBe(3)
     expect(migrated.wallet.balance).toBe(10)
     expect(migrated.learning.records).toEqual([])
     expect(migrateLearningSnapshot(migrated)).toEqual(migrated)
   })
 
+  it('preserves the legacy farm inventory while adding v3 farm state', () => {
+    const migrated = migrateLearningSnapshot(createLegacyV2SnapshotFixture())
+    expect(migrated.schemaVersion).toBe(3)
+    expect(migrated.farm).toMatchObject({
+      starterGiftClaimed: true,
+      inventory: { 'radish-seed': 2 },
+      plots: [],
+      animals: [],
+      saleIncomeByDate: {},
+      recoveryClaimDates: [],
+      lastAdvancedAt: null,
+    })
+    expect(migrateLearningSnapshot(migrated)).toEqual(migrated)
+  })
+
   it('adds empty practice state when upgrading schema v1 and remains idempotent', () => {
     const migrated = migrateLearningSnapshot(createLegacyV1SnapshotFixture())
-    expect(migrated.schemaVersion).toBe(2)
+    expect(migrated.schemaVersion).toBe(3)
     expect(migrated.practice).toEqual({ sessions: {}, retestPool: [] })
     expect(migrateLearningSnapshot(migrated)).toEqual(migrated)
   })
@@ -147,13 +163,13 @@ describe('schema fixtures and migrations', () => {
     const loaded = repository.load()
     const saved = repository.save(loaded, 3)
 
-    expect(saved.schemaVersion).toBe(2)
+    expect(saved.schemaVersion).toBe(3)
     expect(saved.revision).toBe(4)
     expect(repository.load().wallet.ledger[0].settlementId).toBe('legacy-seed')
   })
 
   it('rejects invalid roots and direct schema mismatches', () => {
     expect(() => migrateLearningSnapshot(null)).toThrow(UnsupportedSchemaVersionError)
-    expect(() => parseLearningSnapshot({ schemaVersion: 3 })).toThrow(SnapshotValidationError)
+    expect(() => parseLearningSnapshot({ schemaVersion: 2 })).toThrow(SnapshotValidationError)
   })
 })
