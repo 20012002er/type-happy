@@ -1,4 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import { generateMathQuestion } from '../../../src/learning/practice/math-generator'
+import { createPracticeSession } from '../../../src/learning/practice/practice-session'
 import {
   createEmptyLearningSnapshot,
   parseLearningSnapshot,
@@ -115,6 +117,53 @@ describe('learning aggregate snapshot validation', () => {
         },
       }),
     ).toThrow('streak.current')
+  })
+
+  it('validates practice sessions and retest pool uniqueness', () => {
+    const question = generateMathQuestion('oral-mul-one-v1', 1, 'practice-question')
+    const session = createPracticeSession({
+      id: 'practice-session',
+      mode: 'special',
+      questions: [{ question }],
+      createdAt: 100,
+    })
+    const retest = {
+      id: 'retest-1',
+      originalQuestion: question,
+      originSessionId: session.id,
+      seed: 2,
+      createdAt: 100,
+      status: 'pending',
+    }
+    const valid = {
+      ...richSnapshot(),
+      practice: { sessions: { [session.id]: session }, retestPool: [retest] },
+    }
+    expect(parseLearningSnapshot(valid)).toEqual(valid)
+    expect(() =>
+      parseLearningSnapshot({ ...valid, practice: { ...valid.practice, sessions: [] } }),
+    ).toThrow('practice.sessions')
+    expect(() =>
+      parseLearningSnapshot({
+        ...valid,
+        practice: { ...valid.practice, sessions: { '': session } },
+      }),
+    ).toThrow('练习组 ID 不能为空')
+    expect(() =>
+      parseLearningSnapshot({
+        ...valid,
+        practice: { ...valid.practice, sessions: { other: session } },
+      }),
+    ).toThrow('键与 ID 不一致')
+    expect(() =>
+      parseLearningSnapshot({ ...valid, practice: { ...valid.practice, retestPool: {} } }),
+    ).toThrow('复测池必须是数组')
+    expect(() =>
+      parseLearningSnapshot({
+        ...valid,
+        practice: { ...valid.practice, retestPool: [retest, retest] },
+      }),
+    ).toThrow('ID 重复')
   })
 
   it('rejects negative or malformed farm inventory', () => {

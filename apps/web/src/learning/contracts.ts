@@ -99,6 +99,10 @@ function expectAnswer(value: unknown, path: string): Answer {
   throw new ContentValidationError(`${path}.kind`, '未知答案类型')
 }
 
+export function parseAnswer(value: unknown): Answer {
+  return expectAnswer(value, 'answer')
+}
+
 function answersEqual(left: Answer, right: Answer): boolean {
   if (left.kind === 'number' && right.kind === 'number') return left.value === right.value
   if (left.kind === 'quotient-remainder' && right.kind === 'quotient-remainder') {
@@ -222,6 +226,20 @@ export function parseQuestionSnapshot(value: unknown, course?: Course): Question
     snapshot.classification,
     'questionSnapshot.classification',
   )
+  if (
+    snapshot.source !== 'new-pep' &&
+    snapshot.source !== 'old-pep' &&
+    snapshot.source !== 'review'
+  ) {
+    throw new ContentValidationError('questionSnapshot.source', '未知来源标签')
+  }
+  expectBoolean(snapshot.countsTowardNewKnowledge, 'questionSnapshot.countsTowardNewKnowledge')
+  if (snapshot.source === 'review' && snapshot.countsTowardNewKnowledge) {
+    throw new ContentValidationError(
+      'questionSnapshot.countsTowardNewKnowledge',
+      '复习题不计作新知识掌握',
+    )
+  }
   expectQuestionType(snapshot.type, 'questionSnapshot.type')
   expectDifficulty(snapshot.difficulty, 'questionSnapshot.difficulty')
   expectString(snapshot.prompt, 'questionSnapshot.prompt')

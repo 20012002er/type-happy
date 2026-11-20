@@ -84,6 +84,8 @@ export interface QuestionSnapshot {
   instanceId: string
   seed: number
   classification: ContentClassification
+  source: ContentSource
+  countsTowardNewKnowledge: boolean
   type: QuestionType
   difficulty: Difficulty
   prompt: string

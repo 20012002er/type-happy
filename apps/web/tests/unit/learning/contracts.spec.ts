@@ -62,6 +62,8 @@ function makeSnapshot(): QuestionSnapshot {
       unitId: 'unit-1',
       knowledgePointId: 'kp-1',
     },
+    source: 'new-pep',
+    countsTowardNewKnowledge: true,
     type: 'number',
     difficulty: 'L2',
     prompt: '15 × 12 = ?',
@@ -162,6 +164,8 @@ describe('question content contract', () => {
       instanceId: expect.any(String),
       seed: expect.any(Number),
       classification: expect.any(Object),
+      source: expect.any(String),
+      countsTowardNewKnowledge: expect.any(Boolean),
       type: expect.any(String),
       difficulty: expect.any(String),
       prompt: expect.any(String),
@@ -210,6 +214,8 @@ describe('question content contract', () => {
     ['instanceId', 'instanceId'],
     ['seed', 'seed'],
     ['classification', 'classification'],
+    ['source', 'source'],
+    ['countsTowardNewKnowledge', 'countsTowardNewKnowledge'],
     ['type', 'type'],
     ['difficulty', 'difficulty'],
     ['prompt', 'prompt'],
@@ -269,6 +275,14 @@ describe('question content contract', () => {
         errorCauseRules: [{ id: 'x', label: 'x', feedback: 'x', answers: [] }],
       }),
     ).toThrow('answers')
+  })
+
+  it('rejects unknown sources and review questions counted as new knowledge', () => {
+    const snapshot = makeSnapshot()
+    expect(() => parseQuestionSnapshot({ ...snapshot, source: 'unknown' })).toThrow('未知来源标签')
+    expect(() =>
+      parseQuestionSnapshot({ ...snapshot, source: 'review', countsTowardNewKnowledge: true }),
+    ).toThrow('复习题不计作新知识掌握')
   })
 
   it('identifies unknown or inconsistent course, unit and knowledge point references', () => {

@@ -9,9 +9,16 @@ export function migrateLearningSnapshot(value: unknown): LearningSnapshot {
     throw new UnsupportedSchemaVersionError(undefined)
   }
   const candidate = value as Record<string, unknown>
-  if (candidate.schemaVersion === 1) return parseLearningSnapshot(candidate)
-  if (candidate.schemaVersion === 0) {
+  if (candidate.schemaVersion === 2) return parseLearningSnapshot(candidate)
+  if (candidate.schemaVersion === 1) {
     return parseLearningSnapshot({
+      ...candidate,
+      schemaVersion: 2,
+      practice: { sessions: {}, retestPool: [] },
+    })
+  }
+  if (candidate.schemaVersion === 0) {
+    return migrateLearningSnapshot({
       ...candidate,
       schemaVersion: 1,
       learning: { records: [] },

@@ -1,8 +1,10 @@
 import { parseLearningRecord } from '../contracts'
+import { parsePracticeSession, type PracticeSession } from '../practice/practice-session'
+import { parseRetestPoolEntry, type RetestPoolEntry } from '../practice/retest'
 import type { LearningRecord } from '../types'
 import { createEmptyWallet, parseWalletState, type WalletState } from '../wallet/wallet'
 
-export const LEARNING_SCHEMA_VERSION = 1
+export const LEARNING_SCHEMA_VERSION = 2
 export const LEARNING_STORAGE_KEY = 'type-happy:learning:snapshot'
 
 export interface DailyTaskState {
@@ -15,6 +17,10 @@ export interface LearningSnapshot {
   schemaVersion: typeof LEARNING_SCHEMA_VERSION
   revision: number
   learning: { records: readonly LearningRecord[] }
+  practice: {
+    sessions: Readonly<Record<string, PracticeSession>>
+    retestPool: readonly RetestPoolEntry[]
+  }
   tasks: {
     daily: Readonly<Record<string, DailyTaskState>>
     streak: { current: number; longest: number; lastCompletedDateKey: string | null }
@@ -65,6 +71,7 @@ export function createEmptyLearningSnapshot(): LearningSnapshot {
     schemaVersion: LEARNING_SCHEMA_VERSION,
     revision: 0,
     learning: { records: [] },
+    practice: { sessions: {}, retestPool: [] },
     tasks: {
       daily: {},
       streak: { current: 0, longest: 0, lastCompletedDateKey: null },
@@ -85,6 +92,21 @@ export function parseLearningSnapshot(value: unknown): LearningSnapshot {
   if (!Array.isArray(learning.records))
     throw new SnapshotValidationError('learning.records 必须是数组')
   learning.records.forEach((record) => parseLearningRecord(record))
+
+  const practice = expectRecord(snapshot.practice, 'snapshot.practice')
+  const sessions = expectRecord(practice.sessions, 'snapshot.practice.sessions')
+  Object.entries(sessions).forEach(([sessionId, session]) => {
+    if (sessionId.trim().length === 0) throw new SnapshotValidationError('练习组 ID 不能为空')
+    const parsed = parsePracticeSession(session)
+    if (parsed.id !== sessionId) throw new SnapshotValidationError('练习组键与 ID 不一致')
+  })
+  if (!Array.isArray(practice.retestPool)) throw new SnapshotValidationError('复测池必须是数组')
+  const retestIds = new Set<string>()
+  practice.retestPool.forEach((entry) => {
+    const parsed = parseRetestPoolEntry(entry)
+    if (retestIds.has(parsed.id)) throw new SnapshotValidationError('复测池条目 ID 重复')
+    retestIds.add(parsed.id)
+  })
 
   const tasks = expectRecord(snapshot.tasks, 'snapshot.tasks')
   const daily = expectRecord(tasks.daily, 'snapshot.tasks.daily')
