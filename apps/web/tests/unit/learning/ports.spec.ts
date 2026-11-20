@@ -1,5 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { toLocalDateKey } from '../../../src/learning/date-key'
+import {
+  assertLocalDateKey,
+  shiftLocalDateKey,
+  toLocalDateKey,
+} from '../../../src/learning/date-key'
 import type { Clock, Random, StoragePort } from '../../../src/learning/ports'
 import {
   createCryptoIdGenerator,
@@ -84,5 +88,15 @@ describe('device local date keys', () => {
   it('rejects invalid dates instead of creating unstable keys', () => {
     expect(() => toLocalDateKey(new Date('invalid'))).toThrow('invalid date')
     expect(() => toLocalDateKey(Number.NaN)).toThrow('invalid date')
+  })
+
+  it('validates date keys and shifts local calendar days across month and leap-day boundaries', () => {
+    expect(assertLocalDateKey('2024-02-29')).toBe('2024-02-29')
+    expect(shiftLocalDateKey('2026-01-31', 1)).toBe('2026-02-01')
+    expect(shiftLocalDateKey('2024-03-01', -1)).toBe('2024-02-29')
+    expect(shiftLocalDateKey('2026-11-19', 0)).toBe('2026-11-19')
+    expect(() => assertLocalDateKey('2026-2-03')).toThrow('无效的本地日期键')
+    expect(() => assertLocalDateKey('2026-02-30')).toThrow('无效的本地日期键')
+    expect(() => shiftLocalDateKey('2026-01-01', 0.5)).toThrow('安全整数')
   })
 })

@@ -82,7 +82,8 @@ useHead({
               d="M3 5h18a1 1 0 0 1 1 1v11a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V6a1 1 0 0 1 1-1Zm2 3v2h2V8H5Zm3.5 0v2h2V8h-2Zm3.5 0v2h2V8h-2Zm3.5 0v2h2V8h-2ZM5 11.5v2h2v-2H5Zm3.5 0v2h2v-2h-2Zm3.5 0v2h2v-2h-2Zm3.5 0v2h2v-2h-2ZM7 15v2h10v-2H7Z"
             />
           </svg>
-          打字乐园
+          <span class="hidden sm:inline">打字乐园</span>
+          <span class="sr-only sm:hidden">打字乐园</span>
         </RouterLink>
         <nav class="flex items-center gap-0.5 text-sm font-medium sm:gap-1">
           <RouterLink
@@ -99,6 +100,13 @@ useHead({
             active-class="!text-brand-600"
           >
             全部课程
+          </RouterLink>
+          <RouterLink
+            to="/learning"
+            class="rounded-md px-2 py-1.5 text-[13px] text-stone-600 transition hover:bg-stone-100 hover:text-stone-900 sm:px-3 sm:text-sm"
+            active-class="!text-brand-600"
+          >
+            学习
           </RouterLink>
           <RouterLink
             to="/games"

@@ -55,6 +55,44 @@ const router = createRouter({
       },
     },
     {
+      path: '/learning',
+      name: 'learning',
+      component: () => import('../views/LearningHomeView.vue'),
+      meta: {
+        title: '学习',
+        description:
+          '四年级上学期数学综合计算练习:人教版新旧融合课程,包含两位数除法,支持提示、订正、分步讲解、每日任务、连续奖励与学习金币,进度保存在本地。',
+      },
+    },
+    {
+      path: '/learning/practice/:sessionId',
+      name: 'learning-practice',
+      component: () => import('../views/LearningPracticeView.vue'),
+      props: true,
+      meta: {
+        title: '数学练习',
+        description: '四年级数学计算练习:数字与商余数答题、两级提示、原题订正和分步讲解。',
+      },
+    },
+    {
+      path: '/learning/tasks',
+      name: 'learning-tasks',
+      component: () => import('../views/LearningTasksView.vue'),
+      meta: {
+        title: '学习任务',
+        description: '查看每日有效练习进度、连续学习里程碑和自动到账的学习金币奖励。',
+      },
+    },
+    {
+      path: '/learning/records',
+      name: 'learning-records',
+      component: () => import('../views/LearningRecordsView.vue'),
+      meta: {
+        title: '学习记录',
+        description: '查看数学练习结果、提示订正与复测记录,以及统一学习金币流水。',
+      },
+    },
+    {
       path: '/games',
       name: 'games',
       component: () => import('../views/GameListView.vue'),

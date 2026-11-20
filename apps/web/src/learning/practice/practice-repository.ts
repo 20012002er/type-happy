@@ -1,16 +1,12 @@
-import type { LearningRecord } from '../types'
 import { LearningRepository } from '../persistence/repository'
 import type { LearningSnapshot } from '../persistence/snapshot'
+import { settleLearningRecord } from '../tasks/learning-settlement'
 import {
   parsePracticeSession,
   resumePracticeSession,
   type PracticeSession,
 } from './practice-session'
 import { reconcileRetestPool } from './retest'
-
-function sameRecord(left: LearningRecord, right: LearningRecord): boolean {
-  return JSON.stringify(left) === JSON.stringify(right)
-}
 
 export class PracticeSessionRepository {
   constructor(private readonly repository: LearningRepository) {}
@@ -25,7 +21,7 @@ export class PracticeSessionRepository {
     return session === undefined ? undefined : resumePracticeSession(session, resumedAt)
   }
 
-  save(session: PracticeSession, expectedRevision: number): LearningSnapshot {
+  save(session: PracticeSession, expectedRevision: number, dailyGoal?: number): LearningSnapshot {
     const parsed = parsePracticeSession(session)
     return this.repository.transact(expectedRevision, (snapshot) => {
       const existing = snapshot.practice.sessions[parsed.id]
@@ -36,18 +32,9 @@ export class PracticeSessionRepository {
       ) {
         throw new Error('已完成或已放弃的练习组为只读状态')
       }
-      const records = [...snapshot.learning.records]
       for (const record of parsed.records) {
-        const duplicate = records.find(
-          (item) => item.id === record.id || item.questionInstanceId === record.questionInstanceId,
-        )
-        if (duplicate) {
-          if (!sameRecord(duplicate, record)) throw new Error('题目实例的学习记录发生冲突')
-          continue
-        }
-        records.push(record)
+        settleLearningRecord(snapshot, parsed, record, dailyGoal)
       }
-      snapshot.learning.records = records
       snapshot.practice.sessions = { ...snapshot.practice.sessions, [parsed.id]: parsed }
       snapshot.practice.retestPool = reconcileRetestPool(
         snapshot.practice.retestPool,

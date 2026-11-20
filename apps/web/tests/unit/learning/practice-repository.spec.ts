@@ -51,8 +51,10 @@ describe('practice session persistence and recovery', () => {
     snapshot = repository.save(session, snapshot.revision)
     expect(snapshot.revision).toBe(2)
     expect(snapshot.learning.records).toHaveLength(1)
-    expect(snapshot.wallet.balance).toBe(0)
-    expect(snapshot.tasks.daily).toEqual({})
+    expect(snapshot.wallet.balance).toBe(3)
+    expect(snapshot.tasks.daily).toEqual({
+      '1970-01-01': { goal: 30, completed: 1, rewarded: false },
+    })
 
     expect(repository.save(session, snapshot.revision).revision).toBe(2)
     expect(repository.load('persisted')?.questions[0].status).toBe('first-correct')
@@ -195,6 +197,45 @@ describe('practice session persistence and recovery', () => {
       retestInstanceId: undefined,
       settledAt: undefined,
     })
+  })
+
+  it('settles WP04 records, task progress and wallet atomically across the daily goal', () => {
+    const storage = new MemoryStorage()
+    const learningRepository = new LearningRepository(storage)
+    const repository = new PracticeSessionRepository(learningRepository)
+    const seeded = learningRepository.transact(0, (snapshot) => {
+      snapshot.tasks.daily = {
+        ...snapshot.tasks.daily,
+        '1970-01-01': { goal: 2, completed: 0, rewarded: false },
+      }
+    })
+    let session = makeSession('atomic-settlement', 3)
+    while (session.status === 'active') {
+      session = answerCorrectly(session, session.updatedAt + 1)
+      session = advancePracticeSession(session, session.updatedAt + 1)
+    }
+
+    storage.failNext('setItem', new DOMException('full', 'QuotaExceededError'))
+    expect(() => repository.save(session, seeded.revision)).toThrow('本次进度暂未保存')
+    expect(learningRepository.load().learning.records).toHaveLength(0)
+    expect(learningRepository.load().wallet.balance).toBe(0)
+
+    const snapshot = repository.save(session, seeded.revision)
+    expect(snapshot.learning.records).toHaveLength(3)
+    expect(snapshot.tasks.daily['1970-01-01']).toEqual({ goal: 2, completed: 2, rewarded: true })
+    expect(snapshot.tasks.streak).toMatchObject({ current: 1, longest: 1 })
+    expect(snapshot.wallet.balance).toBe(28)
+    expect(snapshot.wallet.ledger.map((entry) => entry.source)).toEqual([
+      'practice',
+      'practice',
+      'daily-task',
+      'practice',
+    ])
+
+    const repeated = repository.save(session, snapshot.revision)
+    expect(repeated.revision).toBe(snapshot.revision)
+    expect(repeated.wallet).toEqual(snapshot.wallet)
+    expect(repeated.learning.records).toHaveLength(3)
   })
 
   it('validates retest pool entries restored from storage', () => {

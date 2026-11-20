@@ -1,4 +1,5 @@
 import { parseLearningRecord } from '../contracts'
+import { assertLocalDateKey } from '../date-key'
 import { parsePracticeSession, type PracticeSession } from '../practice/practice-session'
 import { parseRetestPoolEntry, type RetestPoolEntry } from '../practice/retest'
 import type { LearningRecord } from '../types'
@@ -112,6 +113,7 @@ export function parseLearningSnapshot(value: unknown): LearningSnapshot {
   const daily = expectRecord(tasks.daily, 'snapshot.tasks.daily')
   Object.entries(daily).forEach(([dateKey, value]) => {
     if (dateKey.trim().length === 0) throw new SnapshotValidationError('每日任务日期键不能为空')
+    assertLocalDateKey(dateKey)
     const task = expectRecord(value, `snapshot.tasks.daily.${dateKey}`)
     expectInteger(task.goal, `snapshot.tasks.daily.${dateKey}.goal`, 1)
     expectInteger(task.completed, `snapshot.tasks.daily.${dateKey}.completed`)
@@ -124,6 +126,9 @@ export function parseLearningSnapshot(value: unknown): LearningSnapshot {
     throw new SnapshotValidationError(
       'snapshot.tasks.streak.lastCompletedDateKey 必须是日期键或 null',
     )
+  }
+  if (typeof streak.lastCompletedDateKey === 'string') {
+    assertLocalDateKey(streak.lastCompletedDateKey)
   }
   if (Number(streak.longest) < Number(streak.current)) {
     throw new SnapshotValidationError('最长连续天数不能小于当前连续天数')

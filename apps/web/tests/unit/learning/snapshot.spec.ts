@@ -67,6 +67,15 @@ describe('learning aggregate snapshot validation', () => {
         ...snapshot,
         tasks: {
           ...snapshot.tasks,
+          daily: { '2026-02-30': { goal: 30, completed: 0, rewarded: false } },
+        },
+      }),
+    ).toThrow('无效的本地日期键')
+    expect(() =>
+      parseLearningSnapshot({
+        ...snapshot,
+        tasks: {
+          ...snapshot.tasks,
           daily: { '2026-11-19': { goal: 0, completed: 0, rewarded: false } },
         },
       }),
@@ -108,6 +117,15 @@ describe('learning aggregate snapshot validation', () => {
         tasks: { ...snapshot.tasks, streak: { current: 0, longest: 5, lastCompletedDateKey: 123 } },
       }),
     ).toThrow('lastCompletedDateKey')
+    expect(() =>
+      parseLearningSnapshot({
+        ...snapshot,
+        tasks: {
+          ...snapshot.tasks,
+          streak: { current: 1, longest: 5, lastCompletedDateKey: '2026-02-30' },
+        },
+      }),
+    ).toThrow('无效的本地日期键')
     expect(() =>
       parseLearningSnapshot({
         ...snapshot,
