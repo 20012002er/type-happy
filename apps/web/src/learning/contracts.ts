@@ -318,6 +318,15 @@ export function parseQuestionSnapshot(value: unknown, course?: Course): Question
   return snapshot as unknown as QuestionSnapshot
 }
 
+function expectErrorCauses(value: unknown, path: string): void {
+  const causes = expectArray(value, path)
+  causes.forEach((item, index) => {
+    const cause = expectRecord(item, `${path}[${index}]`)
+    expectString(cause.id, `${path}[${index}].id`)
+    expectString(cause.label, `${path}[${index}].label`)
+  })
+}
+
 export function parseLearningRecord(value: unknown): LearningRecord {
   const record = expectRecord(value, 'learningRecord')
   expectString(record.id, 'learningRecord.id')
@@ -330,6 +339,9 @@ export function parseLearningRecord(value: unknown): LearningRecord {
     throw new ContentValidationError('learningRecord.result', '未知学习结果')
   }
   if (record.answer !== undefined) expectAnswer(record.answer, 'learningRecord.answer')
+  if (record.errorCauses !== undefined) {
+    expectErrorCauses(record.errorCauses, 'learningRecord.errorCauses')
+  }
   expectInteger(record.attempts, 'learningRecord.attempts')
   if (
     record.highestHintLevel !== 0 &&

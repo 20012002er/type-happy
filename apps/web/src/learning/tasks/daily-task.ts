@@ -1,5 +1,5 @@
 import { LEARNING_RULES } from '../config/rules'
-import { assertLocalDateKey } from '../date-key'
+import { assertLocalDateKey, shiftLocalDateKey, toLocalDateKey } from '../date-key'
 import type { DailyTaskState, LearningSnapshot } from '../persistence/snapshot'
 
 export function validateDailyGoal(goal: number): number {
@@ -13,6 +13,38 @@ export function validateDailyGoal(goal: number): number {
     throw new Error('每日目标必须是 10–50 之间以 5 为步长的整数')
   }
   return goal
+}
+
+export interface DailyGoalSettings {
+  dailyGoal: number
+  pendingDailyGoal?: number
+  pendingDailyGoalEffectiveFrom?: string
+}
+
+export function getDailyGoalForDate(settings: DailyGoalSettings, at: Date | number): number {
+  const current = validateDailyGoal(settings.dailyGoal)
+  if (
+    settings.pendingDailyGoal === undefined ||
+    settings.pendingDailyGoalEffectiveFrom === undefined
+  ) {
+    return current
+  }
+  const effectiveFrom = assertLocalDateKey(settings.pendingDailyGoalEffectiveFrom)
+  return toLocalDateKey(at) >= effectiveFrom
+    ? validateDailyGoal(settings.pendingDailyGoal)
+    : current
+}
+
+export function scheduleDailyGoalChange(
+  settings: DailyGoalSettings,
+  goal: number,
+  at: Date | number,
+): DailyGoalSettings {
+  return {
+    dailyGoal: getDailyGoalForDate(settings, at),
+    pendingDailyGoal: validateDailyGoal(goal),
+    pendingDailyGoalEffectiveFrom: shiftLocalDateKey(toLocalDateKey(at), 1),
+  }
 }
 
 export function ensureDailyTask(

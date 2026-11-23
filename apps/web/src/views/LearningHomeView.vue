@@ -140,13 +140,22 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
             <span>{{ progress }}%</span>
           </p>
 
-          <div v-if="learning.today.taskRemaining === 0" class="learn-note" style="margin-top: 20px">
+          <div
+            v-if="learning.today.taskRemaining === 0"
+            class="learn-note"
+            style="margin-top: 20px"
+          >
             今日学习已完成，可以去农场看看，也可以休息。若主动加练，新题按首次答对 2 金币、
             提示后订正 1 金币、讲解后订正 0 金币计算，不再增加今日任务进度。
           </div>
 
           <div class="learn-actions">
-            <button type="button" class="learn-button" :disabled="learning.saving" @click="startComprehensive">
+            <button
+              type="button"
+              class="learn-button"
+              :disabled="learning.saving"
+              @click="startComprehensive"
+            >
               {{ primaryLabel }}
             </button>
             <RouterLink class="learn-button learn-button--secondary" to="/learning/tasks">
@@ -167,20 +176,31 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
             <label class="learn-field">
               知识模块
               <select v-model="selectedUnit">
-                <option v-for="unit in units" :key="unit.id" :value="unit.id">{{ unit.title }}</option>
+                <option v-for="unit in units" :key="unit.id" :value="unit.id">
+                  {{ unit.title }}
+                </option>
               </select>
             </label>
             <label class="learn-field">
               难度
               <select v-model="selectedDifficulty">
-                <option v-for="level in ['L1', 'L2', 'L3']" :key="level" :value="level" :disabled="!supportedDifficulties.has(level as Difficulty)">
+                <option
+                  v-for="level in ['L1', 'L2', 'L3']"
+                  :key="level"
+                  :value="level"
+                  :disabled="!supportedDifficulties.has(level as Difficulty)"
+                >
                   {{ level }} · {{ level === 'L1' ? '基础' : level === 'L2' ? '达标' : '综合' }}
                 </option>
               </select>
             </label>
           </div>
           <div class="learn-actions">
-            <button type="button" class="learn-button learn-button--secondary" @click="startSpecial">
+            <button
+              type="button"
+              class="learn-button learn-button--secondary"
+              @click="startSpecial"
+            >
               开始专项练习
             </button>
           </div>
@@ -200,7 +220,13 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
           <dl class="learn-stats">
             <div>
               <dt>今日金币</dt>
-              <dd>+{{ learning.today.practiceReward + learning.today.dailyReward + learning.today.streakReward }}</dd>
+              <dd>
+                +{{
+                  learning.today.practiceReward +
+                  learning.today.dailyReward +
+                  learning.today.streakReward
+                }}
+              </dd>
             </div>
             <div>
               <dt>待复测</dt>
@@ -221,12 +247,21 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
         <section class="learn-paper learn-section" aria-labelledby="experience-title">
           <h2 id="experience-title">练习体验</h2>
           <p>关闭音效或动画不会影响判分、任务和金币。</p>
+          <div class="learn-actions">
+            <RouterLink class="learn-button learn-button--secondary" to="/learning/parent">
+              家长设置与学习摘要
+            </RouterLink>
+          </div>
           <div class="learn-switches">
             <label class="learn-switch">
               <input
                 type="checkbox"
                 :checked="learning.preferences.soundEnabled"
-                @change="learning.updatePreferences({ soundEnabled: ($event.target as HTMLInputElement).checked })"
+                @change="
+                  learning.updatePreferences({
+                    soundEnabled: ($event.target as HTMLInputElement).checked,
+                  })
+                "
               />
               正反馈音效
             </label>
@@ -234,7 +269,11 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
               <input
                 type="checkbox"
                 :checked="learning.preferences.animationsEnabled"
-                @change="learning.updatePreferences({ animationsEnabled: ($event.target as HTMLInputElement).checked })"
+                @change="
+                  learning.updatePreferences({
+                    animationsEnabled: ($event.target as HTMLInputElement).checked,
+                  })
+                "
               />
               页面动画
             </label>
@@ -247,7 +286,8 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
             <div class="learn-course-tags">
               <span v-for="unit in units" :key="unit.id" class="learn-tag">{{ unit.title }}</span>
             </div>
-            新版同步内容与旧版补充内容会保留来源标签。每日目标默认 30 题，可在家长设置中按 5 题调整，调整次日生效。
+            新版同步内容与旧版补充内容会保留来源标签。每日目标默认 30 题，可在家长设置中按 5
+            题调整，调整次日生效。
           </div>
         </details>
       </aside>

@@ -190,6 +190,7 @@ describe('learning store UI orchestration', () => {
       courseIntroSeen: true,
       soundEnabled: false,
       animationsEnabled: false,
+      dailyGoal: 30,
     })
     expect(restored.today.walletBalance).toBe(0)
   })

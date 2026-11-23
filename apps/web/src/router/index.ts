@@ -89,8 +89,17 @@ const router = createRouter({
       component: () => import('../views/LearningFarmView.vue'),
       meta: {
         title: '学习农场',
+        description: '用学习金币经营像素农场：播种、施肥、收获、饲养鸡牛，并在仓库出售农产品。',
+      },
+    },
+    {
+      path: '/learning/parent',
+      name: 'learning-parent',
+      component: () => import('../views/LearningParentView.vue'),
+      meta: {
+        title: '家长设置与学习摘要',
         description:
-          '用学习金币经营像素农场：播种、施肥、收获、饲养鸡牛，并在仓库出售农产品。',
+          '查看四年级数学学习摘要、知识点与错因、金币来源和消耗，设置次日生效的每日目标并管理本地学习数据。',
       },
     },
     {

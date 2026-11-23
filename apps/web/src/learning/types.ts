@@ -66,9 +66,12 @@ export interface QuestionResource {
   altText?: string
 }
 
-export interface ErrorCauseRule {
+export interface ErrorCause {
   id: string
   label: string
+}
+
+export interface ErrorCauseRule extends ErrorCause {
   feedback: string
   answers: readonly Answer[]
 }
@@ -120,6 +123,7 @@ export interface LearningRecord {
   knowledgePointId: string
   result: LearningResult
   answer?: Answer
+  errorCauses?: readonly ErrorCause[]
   attempts: number
   highestHintLevel: 0 | 1 | 2
   explanationViewed: boolean

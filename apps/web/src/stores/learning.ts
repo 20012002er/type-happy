@@ -58,9 +58,16 @@ import {
   type PracticeSession,
 } from '../learning/practice/practice-session'
 import {
+  getParentLearningSummary,
   getPracticeSessionSummary,
   getTodayLearningSummary,
 } from '../learning/tasks/learning-summary'
+import {
+  getDailyGoalForDate,
+  scheduleDailyGoalChange,
+  validateDailyGoal,
+} from '../learning/tasks/daily-task'
+import { assertLocalDateKey } from '../learning/date-key'
 import type { Answer, Difficulty } from '../learning/types'
 
 const PREFERENCES_STORAGE_KEY = 'type-happy:learning:preferences:v1'
@@ -69,6 +76,9 @@ export interface LearningPreferences {
   courseIntroSeen: boolean
   soundEnabled: boolean
   animationsEnabled: boolean
+  dailyGoal: number
+  pendingDailyGoal?: number
+  pendingDailyGoalEffectiveFrom?: string
 }
 
 export interface LearningStoreDependencies {
@@ -79,8 +89,7 @@ export interface LearningStoreDependencies {
 }
 
 export type StartPracticeOptions =
-  | { mode: 'comprehensive' }
-  | { mode: 'special'; unitId: string; difficulty: Difficulty }
+  { mode: 'comprehensive' } | { mode: 'special'; unitId: string; difficulty: Difficulty }
 
 export type SubmitPracticeResult = 'submitted' | 'replaced' | 'failed'
 
@@ -103,6 +112,7 @@ const DEFAULT_PREFERENCES: LearningPreferences = {
   courseIntroSeen: false,
   soundEnabled: true,
   animationsEnabled: true,
+  dailyGoal: LEARNING_RULES.dailyTask.defaultGoal,
 }
 
 function readableLoadError(error: unknown): string {
@@ -120,11 +130,17 @@ function parsePreferences(raw: string | null): LearningPreferences {
   if (raw === null) return { ...DEFAULT_PREFERENCES }
   try {
     const value = JSON.parse(raw) as Partial<LearningPreferences>
-    return {
+    const parsed: LearningPreferences = {
       courseIntroSeen: value.courseIntroSeen === true,
       soundEnabled: value.soundEnabled !== false,
       animationsEnabled: value.animationsEnabled !== false,
+      dailyGoal: validateDailyGoal(value.dailyGoal ?? LEARNING_RULES.dailyTask.defaultGoal),
     }
+    if (value.pendingDailyGoal !== undefined && value.pendingDailyGoalEffectiveFrom !== undefined) {
+      parsed.pendingDailyGoal = validateDailyGoal(value.pendingDailyGoal)
+      parsed.pendingDailyGoalEffectiveFrom = assertLocalDateKey(value.pendingDailyGoalEffectiveFrom)
+    }
+    return parsed
   } catch {
     return { ...DEFAULT_PREFERENCES }
   }
@@ -207,30 +223,41 @@ export const useLearningStore = defineStore('learning', () => {
   const today = computed(() =>
     getTodayLearningSummary(
       snapshot.value,
-      clock.now(),
-      LEARNING_RULES.dailyTask.defaultGoal,
+      farmNow.value,
+      getDailyGoalForDate(preferences.value, farmNow.value),
     ),
   )
-  const activeSession = computed(() =>
-    Object.values(snapshot.value.practice.sessions)
-      .filter((session) => session.status === 'active')
-      .sort((left, right) => right.updatedAt - left.updatedAt)[0],
+  const upcomingDailyGoal = computed(() => {
+    const tomorrow = new Date(farmNow.value)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    return getDailyGoalForDate(preferences.value, tomorrow)
+  })
+  const parentSummary = computed(() =>
+    getParentLearningSummary(
+      snapshot.value,
+      farmNow.value,
+      getDailyGoalForDate(preferences.value, farmNow.value),
+    ),
+  )
+  const activeSession = computed(
+    () =>
+      Object.values(snapshot.value.practice.sessions)
+        .filter((session) => session.status === 'active')
+        .sort((left, right) => right.updatedAt - left.updatedAt)[0],
   )
   const practiceSessions = computed(() =>
     Object.values(snapshot.value.practice.sessions).sort(
       (left, right) => right.updatedAt - left.updatedAt,
     ),
   )
-  const pendingHarvests = computed(() =>
-    getPendingHarvestCount(snapshot.value.farm, farmNow.value),
-  )
+  const pendingHarvests = computed(() => getPendingHarvestCount(snapshot.value.farm, farmNow.value))
 
   function initialize(dependencies: LearningStoreDependencies = {}): boolean {
     if (dependencies.storage) storage = dependencies.storage
     if (dependencies.clock) clock = dependencies.clock
     if (dependencies.ids) ids = dependencies.ids
     if (dependencies.random) random = dependencies.random
-    farmNow.value = clock.now()
+    getNow()
     const selectedStorage = storage ?? getBrowserStorage()
     storage = selectedStorage
     repository = new LearningRepository(selectedStorage)
@@ -251,7 +278,9 @@ export const useLearningStore = defineStore('learning', () => {
   function refresh(): void {
     if (!repository) return
     try {
+      getNow()
       snapshot.value = repository.load()
+      preferences.value = parsePreferences(storage?.getItem(PREFERENCES_STORAGE_KEY) ?? null)
       loadError.value = ''
     } catch (error) {
       loadError.value = readableLoadError(error)
@@ -259,7 +288,7 @@ export const useLearningStore = defineStore('learning', () => {
   }
 
   function handleStorageEvent(event: StorageEvent): void {
-    if (event.key === LEARNING_STORAGE_KEY) refresh()
+    if (event.key === LEARNING_STORAGE_KEY || event.key === PREFERENCES_STORAGE_KEY) refresh()
   }
 
   function persist(session: Parameters<PracticeSessionRepository['save']>[0]): boolean {
@@ -272,7 +301,7 @@ export const useLearningStore = defineStore('learning', () => {
       snapshot.value = sessions.save(
         session,
         snapshot.value.revision,
-        LEARNING_RULES.dailyTask.defaultGoal,
+        getDailyGoalForDate(preferences.value, getNow()),
       )
       saveError.value = ''
       return true
@@ -286,7 +315,7 @@ export const useLearningStore = defineStore('learning', () => {
 
   function startPractice(options: StartPracticeOptions): string | null {
     if (activeSession.value) return activeSession.value.id
-    const now = clock.now()
+    const now = getNow()
     const id = `practice-${ids.next()}`
     const paper =
       options.mode === 'comprehensive'
@@ -337,10 +366,15 @@ export const useLearningStore = defineStore('learning', () => {
     }
     let submitted
     try {
-      submitted = submitPracticeAnswer(editableSession(session), structuredClone(toRaw(answer)), clock.now(), {
-        seed: random.int(0, 0xffffffff),
-        idPrefix: sessionId,
-      })
+      submitted = submitPracticeAnswer(
+        editableSession(session),
+        structuredClone(toRaw(answer)),
+        clock.now(),
+        {
+          seed: random.int(0, 0xffffffff),
+          idPrefix: sessionId,
+        },
+      )
     } catch {
       return replaceContentError(sessionId)
     }
@@ -441,13 +475,64 @@ export const useLearningStore = defineStore('learning', () => {
     }
   }
 
-  function updatePreferences(patch: Partial<LearningPreferences>): void {
-    const next = { ...preferences.value, ...patch }
+  function writePreferences(next: LearningPreferences, failureMessage: string): boolean {
+    if (!storage) {
+      saveError.value = '学习数据尚未准备好，请刷新后重试'
+      return false
+    }
     try {
-      storage?.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(next))
+      storage.setItem(PREFERENCES_STORAGE_KEY, JSON.stringify(next))
       preferences.value = next
+      saveError.value = ''
+      return true
     } catch {
-      saveError.value = '体验设置暂未保存，请重试'
+      saveError.value = failureMessage
+      return false
+    }
+  }
+
+  function updatePreferences(patch: Partial<LearningPreferences>): boolean {
+    return writePreferences({ ...preferences.value, ...patch }, '体验设置暂未保存，请重试')
+  }
+
+  function updateDailyGoal(goal: number): boolean {
+    notice.value = ''
+    let next: LearningPreferences
+    try {
+      next = {
+        ...preferences.value,
+        ...scheduleDailyGoalChange(preferences.value, goal, getNow()),
+      }
+    } catch (error) {
+      saveError.value = error instanceof Error ? error.message : '每日目标无效'
+      return false
+    }
+    if (!writePreferences(next, '每日目标暂未保存，请重试')) return false
+    notice.value = `每日目标已保存，将从 ${next.pendingDailyGoalEffectiveFrom} 起调整为 ${goal} 题`
+    return true
+  }
+
+  function clearLearningData(): boolean {
+    if (!repository) {
+      saveError.value = '学习数据尚未准备好，请刷新后重试'
+      return false
+    }
+    saving.value = true
+    notice.value = ''
+    try {
+      repository.clear()
+      snapshot.value = createEmptyLearningSnapshot()
+      getNow()
+      loadError.value = ''
+      saveError.value = ''
+      ready.value = true
+      notice.value = '学习、金币和农场记录已清除'
+      return true
+    } catch {
+      saveError.value = '学习数据暂未清除，请重试'
+      return false
+    } finally {
+      saving.value = false
     }
   }
 
@@ -465,6 +550,8 @@ export const useLearningStore = defineStore('learning', () => {
     saving,
     preferences,
     today,
+    upcomingDailyGoal,
+    parentSummary,
     activeSession,
     practiceSessions,
     pendingHarvests,
@@ -483,6 +570,8 @@ export const useLearningStore = defineStore('learning', () => {
     getNow,
     performFarmOperation,
     updatePreferences,
+    updateDailyGoal,
+    clearLearningData,
     clearMessages,
   }
 })

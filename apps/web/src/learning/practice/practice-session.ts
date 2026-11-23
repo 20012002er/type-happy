@@ -1,5 +1,5 @@
 import { parseAnswer, parseLearningRecord, parseQuestionSnapshot } from '../contracts'
-import type { Answer, LearningRecord, QuestionSnapshot } from '../types'
+import type { Answer, ErrorCause, LearningRecord, QuestionSnapshot } from '../types'
 import { judgeAnswer } from './answer'
 import { createCorrectionGuidance, type CorrectionGuidance } from './correction'
 import { scheduleRetestInSession } from './retest'
@@ -32,6 +32,7 @@ export interface PracticeQuestionEntry extends PracticeQuestionInput {
   startedAt: number
   settledAt?: number
   lastAnswer?: Answer
+  errorCauses?: ErrorCause[]
   feedback?: CorrectionGuidance
 }
 
@@ -93,6 +94,7 @@ function makeRecord(
     knowledgePointId: entry.question.classification.knowledgePointId,
     result,
     answer: entry.lastAnswer,
+    errorCauses: clone(entry.errorCauses ?? []),
     attempts: entry.attempts,
     highestHintLevel: entry.highestHintLevel,
     explanationViewed: entry.explanationViewed,
@@ -116,6 +118,7 @@ function createEntry(input: PracticeQuestionInput, startedAt: number): PracticeQ
     highestHintLevel: 0,
     explanationViewed: false,
     startedAt,
+    errorCauses: [],
   }
 }
 
@@ -194,6 +197,12 @@ export function submitPracticeAnswer(
     return next
   }
 
+  if (judgement.cause) {
+    const causes = entry.errorCauses ?? []
+    if (!causes.some((cause) => cause.id === judgement.cause?.id)) {
+      entry.errorCauses = [...causes, { id: judgement.cause.id, label: judgement.cause.label }]
+    }
+  }
   const guidance = createCorrectionGuidance(current.question, judgement, entry.attempts)
   entry.feedback = guidance
   entry.highestHintLevel = guidance.hintLevel
@@ -318,6 +327,15 @@ function parseFeedback(value: unknown): CorrectionGuidance {
   return feedback as unknown as CorrectionGuidance
 }
 
+function parseErrorCauses(value: unknown, path: string): void {
+  if (!Array.isArray(value)) throw new Error(`${path} 必须是数组`)
+  value.forEach((item, index) => {
+    const cause = expectObject(item, `${path}[${index}]`)
+    expectString(cause.id, `${path}[${index}].id`)
+    expectString(cause.label, `${path}[${index}].label`)
+  })
+}
+
 export function parsePracticeSession(value: unknown): PracticeSession {
   const session = expectObject(value, 'practiceSession')
   expectString(session.id, 'practiceSession.id')
@@ -347,6 +365,9 @@ export function parsePracticeSession(value: unknown): PracticeSession {
     if (entry.settledAt !== undefined)
       expectInteger(entry.settledAt, `questions[${index}].settledAt`)
     if (entry.lastAnswer !== undefined) parseAnswer(entry.lastAnswer)
+    if (entry.errorCauses !== undefined) {
+      parseErrorCauses(entry.errorCauses, `questions[${index}].errorCauses`)
+    }
     if (entry.feedback !== undefined) parseFeedback(entry.feedback)
     if (entry.retestOfInstanceId !== undefined)
       expectString(entry.retestOfInstanceId, '复测来源 ID')

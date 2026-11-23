@@ -35,6 +35,39 @@ function wrongAnswer(question: QuestionSnapshot): Answer {
       }
 }
 
+function makeCausedSession(id: string) {
+  const paper = generateSpecialPaper({
+    knowledgePointId: 'oral-multiplication-by-one-digit',
+    difficulty: 'L1',
+    seed: 91,
+    idPrefix: `${id}-paper`,
+    size: 1,
+  })
+  const input = paper.questions[0]
+  const wrong = wrongAnswer(input.question)
+  const question: QuestionSnapshot = {
+    ...input.question,
+    errorCauseRules: [
+      ...input.question.errorCauseRules,
+      {
+        id: 'test-cause',
+        label: '测试错因',
+        feedback: '检查计算过程',
+        answers: [wrong],
+      },
+    ],
+  }
+  return {
+    session: createPracticeSession({
+      id,
+      mode: 'special',
+      questions: [{ ...input, question }],
+      createdAt: 100,
+    }),
+    wrong,
+  }
+}
+
 function current(session: PracticeSession) {
   return session.questions[session.currentIndex]
 }
@@ -49,7 +82,12 @@ describe('practice question state machine', () => {
     expect(current(next).status).toBe('first-correct')
     expect(current(next).attempts).toBe(1)
     expect(next.records).toHaveLength(1)
-    expect(next.records[0]).toMatchObject({ result: 'first-correct', attempts: 1, settledAt: 110 })
+    expect(next.records[0]).toMatchObject({
+      result: 'first-correct',
+      attempts: 1,
+      settledAt: 110,
+      errorCauses: [],
+    })
     expect(getPracticeOutcome(current(next))).toEqual({
       effectiveCompletion: true,
       participatesInTask: true,
@@ -79,6 +117,27 @@ describe('practice question state machine', () => {
     expect(current(corrected).highestHintLevel).toBe(1)
     expect(current(corrected).explanationViewed).toBe(false)
     expect(nextResult(corrected)).toBe('mastered-after-hint')
+  })
+
+  it('deduplicates matched causes and keeps them in corrected and abandoned records', () => {
+    const caused = makeCausedSession('caused-session')
+    let session = submitPracticeAnswer(caused.session, caused.wrong, 110)
+    session = submitPracticeAnswer(session, caused.wrong, 120)
+    expect(current(session).errorCauses).toEqual([{ id: 'test-cause', label: '测试错因' }])
+    expect(session.records).toHaveLength(0)
+
+    session = submitPracticeAnswer(session, current(session).question.standardAnswer, 130)
+    expect(session.records).toHaveLength(1)
+    expect(session.records[0].errorCauses).toEqual([{ id: 'test-cause', label: '测试错因' }])
+    expect(parsePracticeSession(structuredClone(session))).toEqual(session)
+
+    const abandonedCause = makeCausedSession('abandoned-cause')
+    const incorrect = submitPracticeAnswer(abandonedCause.session, abandonedCause.wrong, 110)
+    const abandoned = abandonPracticeSession(incorrect, 120)
+    expect(abandoned.records[0]).toMatchObject({
+      result: 'abandoned',
+      errorCauses: [{ id: 'test-cause', label: '测试错因' }],
+    })
   })
 
   it('shows level-two guidance after a second error and settles explanation correction for retest', () => {
@@ -204,6 +263,9 @@ describe('practice question state machine', () => {
   it('validates persisted session shape', () => {
     const session = makeSession()
     expect(parsePracticeSession(structuredClone(session))).toEqual(session)
+    const legacy = structuredClone(session)
+    for (const entry of legacy.questions) delete entry.errorCauses
+    expect(parsePracticeSession(legacy)).toEqual(legacy)
     const invalidCases: Array<[string, unknown, string]> = [
       ['root', null, '必须是对象'],
       ['blank id', { ...session, id: ' ' }, '不能为空'],
@@ -223,6 +285,16 @@ describe('practice question state machine', () => {
           ),
         },
         '安全整数',
+      ],
+      [
+        'error causes',
+        {
+          ...session,
+          questions: session.questions.map((entry, index) =>
+            index === 0 ? { ...entry, errorCauses: [{ id: 'cause' }] } : entry,
+          ),
+        },
+        'label',
       ],
       [
         'hint level',

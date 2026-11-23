@@ -4,13 +4,21 @@ import { nextTick, onMounted, onUnmounted, ref } from 'vue'
 const props = withDefaults(
   defineProps<{
     title: string
+    eyebrow?: string
     description?: string
     lines?: readonly string[]
     confirmLabel?: string
     busy?: boolean
     error?: string
   }>(),
-  { description: '', lines: () => [], confirmLabel: '确认', busy: false, error: '' },
+  {
+    eyebrow: 'FARM LEDGER · 操作复核',
+    description: '',
+    lines: () => [],
+    confirmLabel: '确认',
+    busy: false,
+    error: '',
+  },
 )
 const emit = defineEmits<{ cancel: []; confirm: [] }>()
 const panel = ref<HTMLElement | null>(null)
@@ -29,7 +37,9 @@ function onKeydown(event: KeyboardEvent): void {
   }
   if (event.key !== 'Tab' || !panel.value) return
   const focusable = Array.from(
-    panel.value.querySelectorAll<HTMLElement>('button:not(:disabled), [href], input:not(:disabled)'),
+    panel.value.querySelectorAll<HTMLElement>(
+      'button:not(:disabled), [href], input:not(:disabled)',
+    ),
   )
   if (focusable.length === 0) return
   const first = focusable[0]
@@ -63,7 +73,7 @@ onUnmounted(() => previousFocus?.focus())
         :aria-describedby="description ? 'farm-dialog-description' : undefined"
         @keydown="onKeydown"
       >
-        <p class="farm-dialog__eyebrow">FARM LEDGER · 操作复核</p>
+        <p class="farm-dialog__eyebrow">{{ eyebrow }}</p>
         <h2 id="farm-dialog-title">{{ title }}</h2>
         <p v-if="description" id="farm-dialog-description">{{ description }}</p>
         <ul v-if="lines.length" class="farm-dialog__lines">
@@ -71,10 +81,21 @@ onUnmounted(() => previousFocus?.focus())
         </ul>
         <p v-if="error" class="farm-dialog__error" role="alert">{{ error }}</p>
         <div class="farm-dialog__actions">
-          <button ref="cancelButton" type="button" class="farm-dialog__cancel" :disabled="busy" @click="cancel">
+          <button
+            ref="cancelButton"
+            type="button"
+            class="farm-dialog__cancel"
+            :disabled="busy"
+            @click="cancel"
+          >
             取消，不执行
           </button>
-          <button type="button" class="farm-dialog__confirm" :disabled="busy" @click="emit('confirm')">
+          <button
+            type="button"
+            class="farm-dialog__confirm"
+            :disabled="busy"
+            @click="emit('confirm')"
+          >
             {{ busy ? '正在保存…' : confirmLabel }}
           </button>
         </div>

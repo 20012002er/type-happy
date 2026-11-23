@@ -323,11 +323,18 @@ describe('question content contract', () => {
 })
 
 describe('learning record contract', () => {
-  it('accepts every shared learning result and optional answer fields', () => {
+  it('accepts every shared learning result and optional answer and error cause fields', () => {
     for (const result of LEARNING_RESULTS) {
       const record = { ...makeRecord(), result }
       expect(parseLearningRecord(record)).toEqual(record)
     }
+    const withErrorCauses = {
+      ...makeRecord(),
+      result: 'mastered-after-hint' as const,
+      attempts: 2,
+      errorCauses: [{ id: 'place-value', label: '部分积错位' }],
+    }
+    expect(parseLearningRecord(withErrorCauses)).toEqual(withErrorCauses)
     const withoutOptionals = makeRecord()
     delete withoutOptionals.answer
     delete withoutOptionals.settledAt
@@ -346,5 +353,12 @@ describe('learning record contract', () => {
     expect(() => parseLearningRecord({ ...makeRecord(), settledAt: Number.NaN })).toThrow(
       'settledAt',
     )
+    expect(() => parseLearningRecord({ ...makeRecord(), errorCauses: {} })).toThrow('errorCauses')
+    expect(() => parseLearningRecord({ ...makeRecord(), errorCauses: [null] })).toThrow(
+      'errorCauses[0]',
+    )
+    expect(() =>
+      parseLearningRecord({ ...makeRecord(), errorCauses: [{ id: 'cause', label: '' }] }),
+    ).toThrow('errorCauses[0].label')
   })
 })
