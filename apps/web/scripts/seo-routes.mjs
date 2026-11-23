@@ -21,12 +21,22 @@ export const gamePaths = [
 
 export const labPaths = ['/labs/boids']
 
+export const learningPaths = [
+  '/learning',
+  '/learning/tasks',
+  '/learning/farm',
+  '/learning/parent',
+  '/learning/records',
+]
+
 /** 全站需要收录/预渲染的路由(sitemap 与 prerender 共用一份清单) */
 export function collectRoutes() {
   const routes = [
     { path: '/', priority: '1.0', changefreq: 'weekly' },
     { path: '/courses', priority: '0.9', changefreq: 'weekly' },
     { path: '/games', priority: '0.9', changefreq: 'weekly' },
+    { path: '/learning', priority: '0.9', changefreq: 'weekly' },
+    ...learningPaths.slice(1).map((p) => ({ path: p, priority: '0.7', changefreq: 'monthly' })),
     ...gamePaths.map((p) => ({ path: p, priority: '0.7', changefreq: 'monthly' })),
     { path: '/labs', priority: '0.8', changefreq: 'weekly' },
     ...labPaths.map((p) => ({ path: p, priority: '0.6', changefreq: 'monthly' })),

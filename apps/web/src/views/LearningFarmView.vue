@@ -204,6 +204,7 @@ function execute(operation: FarmOperation): boolean {
   learning.clearMessages()
   const succeeded = learning.performFarmOperation(operation)
   displayNow.value = learning.getNow()
+  scheduleRefresh()
   return succeeded
 }
 
@@ -279,22 +280,58 @@ function updateSaleQuantity(itemId: string, event: Event): void {
   saleQuantities.value[itemId] = Number((event.target as HTMLInputElement).value)
 }
 
+function stopRefresh(): void {
+  if (timer !== undefined) window.clearTimeout(timer)
+  timer = undefined
+}
+
+function scheduleRefresh(): void {
+  stopRefresh()
+  if (document.hidden) return
+  const readyTimes = [
+    ...farm.value.plots.flatMap((plot) =>
+      plot.crop && plot.crop.readyAt > displayNow.value ? [plot.crop.readyAt] : [],
+    ),
+    ...farm.value.animals.flatMap((animal) =>
+      animal.production && animal.production.readyAt > displayNow.value
+        ? [animal.production.readyAt]
+        : [],
+    ),
+  ]
+  const nextReadyAt = readyTimes.length > 0 ? Math.min(...readyTimes) : Number.POSITIVE_INFINITY
+  const delay = Math.min(60_000, Math.max(50, nextReadyAt - displayNow.value))
+  timer = window.setTimeout(() => {
+    displayNow.value = learning.getNow()
+    scheduleRefresh()
+  }, delay)
+}
+
+function onVisibilityChange(): void {
+  if (document.hidden) {
+    stopRefresh()
+    return
+  }
+  displayNow.value = learning.getNow()
+  scheduleRefresh()
+}
+
 function onStorage(event: StorageEvent): void {
   learning.handleStorageEvent(event)
   displayNow.value = learning.getNow()
+  scheduleRefresh()
 }
 
 onMounted(() => {
   if (learning.initialize()) execute({ type: 'advance' })
   displayNow.value = learning.getNow()
-  timer = window.setInterval(() => {
-    displayNow.value = learning.getNow()
-  }, 1000)
+  scheduleRefresh()
   window.addEventListener('storage', onStorage)
+  document.addEventListener('visibilitychange', onVisibilityChange)
 })
 onUnmounted(() => {
-  if (timer !== undefined) window.clearInterval(timer)
+  stopRefresh()
   window.removeEventListener('storage', onStorage)
+  document.removeEventListener('visibilitychange', onVisibilityChange)
 })
 </script>
 
@@ -310,7 +347,8 @@ onUnmounted(() => {
 
     <div v-if="learning.notice" class="learn-message" role="status">{{ learning.notice }}</div>
     <div v-if="learning.saveError && !confirmation" class="learn-message learn-message--error" role="alert">
-      {{ learning.saveError }}
+      <span>{{ learning.saveError }}</span>
+      <button type="button" class="learn-text-button" @click="learning.refresh()">重新读取</button>
     </div>
 
     <div class="farm-workspace learn-reveal learn-reveal--late">

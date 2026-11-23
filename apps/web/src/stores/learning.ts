@@ -282,6 +282,7 @@ export const useLearningStore = defineStore('learning', () => {
       snapshot.value = repository.load()
       preferences.value = parsePreferences(storage?.getItem(PREFERENCES_STORAGE_KEY) ?? null)
       loadError.value = ''
+      saveError.value = ''
     } catch (error) {
       loadError.value = readableLoadError(error)
     }

@@ -90,8 +90,18 @@ const routes = collectRoutes()
 const homeRoute = routes.find((r) => r.path === '/')
 const renderOrder = [...routes.filter((r) => r.path !== '/'), ...(homeRoute ? [homeRoute] : [])]
 const failures = []
+const preserved = []
 
 async function snapshot(context, route) {
+  const rel = route.path === '/' ? 'index.html' : path.join(route.path.slice(1), 'index.html')
+  const publicTwin = path.join(webRoot, 'public', rel)
+  // public/ 中的独立入口优先，保留原文件而不生成会覆盖它的主站快照。
+  if (fs.existsSync(publicTwin)) {
+    preserved.push(route.path)
+    console.log(`[prerender] SKIP ${route.path}（保留 public/${rel}）`)
+    return
+  }
+
   const page = await context.newPage()
   try {
     const url = PREVIEW_BASE + route.path
@@ -106,14 +116,6 @@ async function snapshot(context, route) {
     await page.waitForTimeout(150)
     // 运行时注入的 modulepreload 链接会带上预渲染机的绝对地址,归一为相对路径
     const html = `<!doctype html>\n${(await page.content()).replaceAll(PREVIEW_BASE, '')}`
-    const rel = route.path === '/' ? 'index.html' : path.join(route.path.slice(1), 'index.html')
-    // 快照不得覆盖 public/ 里的同名静态产物:iframe 游戏(如 /games/idle)的
-    // 入口曾因此被快照顶掉,导致 iframe 里显示主站页面。游戏入口已改名 game.html 避让;
-    // 若将来再引入同名冲突,这里直接报错终止,而不是静默覆盖。
-    const publicTwin = path.join(webRoot, 'public', rel)
-    if (fs.existsSync(publicTwin)) {
-      throw new Error(`快照路径与静态资源冲突: public/${rel}(请把静态入口改名,如 game.html)`)
-    }
     const file = path.join(distDir, rel)
     fs.mkdirSync(path.dirname(file), { recursive: true })
     fs.writeFileSync(file, html)
@@ -170,7 +172,8 @@ async function main() {
     cleanup(1)
     return
   }
-  console.log(`[prerender] 全部 ${routes.length} 个路由预渲染完成`)
+  const preservedNote = preserved.length > 0 ? `，保留 ${preserved.length} 个 public 静态入口` : ''
+  console.log(`[prerender] 全部 ${routes.length} 个路由处理完成${preservedNote}`)
   cleanup(0)
 }
 

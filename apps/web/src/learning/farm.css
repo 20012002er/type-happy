@@ -331,8 +331,8 @@
 .farm-inventory-item__name { display: flex; justify-content: space-between; gap: 12px; }
 .farm-inventory-item__name small { color: var(--learn-muted); }
 .farm-inventory-item__quantity { white-space: nowrap; font-weight: 800; }
-.farm-inventory-item input { width: 74px; min-height: 40px; box-sizing: border-box; padding: 7px; border: 1px solid #bfc6b7; border-radius: 6px; background: #fffef9; }
-.farm-inventory-item .learn-button { min-height: 40px; padding: 7px 12px; }
+.farm-inventory-item input { width: 74px; min-height: 44px; box-sizing: border-box; padding: 7px; border: 1px solid #bfc6b7; border-radius: 6px; background: #fffef9; }
+.farm-inventory-item .learn-button { min-height: 44px; padding: 7px 12px; }
 .farm-inventory-item__quote { grid-column: 1 / -1; margin: 0; color: var(--learn-muted); font-size: 12px; }
 .farm-inventory-item__quote.is-error { color: #8a4b31; }
 .farm-inventory-empty { padding: 18px 0; color: var(--learn-muted); }

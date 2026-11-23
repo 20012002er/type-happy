@@ -131,7 +131,7 @@ useHead({
     </main>
 
     <footer class="border-t border-stone-200 bg-white py-7">
-      <div class="mx-auto max-w-5xl space-y-2.5 px-4 text-center text-xs text-stone-400">
+      <div class="mx-auto max-w-5xl space-y-2.5 px-4 text-center text-xs text-stone-600">
         <p>打字乐园 · 每天十分钟,练出好指法。练习成绩仅保存在本机浏览器中。</p>
         <p>
           <a

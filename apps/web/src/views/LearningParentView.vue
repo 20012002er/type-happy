@@ -386,6 +386,10 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
   grid-column: 1 / -1;
 }
 
+.parent-layout > * {
+  min-width: 0;
+}
+
 .parent-goal {
   display: grid;
   grid-template-columns: minmax(160px, 0.65fr) minmax(0, 1.35fr);
@@ -595,7 +599,7 @@ time {
 
 @media (max-width: 820px) {
   .parent-layout {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .parent-wide {
