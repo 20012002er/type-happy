@@ -65,9 +65,7 @@ const summary = computed(() => learning.getSessionSummary(props.sessionId))
         {{ learning.today.taskRemaining === 0 ? '再做一组加练' : '继续今日练习' }}
       </button>
       <RouterLink class="learn-button learn-button--secondary" to="/learning">返回学习首页</RouterLink>
-      <button type="button" class="learn-button learn-button--quiet" disabled title="学习农场将在下一阶段开放">
-        学习农场 · 下一阶段开放
-      </button>
+      <RouterLink class="learn-button learn-button--quiet" to="/learning/farm">去学习农场</RouterLink>
     </div>
   </section>
 </template>

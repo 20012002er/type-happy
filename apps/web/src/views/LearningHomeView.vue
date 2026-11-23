@@ -208,13 +208,13 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
             </div>
             <div>
               <dt>待收获</dt>
-              <dd>0</dd>
+              <dd>{{ learning.pendingHarvests }}</dd>
             </div>
           </dl>
           <div class="learn-actions">
-            <button type="button" class="learn-button learn-button--secondary" disabled title="学习农场将在下一阶段开放">
-              学习农场 · 下一阶段开放
-            </button>
+            <RouterLink class="learn-button learn-button--secondary" to="/learning/farm">
+              去学习农场
+            </RouterLink>
           </div>
         </section>
 

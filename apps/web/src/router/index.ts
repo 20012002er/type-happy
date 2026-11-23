@@ -84,6 +84,16 @@ const router = createRouter({
       },
     },
     {
+      path: '/learning/farm',
+      name: 'learning-farm',
+      component: () => import('../views/LearningFarmView.vue'),
+      meta: {
+        title: '学习农场',
+        description:
+          '用学习金币经营像素农场：播种、施肥、收获、饲养鸡牛，并在仓库出售农产品。',
+      },
+    },
+    {
       path: '/learning/records',
       name: 'learning-records',
       component: () => import('../views/LearningRecordsView.vue'),

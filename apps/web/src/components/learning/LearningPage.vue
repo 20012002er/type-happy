@@ -21,7 +21,8 @@ const learning = useLearningStore()
       <nav class="learn-local-nav" aria-label="学习模块导航">
         <RouterLink to="/learning" exact-active-class="is-active">学习首页</RouterLink>
         <RouterLink to="/learning/tasks" active-class="is-active">今日任务</RouterLink>
-        <RouterLink to="/learning/records" active-class="is-active">学习记录</RouterLink>
+        <RouterLink to="/learning/farm" active-class="is-active">学习农场</RouterLink>
+        <RouterLink to="/learning/records" active-class="is-active">金币流水</RouterLink>
         <span class="learn-local-nav__coin" aria-label="学习金币余额">
           <span aria-hidden="true">●</span>
           {{ learning.today.walletBalance }} 金币

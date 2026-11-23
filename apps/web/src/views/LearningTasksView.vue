@@ -100,9 +100,9 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
           加练不重复增加每日进度，也不重复发放每日奖励。
         </section>
 
-        <button type="button" class="learn-button learn-button--secondary" disabled title="学习农场将在下一阶段开放">
-          学习农场 · 下一阶段开放
-        </button>
+        <RouterLink class="learn-button learn-button--secondary" to="/learning/farm">
+          去学习农场
+        </RouterLink>
       </aside>
     </div>
   </LearningPage>

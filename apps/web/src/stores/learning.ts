@@ -11,8 +11,34 @@ import {
 import {
   CorruptedSnapshotError,
   LearningRepository,
+  PersistenceWriteError,
   RevisionConflictError,
 } from '../learning/persistence/repository'
+import {
+  claimStarterGift,
+  collectAnimalProduct,
+  feedAnimal,
+  fertilizeCrop,
+  harvestCrop,
+  plantCrop,
+} from '../learning/farm/farm'
+import {
+  claimRecoverySupply,
+  purchaseFarmAnimal,
+  purchaseFarmSupplies,
+  purchaseNextPlot,
+  purchaseOrUpgradeBuilding,
+  sellFarmProducts,
+  transactFarmOperation,
+  type FarmSaleSelection,
+  type FarmSupplyItemId,
+} from '../learning/farm/farm-transactions'
+import {
+  advanceFarmTime,
+  getPendingHarvestCount,
+  type AnimalKind,
+  type CropId,
+} from '../learning/farm/farm-state'
 import type { Clock, IdGenerator, Random, StoragePort } from '../learning/ports'
 import {
   createCryptoIdGenerator,
@@ -58,6 +84,21 @@ export type StartPracticeOptions =
 
 export type SubmitPracticeResult = 'submitted' | 'replaced' | 'failed'
 
+export type FarmOperation =
+  | { type: 'advance' }
+  | { type: 'claim-gift' }
+  | { type: 'plant'; plotId: string; cropId: CropId }
+  | { type: 'fertilize'; plotId: string }
+  | { type: 'harvest'; plotId: string }
+  | { type: 'feed'; animalId: string }
+  | { type: 'collect'; animalId: string }
+  | { type: 'buy-supplies'; itemId: FarmSupplyItemId; quantity: number }
+  | { type: 'buy-plot' }
+  | { type: 'buy-building'; building: 'chickenCoop' | 'cowshed' }
+  | { type: 'buy-animal'; kind: AnimalKind }
+  | { type: 'sell'; selection: FarmSaleSelection }
+  | { type: 'claim-recovery' }
+
 const DEFAULT_PREFERENCES: LearningPreferences = {
   courseIntroSeen: false,
   soundEnabled: true,
@@ -93,6 +134,59 @@ function editableSession(session: PracticeSession): PracticeSession {
   return structuredClone(toRaw(session))
 }
 
+const FARM_OPERATION_NOTICES: Partial<Record<FarmOperation['type'], string>> = {
+  'claim-gift': '新手礼包已领取：4 块土地、4 粒萝卜种子、1 只鸡和 2 份鸡饲料',
+  plant: '播种成功，作物会按真实时间生长',
+  fertilize: '化肥已使用，本次剩余生长时间缩短一半',
+  harvest: '作物已收获并放入仓库',
+  feed: '喂食成功，动物开始生产',
+  collect: '农产品已收入仓库',
+  'buy-supplies': '物品已购买并放入仓库',
+  'buy-plot': '新土地已解锁',
+  'buy-building': '建筑已购买或升级，新容量已生效',
+  'buy-animal': '动物已入住农场',
+  sell: '农产品已出售，学习金币已到账',
+  'claim-recovery': '恢复补给已放入仓库：萝卜种子 × 2',
+}
+
+function applyFarmOperation(
+  snapshot: LearningSnapshot,
+  operation: FarmOperation,
+  id: string,
+  now: number,
+): LearningSnapshot {
+  const action = { actionId: id, now }
+  const settlement = { settlementId: id, now }
+  switch (operation.type) {
+    case 'advance':
+      return { ...snapshot, farm: advanceFarmTime(snapshot.farm, now) }
+    case 'claim-gift':
+      return { ...snapshot, farm: claimStarterGift(snapshot.farm, action) }
+    case 'plant':
+      return { ...snapshot, farm: plantCrop(snapshot.farm, { ...action, ...operation }) }
+    case 'fertilize':
+      return { ...snapshot, farm: fertilizeCrop(snapshot.farm, { ...action, ...operation }) }
+    case 'harvest':
+      return { ...snapshot, farm: harvestCrop(snapshot.farm, { ...action, ...operation }) }
+    case 'feed':
+      return { ...snapshot, farm: feedAnimal(snapshot.farm, { ...action, ...operation }) }
+    case 'collect':
+      return { ...snapshot, farm: collectAnimalProduct(snapshot.farm, { ...action, ...operation }) }
+    case 'buy-supplies':
+      return purchaseFarmSupplies(snapshot, { ...settlement, ...operation })
+    case 'buy-plot':
+      return purchaseNextPlot(snapshot, settlement)
+    case 'buy-building':
+      return purchaseOrUpgradeBuilding(snapshot, { ...settlement, ...operation })
+    case 'buy-animal':
+      return purchaseFarmAnimal(snapshot, { ...settlement, ...operation })
+    case 'sell':
+      return sellFarmProducts(snapshot, { ...settlement, ...operation })
+    case 'claim-recovery':
+      return claimRecoverySupply(snapshot, action)
+  }
+}
+
 export const useLearningStore = defineStore('learning', () => {
   const snapshot = ref<LearningSnapshot>(createEmptyLearningSnapshot())
   const ready = ref(false)
@@ -100,6 +194,7 @@ export const useLearningStore = defineStore('learning', () => {
   const saveError = ref('')
   const notice = ref('')
   const saving = ref(false)
+  const farmNow = ref(systemClock.now())
   const preferences = ref<LearningPreferences>({ ...DEFAULT_PREFERENCES })
 
   let storage: StoragePort | undefined
@@ -126,12 +221,16 @@ export const useLearningStore = defineStore('learning', () => {
       (left, right) => right.updatedAt - left.updatedAt,
     ),
   )
+  const pendingHarvests = computed(() =>
+    getPendingHarvestCount(snapshot.value.farm, farmNow.value),
+  )
 
   function initialize(dependencies: LearningStoreDependencies = {}): boolean {
     if (dependencies.storage) storage = dependencies.storage
     if (dependencies.clock) clock = dependencies.clock
     if (dependencies.ids) ids = dependencies.ids
     if (dependencies.random) random = dependencies.random
+    farmNow.value = clock.now()
     const selectedStorage = storage ?? getBrowserStorage()
     storage = selectedStorage
     repository = new LearningRepository(selectedStorage)
@@ -304,6 +403,44 @@ export const useLearningStore = defineStore('learning', () => {
       .reduce((total, entry) => total + entry.amount, 0)
   }
 
+  function getNow(): number {
+    farmNow.value = clock.now()
+    return farmNow.value
+  }
+
+  function performFarmOperation(operation: FarmOperation): boolean {
+    if (saving.value) return false
+    if (!repository) {
+      saveError.value = '学习数据尚未准备好，请刷新后重试'
+      return false
+    }
+    saving.value = true
+    saveError.value = ''
+    try {
+      const now = getNow()
+      const next = transactFarmOperation(repository, snapshot.value.revision, (current) =>
+        applyFarmOperation(current, operation, `farm-${ids.next()}`, now),
+      )
+      snapshot.value = next
+      notice.value = FARM_OPERATION_NOTICES[operation.type] ?? ''
+      return true
+    } catch (error) {
+      saveError.value =
+        error instanceof RevisionConflictError ||
+        error instanceof PersistenceWriteError ||
+        error instanceof CorruptedSnapshotError ||
+        error instanceof UnsupportedSchemaVersionError
+          ? readableSaveError(error)
+          : error instanceof Error
+            ? error.message
+            : '农场操作暂时无法完成，请重试'
+      notice.value = ''
+      return false
+    } finally {
+      saving.value = false
+    }
+  }
+
   function updatePreferences(patch: Partial<LearningPreferences>): void {
     const next = { ...preferences.value, ...patch }
     try {
@@ -330,6 +467,7 @@ export const useLearningStore = defineStore('learning', () => {
     today,
     activeSession,
     practiceSessions,
+    pendingHarvests,
     course: GRADE4_AUTUMN_MATH_COURSE,
     initialize,
     refresh,
@@ -342,6 +480,8 @@ export const useLearningStore = defineStore('learning', () => {
     getSession,
     getSessionSummary,
     practiceRewardFor,
+    getNow,
+    performFarmOperation,
     updatePreferences,
     clearMessages,
   }
