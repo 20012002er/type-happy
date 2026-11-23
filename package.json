@@ -10,7 +10,9 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "pnpm --filter @type-happy/web format:check",
-    "test": "pnpm test:unit && pnpm --filter @type-happy/web smoke && pnpm test:e2e",
+    "test": "pnpm test:content && pnpm test:unit && pnpm --filter @type-happy/web smoke && pnpm test:e2e",
+    "test:content": "pnpm --filter @type-happy/web test:content",
+    "test:content:release": "pnpm --filter @type-happy/web test:content:release",
     "test:unit": "pnpm --filter @type-happy/web test:unit",
     "test:coverage": "pnpm --filter @type-happy/web test:coverage",
     "test:e2e": "pnpm --filter @type-happy/web test:e2e"

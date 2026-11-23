@@ -12,8 +12,10 @@
     "smoke": "tsx scripts/smoke-engines.ts",
     "test:unit": "vitest run",
     "test:coverage": "vitest run --coverage",
+    "test:content": "tsx scripts/validate-learning-content.ts",
+    "test:content:release": "tsx scripts/validate-learning-content.ts --release",
     "test:e2e": "playwright test",
-    "format:check": "prettier --check tests e2e vitest.config.ts playwright.config.ts package.json tsconfig.json scripts/prerender.mjs"
+    "format:check": "prettier --check tests e2e vitest.config.ts playwright.config.ts package.json tsconfig.json scripts/prerender.mjs scripts/validate-learning-content.ts"
   },
   "dependencies": {
     "@type-happy/shared": "workspace:*",
