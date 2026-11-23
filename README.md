@@ -1,6 +1,22 @@
 # 打字乐园(type-happy)
 
-一个纯打字练习网站:三大课程(**标准指法练习 / 英文练习 / 中文练习**),SVG 虚拟键盘指法引导,中文 IME 拼音逐音节判分;另含**游戏模块**(消气球 / 打鸭子 / 街霸 / 放置刷装备 / 涂鸦跳跃 / 放置武林)。成绩与游戏进度均保存在浏览器本地。无账号、无排行榜、无数据库。
+一个纯打字练习网站:三大课程(**标准指法练习 / 英文练习 / 中文练习**),SVG 虚拟键盘指法引导,中文 IME 拼音逐音节判分;另含**教学练习与学习农场**,以及**游戏模块**(消气球 / 打鸭子 / 街霸 / 放置刷装备 / 涂鸦跳跃 / 放置武林)。成绩、学习数据与游戏进度均保存在浏览器本地。无账号、无排行榜、无数据库。
+
+## 在线访问
+
+主站:**[https://type.toby-blog.com/](https://type.toby-blog.com/)**
+
+| 页面                                                    | 地址                |
+| ------------------------------------------------------- | ------------------- |
+| [网站首页](https://type.toby-blog.com/)                 | `/`                 |
+| [学习首页](https://type.toby-blog.com/learning)         | `/learning`         |
+| [每日任务](https://type.toby-blog.com/learning/tasks)   | `/learning/tasks`   |
+| [学习农场](https://type.toby-blog.com/learning/farm)    | `/learning/farm`    |
+| [学习记录](https://type.toby-blog.com/learning/records) | `/learning/records` |
+| [家长设置](https://type.toby-blog.com/learning/parent)  | `/learning/parent`  |
+| [全部打字课程](https://type.toby-blog.com/courses)      | `/courses`          |
+| [打字游戏](https://type.toby-blog.com/games)            | `/games`            |
+| [实验室](https://type.toby-blog.com/labs)               | `/labs`             |
 
 ## 快速开始
 
@@ -60,8 +76,8 @@ docker compose up -d --build
 | 每页独立 TDK(title/description)       | `@unhead/vue`:路由 meta 提供默认值,课程/关卡页在数据加载后动态覆盖                                                          |
 | canonical / Open Graph / Twitter Card | 全部路由自动注入,地址基于 `VITE_SITE_URL`(默认 https://type.toby-blog.com)                                                  |
 | 结构化数据 JSON-LD                    | 首页 `WebSite`;游戏页 `VideoGame`;课程/游戏列表页 `ItemList`;课程与关卡页 `BreadcrumbList`                                  |
-| sitemap.xml / robots.txt              | `scripts/gen-seo.mjs` 构建时从课程 JSON 生成(64 个 URL),产物在 `public/`,不入库                                             |
-| **静态预渲染**                        | `scripts/prerender.mjs` 用 Playwright 把全部 64 个路由渲染成静态 HTML 快照写入 `dist/`,爬虫无需执行 JS 即可抓取正文与 meta  |
+| sitemap.xml / robots.txt              | `scripts/gen-seo.mjs` 构建时从课程 JSON 生成(70 个 URL),产物在 `public/`,不入库                                             |
+| **静态预渲染**                        | `scripts/prerender.mjs` 用 Playwright 把全部 70 个路由渲染成静态 HTML 快照写入 `dist/`,爬虫无需执行 JS 即可抓取正文与 meta  |
 | nginx 快照分发                        | `try_files $uri $uri/index.html /index.html`:干净 URL 直接命中预渲染快照,内部重写无 301;HTML 一律 no-cache                  |
 | 站点图标 / PWA manifest               | `public/favicon.svg`(设计源)由 `scripts/gen-icons.mjs` 生成 `.ico`/PNG 全尺寸集与 `manifest.webmanifest`,图标变更时手动重跑 |
 
