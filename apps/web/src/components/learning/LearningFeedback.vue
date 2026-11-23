@@ -9,7 +9,9 @@ const props = defineProps<{
 }>()
 
 const settled = computed(() =>
-  ['first-correct', 'mastered-after-hint', 'corrected-awaiting-retest'].includes(props.entry.status),
+  ['first-correct', 'mastered-after-hint', 'corrected-awaiting-retest'].includes(
+    props.entry.status,
+  ),
 )
 const title = computed(() => {
   if (props.entry.status === 'first-correct') return '首次答对，做得很好'
@@ -20,9 +22,23 @@ const title = computed(() => {
 })
 
 function answerText(answer: Answer): string {
-  return answer.kind === 'number'
-    ? String(answer.value)
-    : `商 ${answer.quotient}，余数 ${answer.remainder}`
+  switch (answer.kind) {
+    case 'number':
+      return String(answer.value)
+    case 'quotient-remainder':
+      return `商 ${answer.quotient}，余数 ${answer.remainder}`
+    case 'fill-blanks':
+    case 'sentence-completion':
+      return answer.values.join('；')
+    case 'single-choice':
+      return answer.optionId
+    case 'word-problem':
+      return `${answer.value}${answer.unit ?? ''}`
+    case 'fraction':
+      return `${answer.numerator}/${answer.denominator}`
+    case 'english-spelling':
+      return answer.value
+  }
 }
 </script>
 
@@ -43,7 +59,9 @@ function answerText(answer: Answer): string {
         <p v-else class="learn-feedback__reward">+{{ practiceReward }} 学习金币已到账</p>
       </template>
       <template v-else-if="entry.feedback">
-        <p><strong>{{ entry.feedback.message }}</strong></p>
+        <p>
+          <strong>{{ entry.feedback.message }}</strong>
+        </p>
         <p>提示 {{ entry.feedback.hintLevel }}：{{ entry.feedback.hint }}</p>
         <div v-if="entry.feedback.hintLevel === 2" class="learn-feedback__explanation">
           <h4>分步讲解</h4>

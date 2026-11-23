@@ -51,9 +51,15 @@ function answersEqual(left: Answer, right: Answer): boolean {
 }
 
 function acceptedAnswers(snapshot: QuestionSnapshot): readonly Answer[] {
-  return snapshot.acceptedAnswerRule.kind === 'number'
-    ? snapshot.acceptedAnswerRule.values.map((value) => ({ kind: 'number', value }))
-    : snapshot.acceptedAnswerRule.values.map((value) => ({ kind: 'quotient-remainder', ...value }))
+  const rule = snapshot.acceptedAnswerRule
+  switch (rule.kind) {
+    case 'number':
+      return rule.values.map((value) => ({ kind: 'number', value }))
+    case 'quotient-remainder':
+      return rule.values.map((value) => ({ kind: 'quotient-remainder', ...value }))
+    default:
+      throw new Error('WP04 前不支持该题型的判分')
+  }
 }
 
 function matchCause(snapshot: QuestionSnapshot, answer: Answer): ErrorCauseRule | undefined {
@@ -77,6 +83,7 @@ export function judgeAnswer(snapshot: QuestionSnapshot, answer: Answer): AnswerJ
   const base = { correct, answer, cause: correct ? undefined : matchCause(snapshot, answer) }
   if (correct) return { ...base, message: '回答正确' }
   if (answer.kind === 'number') return { ...base, message: '答案还不正确，请根据提示检查' }
+  if (answer.kind !== 'quotient-remainder') throw new Error('WP04 前不支持该题型的判分')
 
   const standard = snapshot.standardAnswer
   if (standard.kind !== 'quotient-remainder') throw new Error('商余数题的标准答案配置无效')

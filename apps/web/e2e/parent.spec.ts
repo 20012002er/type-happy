@@ -40,11 +40,14 @@ async function submitFirstCorrect(page: Page): Promise<void> {
     },
     { key: LEARNING_STORAGE_KEY, id: sessionId },
   )) as QuestionSnapshot
-  if (question.standardAnswer.kind === 'number') {
-    await page.getByLabel('答案', { exact: true }).fill(String(question.standardAnswer.value))
+  const answer = question.standardAnswer
+  if (answer.kind === 'number') {
+    await page.getByLabel('答案', { exact: true }).fill(String(answer.value))
+  } else if (answer.kind === 'quotient-remainder') {
+    await page.getByLabel('商', { exact: true }).fill(String(answer.quotient))
+    await page.getByLabel('余数', { exact: true }).fill(String(answer.remainder))
   } else {
-    await page.getByLabel('商', { exact: true }).fill(String(question.standardAnswer.quotient))
-    await page.getByLabel('余数', { exact: true }).fill(String(question.standardAnswer.remainder))
+    throw new Error('当前练习仅支持数值题和商余数题')
   }
   await page.getByRole('button', { name: '提交答案', exact: true }).click()
 }

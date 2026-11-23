@@ -5,6 +5,8 @@ export const WALLET_SOURCES = [
   'farm-sale',
   'farm-purchase',
   'farm-building',
+  'processing-sale',
+  'processing-purchase',
   'recovery',
   'activity',
 ] as const

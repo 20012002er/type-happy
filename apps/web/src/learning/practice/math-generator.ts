@@ -1,7 +1,7 @@
 import { GRADE4_AUTUMN_MATH_COURSE } from '../content/grade4-math'
 import { parseQuestionSnapshot } from '../contracts'
 import type { Random } from '../ports'
-import type { Difficulty, ErrorCauseRule, QuestionSnapshot } from '../types'
+import type { Answer, Difficulty, ErrorCauseRule, QuestionSnapshot } from '../types'
 import { getMathTemplate, type MathQuestionTemplate } from './math-templates'
 
 function seededRandom(seed: number): Random {
@@ -40,7 +40,7 @@ function baseSnapshot(
   seed: number,
   instanceId: string,
   prompt: string,
-  answer: QuestionSnapshot['standardAnswer'],
+  answer: Extract<Answer, { kind: 'number' | 'quotient-remainder' }>,
   hints: QuestionSnapshot['hints'],
   explanationSteps: readonly string[],
   errorCauseRules: readonly ErrorCauseRule[],

@@ -25,6 +25,12 @@ function expectCommonInvariants(question: QuestionSnapshot): void {
       ? { kind: 'number', value: accepted as number }
       : { kind: 'quotient-remainder', ...(accepted as { quotient: number; remainder: number }) }
   expect(answersEqual(acceptedAnswer, question.standardAnswer)).toBe(true)
+  if (
+    question.standardAnswer.kind !== 'number' &&
+    question.standardAnswer.kind !== 'quotient-remainder'
+  ) {
+    throw new Error('当前数学生成器仅支持数值题和商余数题')
+  }
   expect(question.retestKnowledgePointIds).toEqual([question.classification.knowledgePointId])
   expect(question.participatesInTask).toBe(true)
   expect(question.rewardEligible).toBe(true)

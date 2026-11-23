@@ -17,7 +17,7 @@ import {
 import { createRichLearningSnapshotFixture } from '../../fixtures/learning'
 
 const validRecipe: RecipeContent = {
-  id: 'flour-v1',
+  id: 'flour-extra-v1',
   version: 1,
   inputs: { wheat: 2 },
   durationMinutes: 20,
@@ -39,7 +39,7 @@ function validManifest(): LearningContentManifest {
         unavailableReason: '课程内容尚未注册',
       },
     ],
-    recipes: [validRecipe],
+    recipes: [...current.recipes, validRecipe],
   }
 }
 
@@ -74,8 +74,8 @@ describe('WP00 learning content validation entry', () => {
     expect(validateLearningContent()).toEqual({
       math: MATH_TEMPLATES.length,
       english: 0,
-      courseAvailability: 1,
-      recipes: 0,
+      courseAvailability: 8,
+      recipes: 3,
     })
   })
 
@@ -83,8 +83,8 @@ describe('WP00 learning content validation entry', () => {
     expect(validateLearningContent(validManifest())).toEqual({
       math: MATH_TEMPLATES.length,
       english: 1,
-      courseAvailability: 2,
-      recipes: 1,
+      courseAvailability: 9,
+      recipes: 4,
     })
   })
 

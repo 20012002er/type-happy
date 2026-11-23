@@ -1,6 +1,7 @@
 import { pathToFileURL } from 'node:url'
 import { LEARNING_RULES } from '../src/learning/config/rules'
 import { GRADE4_AUTUMN_MATH_COURSE } from '../src/learning/content/grade4-math'
+import { COURSE_AVAILABILITY, COURSE_REGISTRY } from '../src/learning/content/course-registry'
 import {
   parseCourse,
   parseQuestionSnapshot,
@@ -8,6 +9,7 @@ import {
 } from '../src/learning/contracts'
 import { generateMathQuestion } from '../src/learning/practice/math-generator'
 import { MATH_TEMPLATES } from '../src/learning/practice/math-templates'
+import { PROCESSING_RECIPES } from '../src/learning/processing/recipes'
 
 export interface VersionedContent {
   id: string
@@ -51,14 +53,15 @@ export function createCurrentContentManifest(): LearningContentManifest {
   return {
     math: MATH_TEMPLATES.map(({ id, version }) => ({ id, version })),
     english: [],
-    courseAvailability: [
-      {
-        courseId: GRADE4_AUTUMN_MATH_COURSE.id,
-        subject: 'math',
-        available: true,
-      },
-    ],
-    recipes: [],
+    courseAvailability: COURSE_AVAILABILITY.map(
+      ({ courseId, subject, available, unavailableReason }) => ({
+        courseId,
+        subject,
+        available,
+        unavailableReason,
+      }),
+    ),
+    recipes: PROCESSING_RECIPES,
   }
 }
 
@@ -129,6 +132,7 @@ export function validateCurrentMathContent(): void {
 export function validateLearningContent(
   manifest: LearningContentManifest = createCurrentContentManifest(),
 ): ContentQualityReport {
+  for (const course of COURSE_REGISTRY) parseCourse(course)
   validateCurrentMathContent()
   validateVersionedContent(manifest.math, 'math')
   validateVersionedContent(manifest.english, 'english')

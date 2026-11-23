@@ -53,7 +53,7 @@ async function submitCurrent(page: Page, keyboard = false): Promise<void> {
     await input.focus()
     if (keyboard) await page.keyboard.type(String(answer.value))
     else await input.fill(String(answer.value))
-  } else {
+  } else if (answer.kind === 'quotient-remainder') {
     for (const [label, value] of [
       ['商', answer.quotient],
       ['余数', answer.remainder],
@@ -63,6 +63,8 @@ async function submitCurrent(page: Page, keyboard = false): Promise<void> {
       if (keyboard) await page.keyboard.type(String(value))
       else await input.fill(String(value))
     }
+  } else {
+    throw new Error('当前练习仅支持数值题和商余数题')
   }
   const submit = page.getByRole('button', { name: /提交答案|提交订正/ })
   if (keyboard) {

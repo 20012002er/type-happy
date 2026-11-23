@@ -50,6 +50,7 @@ const itemNames: Record<string, string> = {
 const categoryNames: Record<WarehouseCategory, string> = {
   crops: '作物',
   'animal-products': '动物产品',
+  'processed-products': '加工品',
   seeds: '种子',
   fertilizer: '化肥',
   feed: '饲料',

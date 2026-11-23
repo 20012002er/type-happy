@@ -26,13 +26,14 @@ function makeSession(size = 6, id = 'session-1'): PracticeSession {
 }
 
 function wrongAnswer(question: QuestionSnapshot): Answer {
-  return question.standardAnswer.kind === 'number'
-    ? { kind: 'number', value: question.standardAnswer.value + 1 }
-    : {
-        kind: 'quotient-remainder',
-        quotient: question.standardAnswer.quotient + 1,
-        remainder: question.standardAnswer.remainder,
-      }
+  const answer = question.standardAnswer
+  if (answer.kind === 'number') return { kind: 'number', value: answer.value + 1 }
+  if (answer.kind !== 'quotient-remainder') throw new Error('当前练习仅支持数值题和商余数题')
+  return {
+    kind: 'quotient-remainder',
+    quotient: answer.quotient + 1,
+    remainder: answer.remainder,
+  }
 }
 
 function makeCausedSession(id: string) {

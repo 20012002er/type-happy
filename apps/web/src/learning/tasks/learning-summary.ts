@@ -1,7 +1,7 @@
 import { LEARNING_RULES } from '../config/rules'
 import { shiftLocalDateKey, toLocalDateKey } from '../date-key'
 import type { LearningSnapshot } from '../persistence/snapshot'
-import type { LearningRecord, LearningResult } from '../types'
+import type { LearningAbility, LearningRecord, LearningResult, Semester, Subject } from '../types'
 import { WALLET_SOURCES, type WalletLedgerEntry, type WalletSource } from '../wallet/wallet'
 import { validateDailyGoal } from './daily-task'
 import { getNextStreakMilestone, type StreakMilestone } from './streak'
@@ -50,8 +50,36 @@ export interface ErrorCauseSummary {
 
 export interface KnowledgePointSummary extends LearningCounts {
   knowledgePointId: string
+  courseId?: string
+  unitId?: string
+  subject?: Subject
+  ability?: LearningAbility
   errorCauses: ErrorCauseSummary[]
   unclassifiedErrorRecords: number
+}
+
+export type LearningSummaryPeriod = 'today' | 'recent-7-days'
+
+export interface LearningSummaryFilter {
+  period: LearningSummaryPeriod
+  subject?: Subject
+  courseId?: string
+  knowledgePointId?: string
+}
+
+export interface SubjectLearningSummary extends LearningCounts {
+  subject: Subject
+}
+
+export interface CourseLearningSummary extends LearningCounts {
+  courseId: string
+  subject: Subject
+  grade: number
+  semester: Semester
+}
+
+export interface AbilityLearningSummary extends LearningCounts {
+  ability: LearningAbility
 }
 
 export interface DailyLearningSummary extends LearningCounts {

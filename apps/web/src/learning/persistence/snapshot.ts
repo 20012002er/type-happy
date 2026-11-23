@@ -1,12 +1,18 @@
 import { parseLearningRecord } from '../contracts'
+import { getCourseAvailability } from '../content/course-registry'
 import { assertLocalDateKey } from '../date-key'
 import { createEmptyFarmState, parseFarmState, type FarmState } from '../farm/farm-state'
 import { parsePracticeSession, type PracticeSession } from '../practice/practice-session'
 import { parseRetestPoolEntry, type RetestPoolEntry } from '../practice/retest'
-import type { LearningRecord } from '../types'
+import {
+  createEmptyProcessingState,
+  parseProcessingState,
+  type ProcessingState,
+} from '../processing/state'
+import type { LearningRecord, Semester } from '../types'
 import { createEmptyWallet, parseWalletState, type WalletState } from '../wallet/wallet'
 
-export const LEARNING_SCHEMA_VERSION = 3
+export const LEARNING_SCHEMA_VERSION = 4
 export const LEARNING_STORAGE_KEY = 'type-happy:learning:snapshot'
 
 export interface DailyTaskState {
@@ -15,9 +21,15 @@ export interface DailyTaskState {
   rewarded: boolean
 }
 
+export interface CourseSelection {
+  grade: number
+  semester: Semester
+}
+
 export interface LearningSnapshot {
   schemaVersion: typeof LEARNING_SCHEMA_VERSION
   revision: number
+  course: CourseSelection
   learning: { records: readonly LearningRecord[] }
   practice: {
     sessions: Readonly<Record<string, PracticeSession>>
@@ -29,6 +41,7 @@ export interface LearningSnapshot {
   }
   wallet: WalletState
   farm: FarmState
+  processing: ProcessingState
 }
 
 export class SnapshotValidationError extends Error {
@@ -69,6 +82,7 @@ export function createEmptyLearningSnapshot(): LearningSnapshot {
   return {
     schemaVersion: LEARNING_SCHEMA_VERSION,
     revision: 0,
+    course: { grade: 4, semester: 'autumn' },
     learning: { records: [] },
     practice: { sessions: {}, retestPool: [] },
     tasks: {
@@ -77,6 +91,7 @@ export function createEmptyLearningSnapshot(): LearningSnapshot {
     },
     wallet: createEmptyWallet(),
     farm: createEmptyFarmState(),
+    processing: createEmptyProcessingState(),
   }
 }
 
@@ -86,6 +101,15 @@ export function parseLearningSnapshot(value: unknown): LearningSnapshot {
     throw new SnapshotValidationError('snapshot.schemaVersion 版本不匹配')
   }
   expectInteger(snapshot.revision, 'snapshot.revision')
+
+  const course = expectRecord(snapshot.course, 'snapshot.course')
+  expectInteger(course.grade, 'snapshot.course.grade', 1)
+  if (course.semester !== 'autumn' && course.semester !== 'spring') {
+    throw new SnapshotValidationError('snapshot.course.semester 必须是 autumn 或 spring')
+  }
+  if (!getCourseAvailability(Number(course.grade), course.semester, 'math')?.available) {
+    throw new SnapshotValidationError('snapshot.course 包含未知课程')
+  }
 
   const learning = expectRecord(snapshot.learning, 'snapshot.learning')
   if (!Array.isArray(learning.records))
@@ -134,5 +158,6 @@ export function parseLearningSnapshot(value: unknown): LearningSnapshot {
 
   parseWalletState(snapshot.wallet)
   parseFarmState(snapshot.farm)
+  parseProcessingState(snapshot.processing)
   return snapshot as unknown as LearningSnapshot
 }

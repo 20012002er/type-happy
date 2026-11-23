@@ -1,5 +1,6 @@
 import { LEARNING_RULES } from '../config/rules'
 import { assertLocalDateKey, toLocalDateKey } from '../date-key'
+import { isProcessingProduct } from '../processing/types'
 
 export const CROP_IDS = ['radish', 'wheat', 'corn', 'pumpkin'] as const
 export const ANIMAL_KINDS = ['chicken', 'cow'] as const
@@ -9,7 +10,8 @@ export type CropId = (typeof CROP_IDS)[number]
 export type AnimalKind = (typeof ANIMAL_KINDS)[number]
 export type FeedItemId = (typeof FEED_ITEM_IDS)[number]
 export type FarmProductId = CropId | 'egg' | 'milk'
-export type WarehouseCategory = 'crops' | 'animal-products' | 'seeds' | 'fertilizer' | 'feed'
+export type WarehouseCategory =
+  'crops' | 'animal-products' | 'processed-products' | 'seeds' | 'fertilizer' | 'feed'
 
 export interface CropState {
   cropId: CropId
@@ -117,6 +119,7 @@ export function getFarmProductPrice(itemId: FarmProductId): number {
 export function getWarehouseCategory(itemId: string): WarehouseCategory | null {
   if (isCropId(itemId)) return 'crops'
   if (itemId === 'egg' || itemId === 'milk') return 'animal-products'
+  if (isProcessingProduct(itemId)) return 'processed-products'
   if (CROP_IDS.some((cropId) => seedItemId(cropId) === itemId)) return 'seeds'
   if (itemId === 'fertilizer') return 'fertilizer'
   if (FEED_ITEM_IDS.includes(itemId as FeedItemId)) return 'feed'

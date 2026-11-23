@@ -1,13 +1,20 @@
 import {
+  LEARNING_ABILITIES,
   LEARNING_RESULTS,
+  QUESTION_TYPES,
+  SUBJECTS,
   type AcceptedAnswerRule,
   type Answer,
   type ContentClassification,
   type Course,
   type KnowledgePoint,
+  type LearningAbility,
   type LearningRecord,
+  type QuestionOption,
   type QuestionSnapshot,
   type QuestionTemplate,
+  type QuestionType,
+  type Subject,
 } from './types'
 
 export class ContentValidationError extends Error {
@@ -42,8 +49,15 @@ function expectBoolean(value: unknown, path: string): boolean {
 }
 
 function expectInteger(value: unknown, path: string, minimum = 0): number {
-  if (typeof value !== 'number' || !Number.isInteger(value) || value < minimum) {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value) || value < minimum) {
     throw new ContentValidationError(path, `必须是大于等于 ${minimum} 的整数`)
+  }
+  return value
+}
+
+function expectNumber(value: unknown, path: string): number {
+  if (typeof value !== 'number' || !Number.isFinite(value)) {
+    throw new ContentValidationError(path, '必须是有限数字')
   }
   return value
 }
@@ -67,33 +81,98 @@ function expectDifficulty(value: unknown, path: string): void {
   }
 }
 
-function expectQuestionType(value: unknown, path: string): void {
-  if (value !== 'number' && value !== 'quotient-remainder') {
+function expectSubject(value: unknown, path: string): Subject {
+  if (!SUBJECTS.includes(value as Subject)) {
+    throw new ContentValidationError(path, '未知学科')
+  }
+  return value as Subject
+}
+
+function expectAbility(value: unknown, path: string): LearningAbility {
+  if (!LEARNING_ABILITIES.includes(value as LearningAbility)) {
+    throw new ContentValidationError(path, '未知学习能力')
+  }
+  return value as LearningAbility
+}
+
+function expectQuestionType(value: unknown, path: string): QuestionType {
+  if (!QUESTION_TYPES.includes(value as QuestionType)) {
     throw new ContentValidationError(path, '未知题型')
   }
+  return value as QuestionType
 }
 
 function expectClassification(value: unknown, path: string): ContentClassification {
   const classification = expectRecord(value, path)
   expectString(classification.courseId, `${path}.courseId`)
-  expectString(classification.subject, `${path}.subject`)
+  expectSubject(classification.subject, `${path}.subject`)
   expectInteger(classification.grade, `${path}.grade`, 1)
   expectSemester(classification.semester, `${path}.semester`)
   expectString(classification.textbook, `${path}.textbook`)
   expectString(classification.unitId, `${path}.unitId`)
   expectString(classification.knowledgePointId, `${path}.knowledgePointId`)
+  if (classification.ability !== undefined) {
+    expectAbility(classification.ability, `${path}.ability`)
+  }
   return classification as unknown as ContentClassification
+}
+
+function expectSignedInteger(value: unknown, path: string): number {
+  if (typeof value !== 'number' || !Number.isSafeInteger(value)) {
+    throw new ContentValidationError(path, '必须是安全整数')
+  }
+  return value
+}
+
+function expectStringValues(value: unknown, path: string, minimumLength = 1): string[] {
+  return expectArray(value, path, minimumLength).map((item, index) =>
+    expectString(item, `${path}[${index}]`),
+  )
+}
+
+function expectBlankRule(value: unknown, path: string): void {
+  expectArray(value, path, 1).forEach((blank, blankIndex) => {
+    expectStringValues(blank, `${path}[${blankIndex}]`)
+  })
+}
+
+function expectFractionValue(value: unknown, path: string): void {
+  const fraction = expectRecord(value, path)
+  expectSignedInteger(fraction.numerator, `${path}.numerator`)
+  const denominator = expectSignedInteger(fraction.denominator, `${path}.denominator`)
+  if (denominator === 0) throw new ContentValidationError(`${path}.denominator`, '分母不能为 0')
 }
 
 function expectAnswer(value: unknown, path: string): Answer {
   const answer = expectRecord(value, path)
   if (answer.kind === 'number') {
-    expectInteger(answer.value, `${path}.value`)
+    expectNumber(answer.value, `${path}.value`)
     return answer as Answer
   }
   if (answer.kind === 'quotient-remainder') {
     expectInteger(answer.quotient, `${path}.quotient`)
     expectInteger(answer.remainder, `${path}.remainder`)
+    return answer as Answer
+  }
+  if (answer.kind === 'fill-blanks' || answer.kind === 'sentence-completion') {
+    expectStringValues(answer.values, `${path}.values`)
+    return answer as Answer
+  }
+  if (answer.kind === 'single-choice') {
+    expectString(answer.optionId, `${path}.optionId`)
+    return answer as Answer
+  }
+  if (answer.kind === 'word-problem') {
+    expectNumber(answer.value, `${path}.value`)
+    if (answer.unit !== undefined) expectString(answer.unit, `${path}.unit`)
+    return answer as Answer
+  }
+  if (answer.kind === 'fraction') {
+    expectFractionValue(answer, path)
+    return answer as Answer
+  }
+  if (answer.kind === 'english-spelling') {
+    expectString(answer.value, `${path}.value`)
     return answer as Answer
   }
   throw new ContentValidationError(`${path}.kind`, '未知答案类型')
@@ -103,31 +182,205 @@ export function parseAnswer(value: unknown): Answer {
   return expectAnswer(value, 'answer')
 }
 
-function answersEqual(left: Answer, right: Answer): boolean {
-  if (left.kind === 'number' && right.kind === 'number') return left.value === right.value
-  if (left.kind === 'quotient-remainder' && right.kind === 'quotient-remainder') {
-    return left.quotient === right.quotient && left.remainder === right.remainder
-  }
-  return false
-}
-
 function expectAnswerRule(value: unknown, path: string): AcceptedAnswerRule {
   const rule = expectRecord(value, path)
   if (rule.kind === 'number') {
-    const values = expectArray(rule.values, `${path}.values`, 1)
-    values.forEach((item, index) => expectInteger(item, `${path}.values[${index}]`))
+    expectArray(rule.values, `${path}.values`, 1).forEach((item, index) =>
+      expectNumber(item, `${path}.values[${index}]`),
+    )
+    if (rule.allowNegative !== undefined) {
+      expectBoolean(rule.allowNegative, `${path}.allowNegative`)
+    }
+    if (rule.allowDecimal !== undefined) expectBoolean(rule.allowDecimal, `${path}.allowDecimal`)
+    if (rule.decimalPlaces !== undefined) {
+      expectInteger(rule.decimalPlaces, `${path}.decimalPlaces`)
+    }
     return rule as AcceptedAnswerRule
   }
   if (rule.kind === 'quotient-remainder') {
-    const values = expectArray(rule.values, `${path}.values`, 1)
-    values.forEach((item, index) => {
+    expectArray(rule.values, `${path}.values`, 1).forEach((item, index) => {
       const candidate = expectRecord(item, `${path}.values[${index}]`)
       expectInteger(candidate.quotient, `${path}.values[${index}].quotient`)
       expectInteger(candidate.remainder, `${path}.values[${index}].remainder`)
     })
     return rule as AcceptedAnswerRule
   }
+  if (rule.kind === 'fill-blanks') {
+    expectBlankRule(rule.values, `${path}.values`)
+    expectBoolean(rule.trimWhitespace, `${path}.trimWhitespace`)
+    return rule as AcceptedAnswerRule
+  }
+  if (rule.kind === 'single-choice') {
+    const values = expectStringValues(rule.values, `${path}.values`)
+    if (values.length !== 1) {
+      throw new ContentValidationError(`${path}.values`, '单项选择必须有且只有一个可接受答案')
+    }
+    return rule as AcceptedAnswerRule
+  }
+  if (rule.kind === 'word-problem') {
+    expectArray(rule.values, `${path}.values`, 1).forEach((item, index) => {
+      const candidate = expectRecord(item, `${path}.values[${index}]`)
+      expectNumber(candidate.value, `${path}.values[${index}].value`)
+      if (candidate.unit !== undefined)
+        expectString(candidate.unit, `${path}.values[${index}].unit`)
+    })
+    expectBoolean(rule.unitRequired, `${path}.unitRequired`)
+    if (rule.decimalPlaces !== undefined) expectInteger(rule.decimalPlaces, `${path}.decimalPlaces`)
+    return rule as AcceptedAnswerRule
+  }
+  if (rule.kind === 'fraction') {
+    expectArray(rule.values, `${path}.values`, 1).forEach((item, index) =>
+      expectFractionValue(item, `${path}.values[${index}]`),
+    )
+    expectBoolean(rule.requireSimplest, `${path}.requireSimplest`)
+    return rule as AcceptedAnswerRule
+  }
+  if (rule.kind === 'english-spelling') {
+    expectStringValues(rule.values, `${path}.values`)
+    expectBoolean(rule.caseSensitive, `${path}.caseSensitive`)
+    return rule as AcceptedAnswerRule
+  }
+  if (rule.kind === 'sentence-completion') {
+    expectBlankRule(rule.values, `${path}.values`)
+    expectBoolean(rule.caseSensitive, `${path}.caseSensitive`)
+    expectBoolean(rule.ignoreTerminalPunctuation, `${path}.ignoreTerminalPunctuation`)
+    return rule as AcceptedAnswerRule
+  }
   throw new ContentValidationError(`${path}.kind`, '未知可接受答案规则')
+}
+
+function assertDecimalPlaces(value: number, decimalPlaces: number | undefined, path: string): void {
+  if (decimalPlaces !== undefined && Number(value.toFixed(decimalPlaces)) !== value) {
+    throw new ContentValidationError(path, `最多保留 ${decimalPlaces} 位小数`)
+  }
+}
+
+function greatestCommonDivisor(left: number, right: number): number {
+  let a = Math.abs(left)
+  let b = Math.abs(right)
+  while (b !== 0) [a, b] = [b, a % b]
+  return a
+}
+
+function normalizeSentence(
+  value: string,
+  caseSensitive: boolean,
+  ignoreTerminalPunctuation: boolean,
+): string {
+  let normalized = value.trim().replace(/[‘’]/g, "'").replace(/\s+/g, ' ')
+  if (ignoreTerminalPunctuation) normalized = normalized.replace(/[.!?。！？]+$/u, '')
+  return caseSensitive ? normalized : normalized.toLocaleLowerCase()
+}
+
+function assertStandardAnswerAccepted(answer: Answer, rule: AcceptedAnswerRule): void {
+  let accepted = false
+  if (rule.kind === 'number' && answer.kind === 'number') {
+    for (const value of rule.values) {
+      if (!rule.allowNegative && value < 0) {
+        throw new ContentValidationError(
+          'questionSnapshot.acceptedAnswerRule.values',
+          '数值答案不能为负数',
+        )
+      }
+      if (!rule.allowDecimal && !Number.isInteger(value)) {
+        throw new ContentValidationError(
+          'questionSnapshot.acceptedAnswerRule.values',
+          '数值答案必须为整数',
+        )
+      }
+      assertDecimalPlaces(value, rule.decimalPlaces, 'questionSnapshot.acceptedAnswerRule.values')
+    }
+    accepted = rule.values.includes(answer.value)
+  } else if (rule.kind === 'quotient-remainder' && answer.kind === 'quotient-remainder') {
+    accepted = rule.values.some(
+      (value) => value.quotient === answer.quotient && value.remainder === answer.remainder,
+    )
+  } else if (rule.kind === 'fill-blanks' && answer.kind === 'fill-blanks') {
+    const normalize = (value: string) => (rule.trimWhitespace ? value.trim() : value)
+    accepted =
+      answer.values.length === rule.values.length &&
+      answer.values.every((value, index) =>
+        rule.values[index].some((candidate) => normalize(candidate) === normalize(value)),
+      )
+  } else if (rule.kind === 'single-choice' && answer.kind === 'single-choice') {
+    accepted = rule.values.includes(answer.optionId)
+  } else if (rule.kind === 'word-problem' && answer.kind === 'word-problem') {
+    for (const value of rule.values) {
+      if (rule.unitRequired && !value.unit) {
+        throw new ContentValidationError(
+          'questionSnapshot.acceptedAnswerRule.values',
+          '应用题答案必须包含单位',
+        )
+      }
+      assertDecimalPlaces(
+        value.value,
+        rule.decimalPlaces,
+        'questionSnapshot.acceptedAnswerRule.values',
+      )
+    }
+    accepted = rule.values.some(
+      (value) => value.value === answer.value && value.unit === answer.unit,
+    )
+  } else if (rule.kind === 'fraction' && answer.kind === 'fraction') {
+    if (rule.requireSimplest) {
+      for (const value of rule.values) {
+        if (
+          value.denominator < 1 ||
+          greatestCommonDivisor(value.numerator, value.denominator) !== 1
+        ) {
+          throw new ContentValidationError(
+            'questionSnapshot.acceptedAnswerRule.values',
+            '分数答案必须使用正分母的最简分数',
+          )
+        }
+      }
+    }
+    accepted = rule.values.some((value) =>
+      rule.requireSimplest
+        ? value.numerator === answer.numerator && value.denominator === answer.denominator
+        : value.numerator * answer.denominator === answer.numerator * value.denominator,
+    )
+  } else if (rule.kind === 'english-spelling' && answer.kind === 'english-spelling') {
+    const normalize = (value: string) => {
+      const trimmed = value.trim()
+      return rule.caseSensitive ? trimmed : trimmed.toLocaleLowerCase()
+    }
+    accepted = rule.values.some((value) => normalize(value) === normalize(answer.value))
+  } else if (rule.kind === 'sentence-completion' && answer.kind === 'sentence-completion') {
+    accepted =
+      answer.values.length === rule.values.length &&
+      answer.values.every((value, index) => {
+        const normalized = normalizeSentence(
+          value,
+          rule.caseSensitive,
+          rule.ignoreTerminalPunctuation,
+        )
+        return rule.values[index].some(
+          (candidate) =>
+            normalizeSentence(candidate, rule.caseSensitive, rule.ignoreTerminalPunctuation) ===
+            normalized,
+        )
+      })
+  }
+  if (!accepted) {
+    throw new ContentValidationError('questionSnapshot.standardAnswer', '标准答案不在可接受答案中')
+  }
+}
+
+function expectOptions(value: unknown, path: string, required: boolean): QuestionOption[] {
+  const options = expectArray(value, path)
+  if (required && options.length !== 4) {
+    throw new ContentValidationError(path, '单项选择必须恰好包含四个选项')
+  }
+  const ids = new Set<string>()
+  options.forEach((item, index) => {
+    const option = expectRecord(item, `${path}[${index}]`)
+    const id = expectString(option.id, `${path}[${index}].id`)
+    expectString(option.text, `${path}[${index}].text`)
+    if (ids.has(id)) throw new ContentValidationError(`${path}[${index}].id`, '选项 ID 重复')
+    ids.add(id)
+  })
+  return options as QuestionOption[]
 }
 
 function assertCourseReference(classification: ContentClassification, course: Course): void {
@@ -160,6 +413,7 @@ export function parseKnowledgePoint(value: unknown, course?: Course): KnowledgeP
   if (point.source !== 'new-pep' && point.source !== 'old-pep' && point.source !== 'review') {
     throw new ContentValidationError('knowledgePoint.source', '未知来源标签')
   }
+  if (point.ability !== undefined) expectAbility(point.ability, 'knowledgePoint.ability')
   if (course) {
     if (point.courseId !== course.id || !course.units.some((unit) => unit.id === point.unitId)) {
       throw new ContentValidationError('knowledgePoint', '知识点不属于指定课程或单元')
@@ -173,7 +427,7 @@ export function parseCourse(value: unknown): Course {
   expectString(course.id, 'course.id')
   expectInteger(course.version, 'course.version', 1)
   expectString(course.title, 'course.title')
-  expectString(course.subject, 'course.subject')
+  expectSubject(course.subject, 'course.subject')
   expectInteger(course.grade, 'course.grade', 1)
   expectSemester(course.semester, 'course.semester')
   expectString(course.textbook, 'course.textbook')
@@ -209,9 +463,15 @@ export function parseQuestionTemplate(value: unknown, course?: Course): Question
     template.classification,
     'questionTemplate.classification',
   )
-  expectQuestionType(template.type, 'questionTemplate.type')
+  const type = expectQuestionType(template.type, 'questionTemplate.type')
   expectDifficulty(template.difficulty, 'questionTemplate.difficulty')
   expectString(template.promptTemplate, 'questionTemplate.promptTemplate')
+  if (template.options !== undefined || type === 'single-choice') {
+    expectOptions(template.options, 'questionTemplate.options', type === 'single-choice')
+  }
+  if (template.variantGroupId !== undefined) {
+    expectString(template.variantGroupId, 'questionTemplate.variantGroupId')
+  }
   if (course) assertCourseReference(classification, course)
   return template as unknown as QuestionTemplate
 }
@@ -252,9 +512,23 @@ export function parseQuestionSnapshot(value: unknown, course?: Course): Question
       throw new ContentValidationError(`questionSnapshot.resources[${index}].type`, '未知资源类型')
     }
     expectString(resource.uri, `questionSnapshot.resources[${index}].uri`)
-    if (resource.altText !== undefined)
+    if (resource.type === 'image' || resource.altText !== undefined) {
       expectString(resource.altText, `questionSnapshot.resources[${index}].altText`)
+    }
   })
+  const options =
+    snapshot.options !== undefined || snapshot.type === 'single-choice'
+      ? expectOptions(
+          snapshot.options,
+          'questionSnapshot.options',
+          snapshot.type === 'single-choice',
+        )
+      : undefined
+  if (snapshot.variantOf !== undefined) {
+    const variant = expectRecord(snapshot.variantOf, 'questionSnapshot.variantOf')
+    expectString(variant.templateId, 'questionSnapshot.variantOf.templateId')
+    expectString(variant.instanceId, 'questionSnapshot.variantOf.instanceId')
+  }
 
   const answer = expectAnswer(snapshot.standardAnswer, 'questionSnapshot.standardAnswer')
   const answerRule = expectAnswerRule(
@@ -264,12 +538,15 @@ export function parseQuestionSnapshot(value: unknown, course?: Course): Question
   if (answer.kind !== snapshot.type || answerRule.kind !== snapshot.type) {
     throw new ContentValidationError('questionSnapshot.type', '题型与答案类型不一致')
   }
-  const acceptedAnswers: readonly Answer[] =
-    answerRule.kind === 'number'
-      ? answerRule.values.map((value) => ({ kind: 'number', value }))
-      : answerRule.values.map((value) => ({ kind: 'quotient-remainder', ...value }))
-  if (!acceptedAnswers.some((candidate) => answersEqual(candidate, answer))) {
-    throw new ContentValidationError('questionSnapshot.standardAnswer', '标准答案不在可接受答案中')
+  assertStandardAnswerAccepted(answer, answerRule)
+  if (answerRule.kind === 'single-choice' && answer.kind === 'single-choice') {
+    const optionIds = new Set(options?.map((option) => option.id))
+    if (!optionIds.has(answer.optionId) || answerRule.values.some((id) => !optionIds.has(id))) {
+      throw new ContentValidationError(
+        'questionSnapshot.standardAnswer.optionId',
+        '答案引用了未知选项',
+      )
+    }
   }
 
   const causes = expectArray(snapshot.errorCauseRules, 'questionSnapshot.errorCauseRules')
@@ -279,11 +556,18 @@ export function parseQuestionSnapshot(value: unknown, course?: Course): Question
     expectString(cause.label, `questionSnapshot.errorCauseRules[${index}].label`)
     expectString(cause.feedback, `questionSnapshot.errorCauseRules[${index}].feedback`)
     expectArray(cause.answers, `questionSnapshot.errorCauseRules[${index}].answers`, 1).forEach(
-      (candidate, answerIndex) =>
-        expectAnswer(
+      (candidate, answerIndex) => {
+        const causeAnswer = expectAnswer(
           candidate,
           `questionSnapshot.errorCauseRules[${index}].answers[${answerIndex}]`,
-        ),
+        )
+        if (causeAnswer.kind !== snapshot.type) {
+          throw new ContentValidationError(
+            `questionSnapshot.errorCauseRules[${index}].answers[${answerIndex}].kind`,
+            '错因答案与题型不一致',
+          )
+        }
+      },
     )
   })
 
@@ -334,7 +618,15 @@ export function parseLearningRecord(value: unknown): LearningRecord {
   expectString(record.templateId, 'learningRecord.templateId')
   expectInteger(record.templateVersion, 'learningRecord.templateVersion', 1)
   expectString(record.courseId, 'learningRecord.courseId')
+  if (record.unitId !== undefined) expectString(record.unitId, 'learningRecord.unitId')
   expectString(record.knowledgePointId, 'learningRecord.knowledgePointId')
+  if (record.subject !== undefined) expectSubject(record.subject, 'learningRecord.subject')
+  if (record.grade !== undefined) expectInteger(record.grade, 'learningRecord.grade', 1)
+  if (record.semester !== undefined) expectSemester(record.semester, 'learningRecord.semester')
+  if (record.ability !== undefined) expectAbility(record.ability, 'learningRecord.ability')
+  if (record.questionType !== undefined) {
+    expectQuestionType(record.questionType, 'learningRecord.questionType')
+  }
   if (!LEARNING_RESULTS.includes(record.result as (typeof LEARNING_RESULTS)[number])) {
     throw new ContentValidationError('learningRecord.result', '未知学习结果')
   }

@@ -42,6 +42,21 @@ describe('PRD fixed learning and task rules', () => {
         changeRules: 3,
         estimationVerification: 3,
       },
+      mathBlueprint: {
+        calculation: 12,
+        singleChoice: 6,
+        knowledgeApplication: 6,
+        wordProblems: 6,
+        minimumSingleChoice: 1,
+        minimumWordProblems: 1,
+      },
+      englishBlueprint: {
+        singleChoice: 12,
+        spelling: 6,
+        sentenceCompletion: 9,
+        situationalExpression: 3,
+        minimumPerAbility: 1,
+      },
       refillOrder: [
         'writtenDivision',
         'writtenMultiplication',

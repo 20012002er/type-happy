@@ -39,8 +39,9 @@ const legacyFarm = {
 }
 
 export const createRichLearningSnapshotFixture = defineFixture((): LearningSnapshot => ({
-  schemaVersion: 3,
+  schemaVersion: 4,
   revision: 7,
+  course: { grade: 4, semester: 'autumn' },
   learning: {
     records: [
       {
@@ -122,7 +123,29 @@ export const createRichLearningSnapshotFixture = defineFixture((): LearningSnaps
     lastAdvancedAt: 300,
     actions: { 'legacy-harvest': 'harvest:plot-1' },
   },
+  processing: {
+    workshop: { purchased: false, activeTask: null, pendingOutput: null },
+    actions: {},
+  },
 }))
+
+export type LegacyV3LearningSnapshot = Omit<
+  LearningSnapshot,
+  'schemaVersion' | 'course' | 'processing'
+> & { schemaVersion: 3 }
+
+export const createLegacyV3SnapshotFixture = defineFixture((): LegacyV3LearningSnapshot => {
+  const current = createRichLearningSnapshotFixture()
+  return {
+    schemaVersion: 3,
+    revision: current.revision,
+    learning: current.learning,
+    practice: current.practice,
+    tasks: current.tasks,
+    wallet: current.wallet,
+    farm: current.farm,
+  }
+})
 
 export const createLegacyV2SnapshotFixture = defineFixture(() => ({
   schemaVersion: 2,

@@ -27,17 +27,23 @@ async function currentQuestion(page: Page): Promise<QuestionSnapshot> {
 }
 
 function wrongAnswer(answer: Answer): Answer {
-  return answer.kind === 'number'
-    ? { kind: 'number', value: answer.value + 1 }
-    : { kind: 'quotient-remainder', quotient: answer.quotient + 1, remainder: answer.remainder }
+  if (answer.kind === 'number') return { kind: 'number', value: answer.value + 1 }
+  if (answer.kind !== 'quotient-remainder') throw new Error('当前练习仅支持数值题和商余数题')
+  return {
+    kind: 'quotient-remainder',
+    quotient: answer.quotient + 1,
+    remainder: answer.remainder,
+  }
 }
 
 async function fillAnswer(page: Page, answer: Answer): Promise<void> {
   if (answer.kind === 'number') {
     await page.getByLabel('答案', { exact: true }).fill(String(answer.value))
-  } else {
+  } else if (answer.kind === 'quotient-remainder') {
     await page.getByLabel('商', { exact: true }).fill(String(answer.quotient))
     await page.getByLabel('余数', { exact: true }).fill(String(answer.remainder))
+  } else {
+    throw new Error('当前练习仅支持数值题和商余数题')
   }
 }
 

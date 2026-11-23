@@ -7,11 +7,13 @@ import {
   RevisionConflictError,
 } from '../../../src/learning/persistence/repository'
 import {
+  LEARNING_SCHEMA_VERSION,
   LEARNING_STORAGE_KEY,
   parseLearningSnapshot,
   SnapshotValidationError,
   UnsupportedSchemaVersionError,
 } from '../../../src/learning/persistence/snapshot'
+import { getProcessingPurchaseEligibility } from '../../../src/learning/processing/state'
 import { settleWallet } from '../../../src/learning/wallet/wallet'
 import { malformedJsonFixtures } from '../../fixtures/storage'
 import {
@@ -19,6 +21,7 @@ import {
   createLegacyV0SnapshotFixture,
   createLegacyV1SnapshotFixture,
   createLegacyV2SnapshotFixture,
+  createLegacyV3SnapshotFixture,
 } from '../../fixtures/learning'
 import { MemoryStorage } from '../../helpers/memory-storage'
 
@@ -94,6 +97,20 @@ describe('learning repository', () => {
     expect(storage.getItem(LEARNING_STORAGE_KEY)).toBe(raw)
   })
 
+  it('preserves an invalid legacy snapshot when migration fails', () => {
+    const legacy = createLegacyV3SnapshotFixture()
+    legacy.farm = { ...legacy.farm, inventory: { wheat: -1 } }
+    const raw = JSON.stringify(legacy)
+    const storage = new MemoryStorage({ [LEARNING_STORAGE_KEY]: raw })
+    const repository = new LearningRepository(storage)
+
+    expect(() => repository.load()).toThrow(CorruptedSnapshotError)
+    expect(() => repository.transact(legacy.revision, () => undefined)).toThrow(
+      CorruptedSnapshotError,
+    )
+    expect(storage.getItem(LEARNING_STORAGE_KEY)).toBe(raw)
+  })
+
   it('refuses to overwrite unknown schema versions', () => {
     const raw = JSON.stringify({ schemaVersion: 99, revision: 4 })
     const storage = new MemoryStorage({ [LEARNING_STORAGE_KEY]: raw })
@@ -107,13 +124,19 @@ describe('learning repository', () => {
   })
 
   it('clears only the learning namespace and reports removal failures', () => {
+    const snapshot = createLearningSnapshotFixture()
+    snapshot.processing = {
+      workshop: { purchased: true, activeTask: null, pendingOutput: null },
+      actions: { purchase: 'purchase-signature' },
+    }
     const storage = new MemoryStorage({
       ...otherKeys,
-      [LEARNING_STORAGE_KEY]: JSON.stringify(createLearningSnapshotFixture()),
+      [LEARNING_STORAGE_KEY]: JSON.stringify(snapshot),
     })
     const repository = new LearningRepository(storage)
     repository.clear()
     expect(storage.getItem(LEARNING_STORAGE_KEY)).toBeNull()
+    expect(repository.load().processing.workshop.purchased).toBe(false)
     expect(storage.snapshot()).toEqual(otherKeys)
 
     storage.failNext('removeItem')
@@ -122,11 +145,59 @@ describe('learning repository', () => {
 })
 
 describe('schema fixtures and migrations', () => {
+  it('adds only course selection and processing state when upgrading a rich v3 snapshot', () => {
+    const legacy = createLegacyV3SnapshotFixture()
+    const migrated = migrateLearningSnapshot(legacy)
+    const { course, processing, ...preserved } = migrated
+
+    expect(preserved).toEqual({ ...legacy, schemaVersion: LEARNING_SCHEMA_VERSION })
+    expect(course).toEqual({ grade: 4, semester: 'autumn' })
+    expect(processing).toEqual({
+      workshop: { purchased: false, activeTask: null, pendingOutput: null },
+      actions: {},
+    })
+    expect(migrateLearningSnapshot(migrated)).toEqual(migrated)
+  })
+
+  it('derives purchase eligibility only from traceable harvests without granting assets', () => {
+    const legacy = createLegacyV3SnapshotFixture()
+    expect(getProcessingPurchaseEligibility(migrateLearningSnapshot(legacy).farm)).toMatchObject({
+      eligible: false,
+      manualHarvestQuantity: 0,
+    })
+    legacy.farm = {
+      ...legacy.farm,
+      actions: {
+        'harvest-1': JSON.stringify({ type: 'harvest-crop', now: 400, plotId: 'plot-1' }),
+        'harvest-2': JSON.stringify({ type: 'harvest-crop', now: 500, plotId: 'plot-2' }),
+        'collect-milk': JSON.stringify({
+          type: 'collect-animal-product',
+          now: 600,
+          animalId: 'cow-1',
+        }),
+      },
+    }
+
+    const migrated = migrateLearningSnapshot(legacy)
+    expect(getProcessingPurchaseEligibility(migrated.farm)).toEqual({
+      eligible: true,
+      manualHarvestQuantity: 3,
+      requiredManualHarvestQuantity: 3,
+    })
+    expect(migrated.processing.workshop).toEqual({
+      purchased: false,
+      activeTask: null,
+      pendingOutput: null,
+    })
+    expect(migrated.wallet).toEqual(legacy.wallet)
+    expect(migrated.farm.inventory).toEqual(legacy.farm.inventory)
+  })
+
   it('upgrades the legacy fixture and migrates idempotently', () => {
     const legacy = createLegacyV0SnapshotFixture()
     const migrated = migrateLearningSnapshot(legacy)
 
-    expect(migrated.schemaVersion).toBe(3)
+    expect(migrated.schemaVersion).toBe(LEARNING_SCHEMA_VERSION)
     expect(migrated.revision).toBe(3)
     expect(migrated.wallet.balance).toBe(10)
     expect(migrated.learning.records).toEqual([])
@@ -135,7 +206,7 @@ describe('schema fixtures and migrations', () => {
 
   it('preserves the legacy farm inventory while adding v3 farm state', () => {
     const migrated = migrateLearningSnapshot(createLegacyV2SnapshotFixture())
-    expect(migrated.schemaVersion).toBe(3)
+    expect(migrated.schemaVersion).toBe(LEARNING_SCHEMA_VERSION)
     expect(migrated.farm).toMatchObject({
       starterGiftClaimed: true,
       inventory: { 'radish-seed': 2 },
@@ -150,7 +221,7 @@ describe('schema fixtures and migrations', () => {
 
   it('adds empty practice state when upgrading schema v1 and remains idempotent', () => {
     const migrated = migrateLearningSnapshot(createLegacyV1SnapshotFixture())
-    expect(migrated.schemaVersion).toBe(3)
+    expect(migrated.schemaVersion).toBe(LEARNING_SCHEMA_VERSION)
     expect(migrated.practice).toEqual({ sessions: {}, retestPool: [] })
     expect(migrateLearningSnapshot(migrated)).toEqual(migrated)
   })
@@ -163,7 +234,7 @@ describe('schema fixtures and migrations', () => {
     const loaded = repository.load()
     const saved = repository.save(loaded, 3)
 
-    expect(saved.schemaVersion).toBe(3)
+    expect(saved.schemaVersion).toBe(LEARNING_SCHEMA_VERSION)
     expect(saved.revision).toBe(4)
     expect(repository.load().wallet.ledger[0].settlementId).toBe('legacy-seed')
   })

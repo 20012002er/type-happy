@@ -22,6 +22,8 @@ const sourceLabels: Record<WalletSource, string> = {
   'farm-sale': '农产品出售',
   'farm-purchase': '农场购买',
   'farm-building': '农场建筑',
+  'processing-sale': '加工品出售',
+  'processing-purchase': '加工坊购买',
   recovery: '恢复补给',
   activity: '活动奖励',
 }

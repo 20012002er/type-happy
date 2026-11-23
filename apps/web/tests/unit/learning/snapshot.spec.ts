@@ -44,6 +44,18 @@ describe('learning aggregate snapshot validation', () => {
     expect(createEmptyLearningSnapshot()).not.toBe(createEmptyLearningSnapshot())
   })
 
+  it('rejects unknown course selections and invalid processing state', () => {
+    const snapshot = richSnapshot()
+    expect(() =>
+      parseLearningSnapshot({ ...snapshot, course: { grade: 6, semester: 'autumn' } }),
+    ).toThrow('未知课程')
+    expect(() =>
+      parseLearningSnapshot({ ...snapshot, course: { grade: 4, semester: 'summer' } }),
+    ).toThrow('semester')
+    expect(() => parseLearningSnapshot({ ...snapshot, course: null })).toThrow('snapshot.course')
+    expect(() => parseLearningSnapshot({ ...snapshot, processing: null })).toThrow('processing')
+  })
+
   it('rejects malformed roots, revisions and learning records', () => {
     expect(() => parseLearningSnapshot(null)).toThrow(SnapshotValidationError)
     expect(() => parseLearningSnapshot({ ...richSnapshot(), revision: -1 })).toThrow('revision')
