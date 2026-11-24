@@ -2,6 +2,11 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import LearningAnswerInput from '../components/learning/LearningAnswerInput.vue'
+import {
+  emptyAnswerForm,
+  formFromAnswer,
+  type AnswerFormValue,
+} from '../components/learning/answer-form'
 import LearningFeedback from '../components/learning/LearningFeedback.vue'
 import LearningPage from '../components/learning/LearningPage.vue'
 import PracticeCompletion from '../components/learning/PracticeCompletion.vue'
@@ -13,7 +18,7 @@ import { useLearningStore } from '../stores/learning'
 const route = useRoute()
 const router = useRouter()
 const learning = useLearningStore()
-const form = ref({ answer: '', quotient: '', remainder: '' })
+const form = ref<AnswerFormValue>(emptyAnswerForm())
 const showAbandonConfirm = ref(false)
 
 const sessionId = computed(() => String(route.params.sessionId ?? ''))
@@ -48,14 +53,26 @@ const sourceLabel = computed(() => {
   if (entry.value?.question.source === 'old-pep') return '旧版补充'
   return '已学复习'
 })
+const questionLabel = computed(() => {
+  switch (entry.value?.question.type) {
+    case 'single-choice':
+      return '选一选'
+    case 'fill-blanks':
+    case 'fraction':
+      return '填一填'
+    case 'word-problem':
+      return '解决问题'
+    case 'english-spelling':
+      return '拼一拼'
+    case 'sentence-completion':
+      return '补全句子'
+    default:
+      return '算一算'
+  }
+})
 
 function resetForm(): void {
-  const answer = entry.value?.lastAnswer
-  form.value = {
-    answer: answer?.kind === 'number' ? String(answer.value) : '',
-    quotient: answer?.kind === 'quotient-remainder' ? String(answer.quotient) : '',
-    remainder: answer?.kind === 'quotient-remainder' ? String(answer.remainder) : '',
-  }
+  form.value = formFromAnswer(entry.value?.lastAnswer)
 }
 
 watch(() => entry.value?.question.instanceId, resetForm, { immediate: true })
@@ -178,13 +195,14 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
           <span v-if="entry.retestOfInstanceId" class="learn-tag">同类变式复测</span>
         </div>
 
-        <p class="learn-question__label">算一算</p>
+        <p class="learn-question__label">{{ questionLabel }}</p>
         <h2 class="learn-question__prompt">{{ entry.question.prompt }}</h2>
 
         <LearningAnswerInput
           v-if="!settled"
           v-model="form"
           :question-type="entry.question.type"
+          :question="entry.question"
           :correcting="correcting"
           :disabled="learning.saving"
           @submit="submit"

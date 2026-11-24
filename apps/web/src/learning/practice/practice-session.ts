@@ -2,6 +2,7 @@ import { parseAnswer, parseLearningRecord, parseQuestionSnapshot } from '../cont
 import type { Answer, ErrorCause, LearningRecord, QuestionSnapshot } from '../types'
 import { judgeAnswer } from './answer'
 import { createCorrectionGuidance, type CorrectionGuidance } from './correction'
+import { createChoiceVariant } from './question-variants'
 import { scheduleRetestInSession } from './retest'
 
 export const PRACTICE_QUESTION_STATUSES = [
@@ -52,6 +53,11 @@ export interface RetestSchedulingOptions {
   idPrefix: string
 }
 
+export interface VariantSchedulingOptions {
+  seed: number
+  idPrefix: string
+}
+
 export interface PracticeOutcome {
   effectiveCompletion: boolean
   participatesInTask: boolean
@@ -85,13 +91,20 @@ function makeRecord(
   result: LearningRecord['result'],
   settledAt: number,
 ): LearningRecord {
+  const classification = entry.question.classification
   return {
     id: `record-${session.id}-${entry.question.instanceId}`,
     questionInstanceId: entry.question.instanceId,
     templateId: entry.question.templateId,
     templateVersion: entry.question.templateVersion,
-    courseId: entry.question.classification.courseId,
-    knowledgePointId: entry.question.classification.knowledgePointId,
+    courseId: classification.courseId,
+    unitId: classification.unitId,
+    knowledgePointId: classification.knowledgePointId,
+    subject: classification.subject,
+    grade: classification.grade,
+    semester: classification.semester,
+    ability: classification.ability,
+    questionType: entry.question.type,
     result,
     answer: entry.lastAnswer,
     errorCauses: clone(entry.errorCauses ?? []),
@@ -170,6 +183,7 @@ export function submitPracticeAnswer(
   answer: Answer,
   submittedAt: number,
   retestScheduling?: RetestSchedulingOptions,
+  variantScheduling?: VariantSchedulingOptions,
 ): PracticeSession {
   expectTimestamp(submittedAt, '提交时间')
   const current = currentEntry(session)
@@ -203,7 +217,20 @@ export function submitPracticeAnswer(
       entry.errorCauses = [...causes, { id: judgement.cause.id, label: judgement.cause.label }]
     }
   }
-  const guidance = createCorrectionGuidance(current.question, judgement, entry.attempts)
+  let guidanceQuestion = current.question
+  let guidanceJudgement = judgement
+  if (current.question.type === 'single-choice' && current.question.variantOf === undefined) {
+    if (!variantScheduling) throw new Error('选择题订正需要变式题支持')
+    const variant = createChoiceVariant(
+      current.question,
+      variantScheduling.seed,
+      `${variantScheduling.idPrefix}-variant-${current.question.instanceId}`,
+    )
+    entry.question = variant
+    guidanceQuestion = variant
+    guidanceJudgement = { ...judgement, cause: undefined }
+  }
+  const guidance = createCorrectionGuidance(guidanceQuestion, guidanceJudgement, entry.attempts)
   entry.feedback = guidance
   entry.highestHintLevel = guidance.hintLevel
   if (guidance.hintLevel === 2) {
@@ -323,6 +350,17 @@ function parseFeedback(value: unknown): CorrectionGuidance {
   if (feedback.revealedAnswer !== undefined) parseAnswer(feedback.revealedAnswer)
   if (feedback.preservedQuotient !== undefined) {
     expectInteger(feedback.preservedQuotient, 'feedback.preservedQuotient')
+  }
+  if (feedback.preservedValue !== undefined) {
+    if (typeof feedback.preservedValue !== 'number' || !Number.isFinite(feedback.preservedValue)) {
+      throw new Error('feedback.preservedValue 必须是有限数字')
+    }
+  }
+  if (feedback.preservedUnit !== undefined)
+    expectString(feedback.preservedUnit, 'feedback.preservedUnit')
+  if (feedback.correctBlanks !== undefined) {
+    if (!Array.isArray(feedback.correctBlanks)) throw new Error('feedback.correctBlanks 必须是数组')
+    feedback.correctBlanks.forEach((index) => expectInteger(index, 'feedback.correctBlanks'))
   }
   return feedback as unknown as CorrectionGuidance
 }

@@ -1,6 +1,18 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { QuestionType } from '../../learning/types'
 import { useLearningStore } from '../../stores/learning'
+
+const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
+  number: '数值计算',
+  'quotient-remainder': '商和余数',
+  'fill-blanks': '填空',
+  'single-choice': '单选',
+  'word-problem': '应用题',
+  fraction: '分数',
+  'english-spelling': '英语拼写',
+  'sentence-completion': '句子补全',
+}
 
 const props = defineProps<{ sessionId: string }>()
 const emit = defineEmits<{ startComprehensive: [] }>()
@@ -9,9 +21,15 @@ const summary = computed(() => learning.getSessionSummary(props.sessionId))
 </script>
 
 <template>
-  <section v-if="summary" class="learn-paper learn-section learn-reveal" aria-labelledby="completion-title">
+  <section
+    v-if="summary"
+    class="learn-paper learn-section learn-reveal"
+    aria-labelledby="completion-title"
+  >
     <p class="learn-kicker">练习结果已保存在本机</p>
-    <h2 id="completion-title">{{ summary.status === 'completed' ? '这一组完成了' : '本组练习已结束' }}</h2>
+    <h2 id="completion-title">
+      {{ summary.status === 'completed' ? '这一组完成了' : '本组练习已结束' }}
+    </h2>
     <p>
       完成 {{ summary.effectiveCompleted }} 题，订正 {{ summary.corrected }} 题。
       每一次检查和订正都已经记录。
@@ -31,6 +49,13 @@ const summary = computed(() => learning.getSessionSummary(props.sessionId))
         <dd>{{ summary.pendingRetest }}</dd>
       </div>
     </dl>
+
+    <p v-if="summary.questionTypes.length > 1" class="learn-completion-types">
+      <span>按题型有效完成</span>
+      <span v-for="item in summary.questionTypes" :key="item.questionType" class="learn-tag">
+        {{ QUESTION_TYPE_LABELS[item.questionType] }} {{ item.effectiveCompleted }} 题
+      </span>
+    </p>
 
     <div class="learn-completion-grid">
       <div>
@@ -64,13 +89,27 @@ const summary = computed(() => learning.getSessionSummary(props.sessionId))
       <button type="button" class="learn-button" @click="emit('startComprehensive')">
         {{ learning.today.taskRemaining === 0 ? '再做一组加练' : '继续今日练习' }}
       </button>
-      <RouterLink class="learn-button learn-button--secondary" to="/learning">返回学习首页</RouterLink>
-      <RouterLink class="learn-button learn-button--quiet" to="/learning/farm">去学习农场</RouterLink>
+      <RouterLink class="learn-button learn-button--secondary" to="/learning"
+        >返回学习首页</RouterLink
+      >
+      <RouterLink class="learn-button learn-button--quiet" to="/learning/farm"
+        >去学习农场</RouterLink
+      >
     </div>
   </section>
 </template>
 
 <style scoped>
+.learn-completion-types {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 0;
+  color: var(--learn-muted);
+  font-size: 13px;
+}
+
 .learn-completion-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

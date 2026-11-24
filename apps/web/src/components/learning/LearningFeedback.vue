@@ -40,6 +40,16 @@ function answerText(answer: Answer): string {
       return answer.value
   }
 }
+
+const revealedText = computed(() => {
+  const answer = props.entry.feedback?.revealedAnswer
+  if (!answer) return ''
+  if (answer.kind === 'single-choice') {
+    const option = props.entry.question.options?.find((item) => item.id === answer.optionId)
+    return option ? option.text : answer.optionId
+  }
+  return answerText(answer)
+})
 </script>
 
 <template>
@@ -54,7 +64,7 @@ function answerText(answer: Answer): string {
       <h3>{{ title }}</h3>
       <template v-if="settled">
         <p v-if="entry.status === 'corrected-awaiting-retest'">
-          本题不发放金币；稍后会用不同数字的同类题再练一次。
+          本题不发放金币；稍后会用不同情境或数字的同类题再练一次。
         </p>
         <p v-else class="learn-feedback__reward">+{{ practiceReward }} 学习金币已到账</p>
       </template>
@@ -69,7 +79,7 @@ function answerText(answer: Answer): string {
             <li v-for="step in entry.feedback.explanationSteps" :key="step">{{ step }}</li>
           </ol>
           <p v-if="entry.feedback.revealedAnswer">
-            正确答案：<strong>{{ answerText(entry.feedback.revealedAnswer) }}</strong>
+            正确答案：<strong>{{ revealedText }}</strong>
           </p>
           <p>请重新输入正确答案，完成这道题。</p>
         </div>

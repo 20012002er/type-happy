@@ -1,7 +1,14 @@
 import { LEARNING_RULES } from '../config/rules'
 import { shiftLocalDateKey, toLocalDateKey } from '../date-key'
 import type { LearningSnapshot } from '../persistence/snapshot'
-import type { LearningAbility, LearningRecord, LearningResult, Semester, Subject } from '../types'
+import type {
+  LearningAbility,
+  LearningRecord,
+  LearningResult,
+  QuestionType,
+  Semester,
+  Subject,
+} from '../types'
 import { WALLET_SOURCES, type WalletLedgerEntry, type WalletSource } from '../wallet/wallet'
 import { validateDailyGoal } from './daily-task'
 import { getNextStreakMilestone, type StreakMilestone } from './streak'
@@ -40,6 +47,11 @@ export interface PracticeSessionSummary extends LearningCounts {
   currentIndex: number
   pendingRetest: number
   practiceReward: number
+  questionTypes: QuestionTypeLearningSummary[]
+}
+
+export interface QuestionTypeLearningSummary extends LearningCounts {
+  questionType: QuestionType
 }
 
 export interface ErrorCauseSummary {
@@ -188,6 +200,13 @@ export function getPracticeSessionSummary(
   const session = snapshot.practice.sessions[sessionId]
   if (!session) return null
   const instanceIds = new Set(session.questions.map((entry) => entry.question.instanceId))
+  const byType = new Map<QuestionType, LearningRecord[]>()
+  for (const record of session.records) {
+    if (!record.questionType) continue
+    const group = byType.get(record.questionType) ?? []
+    group.push(record)
+    byType.set(record.questionType, group)
+  }
   return {
     ...countRecords(session.records),
     sessionId,
@@ -200,6 +219,10 @@ export function getPracticeSessionSummary(
     practiceReward: rewardFor(snapshot, 'practice', (_occurredAt, referenceId) =>
       instanceIds.has(referenceId),
     ),
+    questionTypes: Array.from(byType, ([questionType, typeRecords]) => ({
+      ...countRecords(typeRecords),
+      questionType,
+    })).sort((left, right) => compareText(left.questionType, right.questionType)),
   }
 }
 

@@ -1,6 +1,6 @@
 import { parseQuestionSnapshot } from '../contracts'
 import type { QuestionSnapshot } from '../types'
-import { createRetestQuestion } from './math-generator'
+import { createQuestionVariant } from './question-variants'
 import type {
   PracticeQuestionInput,
   PracticeSession,
@@ -58,7 +58,7 @@ function replaceWithRetest(
   instanceId: string,
 ): PracticeQuestionInput {
   return {
-    question: createRetestQuestion(original, seed, instanceId),
+    question: createQuestionVariant(original, seed, instanceId),
     retestOfInstanceId: original.instanceId,
   }
 }

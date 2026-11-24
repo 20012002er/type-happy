@@ -1,25 +1,31 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { parseNumberAnswer, parseQuotientRemainderAnswer } from '../../learning/practice/answer'
-import type { Answer, QuestionType } from '../../learning/types'
-
-interface AnswerInputValue {
-  answer: string
-  quotient: string
-  remainder: string
-}
+import type { Answer, QuestionSnapshot, QuestionType } from '../../learning/types'
+import type { AnswerFormValue } from './answer-form'
+import LearningAnswerFooter from './LearningAnswerFooter.vue'
+import LearningBlanksInput from './LearningBlanksInput.vue'
+import LearningChoiceInput from './LearningChoiceInput.vue'
+import LearningFractionInput from './LearningFractionInput.vue'
+import LearningSpellingInput from './LearningSpellingInput.vue'
+import LearningWordProblemInput from './LearningWordProblemInput.vue'
 
 const props = defineProps<{
-  modelValue: AnswerInputValue
+  modelValue: AnswerFormValue
   questionType: QuestionType
   correcting: boolean
   disabled: boolean
+  question?: QuestionSnapshot
 }>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: AnswerInputValue]
+  'update:modelValue': [value: AnswerFormValue]
   submit: [answer: Answer]
 }>()
+
+function patch(part: Partial<AnswerFormValue>): void {
+  emit('update:modelValue', { ...props.modelValue, ...part })
+}
 
 const parsed = computed(() =>
   props.questionType === 'number'
@@ -28,11 +34,22 @@ const parsed = computed(() =>
 )
 const valid = computed(() => parsed.value.ok)
 
-function update(field: keyof AnswerInputValue, event: Event): void {
-  emit('update:modelValue', {
-    ...props.modelValue,
-    [field]: (event.target as HTMLInputElement).value,
-  })
+const blankCount = computed(() => {
+  const rule = props.question?.acceptedAnswerRule
+  if (rule && (rule.kind === 'fill-blanks' || rule.kind === 'sentence-completion')) {
+    return rule.values.length
+  }
+  return props.modelValue.blanks?.length ?? 0
+})
+const wordRule = computed(() => {
+  const rule = props.question?.acceptedAnswerRule
+  return rule?.kind === 'word-problem'
+    ? { values: rule.values, unitRequired: rule.unitRequired, decimalPlaces: rule.decimalPlaces }
+    : { values: [], unitRequired: false }
+})
+
+function update(field: 'answer' | 'quotient' | 'remainder', event: Event): void {
+  patch({ [field]: (event.target as HTMLInputElement).value })
 }
 
 function submit(): void {
@@ -42,7 +59,55 @@ function submit(): void {
 </script>
 
 <template>
-  <form class="learn-answer-form" novalidate @submit.prevent="submit">
+  <LearningChoiceInput
+    v-if="questionType === 'single-choice'"
+    :model-value="modelValue.optionId ?? ''"
+    :options="question?.options ?? []"
+    :correcting="correcting"
+    :disabled="disabled"
+    @update:model-value="patch({ optionId: $event })"
+    @submit="emit('submit', $event)"
+  />
+  <LearningBlanksInput
+    v-else-if="questionType === 'fill-blanks' || questionType === 'sentence-completion'"
+    :model-value="modelValue.blanks ?? []"
+    :kind="questionType"
+    :count="blankCount"
+    :correcting="correcting"
+    :disabled="disabled"
+    @update:model-value="patch({ blanks: $event })"
+    @submit="emit('submit', $event)"
+  />
+  <LearningFractionInput
+    v-else-if="questionType === 'fraction'"
+    :numerator="modelValue.numerator ?? ''"
+    :denominator="modelValue.denominator ?? ''"
+    :correcting="correcting"
+    :disabled="disabled"
+    @update:numerator="patch({ numerator: $event })"
+    @update:denominator="patch({ denominator: $event })"
+    @submit="emit('submit', $event)"
+  />
+  <LearningWordProblemInput
+    v-else-if="questionType === 'word-problem'"
+    :value="modelValue.answer"
+    :unit="modelValue.unit ?? ''"
+    :rule="wordRule"
+    :correcting="correcting"
+    :disabled="disabled"
+    @update:value="patch({ answer: $event })"
+    @update:unit="patch({ unit: $event })"
+    @submit="emit('submit', $event)"
+  />
+  <LearningSpellingInput
+    v-else-if="questionType === 'english-spelling'"
+    :model-value="modelValue.answer"
+    :correcting="correcting"
+    :disabled="disabled"
+    @update:model-value="patch({ answer: $event })"
+    @submit="emit('submit', $event)"
+  />
+  <form v-else class="learn-answer-form" novalidate @submit.prevent="submit">
     <label v-if="questionType === 'number'" class="learn-field">
       答案
       <input
@@ -87,14 +152,12 @@ function submit(): void {
         />
       </label>
     </div>
-    <div class="learn-answer-form__footer">
-      <small id="answer-input-note">
-        {{ valid ? '答案已填写，可以提交' : '请输入非负整数；无效或空白答案不能提交' }}
-      </small>
-      <button type="submit" class="learn-button" :disabled="disabled || !valid">
-        {{ correcting ? '提交订正' : '提交答案' }}
-      </button>
-    </div>
+    <LearningAnswerFooter
+      :valid="valid"
+      :correcting="correcting"
+      :disabled="disabled"
+      :note="valid ? '答案已填写，可以提交' : '请输入非负整数；无效或空白答案不能提交'"
+    />
   </form>
 </template>
 
@@ -116,24 +179,5 @@ function submit(): void {
   font-family: 'Avenir Next', 'Trebuchet MS', sans-serif;
   font-size: 25px;
   font-weight: 700;
-}
-
-.learn-answer-form__footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.learn-answer-form__footer small {
-  color: var(--learn-muted);
-  line-height: 1.5;
-}
-
-@media (max-width: 480px) {
-  .learn-answer-form__footer {
-    align-items: stretch;
-    flex-direction: column;
-  }
 }
 </style>

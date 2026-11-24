@@ -12,7 +12,9 @@ import {
   submitPracticeAnswer,
   type PracticeSession,
 } from '../../../src/learning/practice/practice-session'
+import { registerVariantGenerator } from '../../../src/learning/practice/question-variants'
 import type { Answer, QuestionSnapshot } from '../../../src/learning/types'
+import { buildChoiceFixture, buildQuestionFixture } from '../../helpers/question-fixtures'
 
 function makeSession(size = 6, id = 'session-1'): PracticeSession {
   const paper = generateSpecialPaper({
@@ -375,6 +377,274 @@ describe('practice question state machine', () => {
         ),
       }),
     ).toThrow('提示等级无效')
+  })
+})
+
+const CHOICE_TEMPLATE_ID = 'session-choice-v1'
+registerVariantGenerator(CHOICE_TEMPLATE_ID, (original, seed, instanceId) =>
+  buildChoiceFixture({
+    templateId: original.templateId,
+    instanceId,
+    seed,
+    prompt: `新情境 ${seed}：下面关于乘法交换律的说法，哪一个是正确的？`,
+  }),
+)
+
+function makeChoiceSession(size = 6, id = 'choice-session'): PracticeSession {
+  const questions = Array.from({ length: size }, (_, index) => ({
+    question: buildChoiceFixture({
+      templateId: CHOICE_TEMPLATE_ID,
+      instanceId: `${id}-q${index}`,
+      seed: 100 + index,
+    }),
+  }))
+  return createPracticeSession({ id, mode: 'special', questions, createdAt: 100 })
+}
+
+describe('single-choice variant correction flow', () => {
+  it('settles a first-correct choice without any variant', () => {
+    const initial = makeChoiceSession(1)
+    const next = submitPracticeAnswer(initial, { kind: 'single-choice', optionId: 'opt-b' }, 110)
+    expect(current(next).status).toBe('first-correct')
+    expect(current(next).question.variantOf).toBeUndefined()
+    expect(next.records[0]).toMatchObject({
+      questionType: 'single-choice',
+      result: 'first-correct',
+    })
+  })
+
+  it('requires variant scheduling and replaces the original question in place on first error', () => {
+    const initial = makeChoiceSession()
+    const original = current(initial).question
+    expect(() =>
+      submitPracticeAnswer(initial, { kind: 'single-choice', optionId: 'opt-a' }, 110),
+    ).toThrow('选择题订正需要变式题支持')
+    expect(current(initial).status).toBe('pending')
+
+    const next = submitPracticeAnswer(
+      initial,
+      { kind: 'single-choice', optionId: 'opt-a' },
+      110,
+      undefined,
+      {
+        seed: 500,
+        idPrefix: 'choice-session',
+      },
+    )
+    const entry = current(next)
+    expect(entry.status).toBe('awaiting-correction')
+    expect(entry.attempts).toBe(1)
+    expect(next.questions).toHaveLength(initial.questions.length)
+    expect(entry.question.instanceId).toBe(`choice-session-variant-${original.instanceId}`)
+    expect(entry.question.prompt).not.toBe(original.prompt)
+    expect(entry.question.variantOf).toEqual({
+      templateId: original.templateId,
+      instanceId: original.instanceId,
+    })
+    expect(entry.feedback?.hintLevel).toBe(1)
+    expect(entry.feedback?.revealedAnswer).toBeUndefined()
+    expect(next.records).toHaveLength(0)
+    expect(parsePracticeSession(structuredClone(next))).toEqual(next)
+  })
+
+  it('corrects on the variant for mastered-after-hint and never returns to the original options', () => {
+    let session = makeChoiceSession()
+    session = submitPracticeAnswer(
+      session,
+      { kind: 'single-choice', optionId: 'opt-a' },
+      110,
+      undefined,
+      {
+        seed: 500,
+        idPrefix: 'choice-session',
+      },
+    )
+    const variant = current(session).question
+    session = submitPracticeAnswer(session, { kind: 'single-choice', optionId: 'opt-b' }, 120)
+    expect(current(session).status).toBe('mastered-after-hint')
+    expect(current(session).question.instanceId).toBe(variant.instanceId)
+    expect(session.records[0]).toMatchObject({
+      questionInstanceId: variant.instanceId,
+      result: 'mastered-after-hint',
+      attempts: 2,
+    })
+  })
+
+  it('reveals the variant answer after a second error and schedules a variant retest', () => {
+    let session = makeChoiceSession()
+    session = submitPracticeAnswer(
+      session,
+      { kind: 'single-choice', optionId: 'opt-a' },
+      110,
+      undefined,
+      {
+        seed: 500,
+        idPrefix: 'choice-session',
+      },
+    )
+    const variant = current(session).question
+    session = submitPracticeAnswer(session, { kind: 'single-choice', optionId: 'opt-c' }, 120)
+    expect(current(session).status).toBe('needs-explanation')
+    expect(current(session).question.instanceId).toBe(variant.instanceId)
+    expect(current(session).feedback?.revealedAnswer).toEqual(variant.standardAnswer)
+
+    session = submitPracticeAnswer(session, { kind: 'single-choice', optionId: 'opt-b' }, 130, {
+      seed: 900,
+      idPrefix: 'choice-session',
+    })
+    expect(current(session).status).toBe('corrected-awaiting-retest')
+    const retestIndex = session.questions.findIndex(
+      (entry) => entry.retestOfInstanceId === variant.instanceId,
+    )
+    expect(retestIndex).toBeGreaterThanOrEqual(3)
+    expect(retestIndex).toBeLessThanOrEqual(5)
+    const retest = session.questions[retestIndex].question
+    expect(retest.prompt).not.toBe(variant.prompt)
+    expect(retest.variantOf?.instanceId).toBe(variant.instanceId)
+    expect(parsePracticeSession(structuredClone(session))).toEqual(session)
+  })
+})
+
+describe('record classification and all-type state machine', () => {
+  const cases: Array<{
+    name: string
+    question: QuestionSnapshot
+    wrong: Answer
+    correct: Answer
+    feedbackCheck?: (
+      feedback: NonNullable<PracticeSession['questions'][number]['feedback']>,
+    ) => void
+  }> = [
+    {
+      name: 'fill-blanks',
+      question: buildQuestionFixture({
+        instanceId: 'type-fill-blanks',
+        standardAnswer: { kind: 'fill-blanks', values: ['交换', '结合'] },
+        acceptedAnswerRule: {
+          kind: 'fill-blanks',
+          values: [['交换'], ['结合']],
+          trimWhitespace: true,
+        },
+      }),
+      wrong: { kind: 'fill-blanks', values: ['交换', '分配'] },
+      correct: { kind: 'fill-blanks', values: ['交换', '结合'] },
+      feedbackCheck: (feedback) => expect(feedback.correctBlanks).toEqual([0]),
+    },
+    {
+      name: 'word-problem',
+      question: buildQuestionFixture({
+        instanceId: 'type-word-problem',
+        standardAnswer: { kind: 'word-problem', value: 12, unit: '元' },
+        acceptedAnswerRule: {
+          kind: 'word-problem',
+          values: [{ value: 12, unit: '元' }],
+          unitRequired: true,
+        },
+      }),
+      wrong: { kind: 'word-problem', value: 12, unit: '角' },
+      correct: { kind: 'word-problem', value: 12, unit: '元' },
+      feedbackCheck: (feedback) => expect(feedback.preservedValue).toBe(12),
+    },
+    {
+      name: 'fraction',
+      question: buildQuestionFixture({
+        instanceId: 'type-fraction',
+        courseId: 'pep-grade5-autumn-math',
+        standardAnswer: { kind: 'fraction', numerator: 1, denominator: 2 },
+        acceptedAnswerRule: {
+          kind: 'fraction',
+          values: [{ numerator: 1, denominator: 2 }],
+          requireSimplest: true,
+        },
+      }),
+      wrong: { kind: 'fraction', numerator: 2, denominator: 4 },
+      correct: { kind: 'fraction', numerator: 1, denominator: 2 },
+      feedbackCheck: (feedback) => expect(feedback.hint).toContain('最大公因数'),
+    },
+    {
+      name: 'english-spelling',
+      question: buildQuestionFixture({
+        instanceId: 'type-english-spelling',
+        standardAnswer: { kind: 'english-spelling', value: 'apple' },
+        acceptedAnswerRule: { kind: 'english-spelling', values: ['apple'], caseSensitive: false },
+      }),
+      wrong: { kind: 'english-spelling', value: 'aple' },
+      correct: { kind: 'english-spelling', value: 'Apple' },
+    },
+    {
+      name: 'sentence-completion',
+      question: buildQuestionFixture({
+        instanceId: 'type-sentence-completion',
+        standardAnswer: { kind: 'sentence-completion', values: ['am', 'is'] },
+        acceptedAnswerRule: {
+          kind: 'sentence-completion',
+          values: [['am'], ['is']],
+          caseSensitive: false,
+          ignoreTerminalPunctuation: true,
+        },
+      }),
+      wrong: { kind: 'sentence-completion', values: ['am', 'are'] },
+      correct: { kind: 'sentence-completion', values: ['am', 'is'] },
+      feedbackCheck: (feedback) => expect(feedback.correctBlanks).toEqual([0]),
+    },
+  ]
+
+  for (const item of cases) {
+    it(`runs the correction flow and records classification for ${item.name}`, () => {
+      const initial = createPracticeSession({
+        id: `type-${item.name}`,
+        mode: 'special',
+        questions: [{ question: item.question }],
+        createdAt: 100,
+      })
+      const incorrect = submitPracticeAnswer(initial, item.wrong, 110)
+      expect(current(incorrect).status).toBe('awaiting-correction')
+      expect(current(incorrect).lastAnswer).toEqual(item.wrong)
+      if (item.feedbackCheck) item.feedbackCheck(current(incorrect).feedback!)
+      expect(parsePracticeSession(structuredClone(incorrect))).toEqual(incorrect)
+
+      const corrected = submitPracticeAnswer(incorrect, item.correct, 120)
+      expect(current(corrected).status).toBe('mastered-after-hint')
+      const classification = item.question.classification
+      expect(corrected.records[0]).toMatchObject({
+        questionType: item.name,
+        courseId: classification.courseId,
+        unitId: classification.unitId,
+        knowledgePointId: classification.knowledgePointId,
+        subject: classification.subject,
+        grade: classification.grade,
+        semester: classification.semester,
+        ability: classification.ability,
+        result: 'mastered-after-hint',
+      })
+      expect(getPracticeOutcome(current(corrected)).effectiveCompletion).toBe(true)
+
+      const firstCorrect = submitPracticeAnswer(initial, item.correct, 130)
+      expect(current(firstCorrect).status).toBe('first-correct')
+      expect(firstCorrect.records[0].questionType).toBe(item.name)
+    })
+  }
+
+  it('validates the extended feedback fields when restoring a session', () => {
+    const wordProblem = cases.find((item) => item.name === 'word-problem')!
+    let session = createPracticeSession({
+      id: 'feedback-validation',
+      mode: 'special',
+      questions: [{ question: wordProblem.question }],
+      createdAt: 100,
+    })
+    session = submitPracticeAnswer(session, wordProblem.wrong, 110)
+    const withFeedback = (patch: Record<string, unknown>) => ({
+      ...session,
+      questions: session.questions.map((entry, index) =>
+        index === 0 ? { ...entry, feedback: { ...entry.feedback, ...patch } } : entry,
+      ),
+    })
+    expect(() => parsePracticeSession(withFeedback({ preservedValue: '12' }))).toThrow('有限数字')
+    expect(() => parsePracticeSession(withFeedback({ preservedUnit: ' ' }))).toThrow('不能为空')
+    expect(() => parsePracticeSession(withFeedback({ correctBlanks: '0' }))).toThrow('必须是数组')
+    expect(() => parsePracticeSession(withFeedback({ correctBlanks: [0.5] }))).toThrow('安全整数')
+    expect(parsePracticeSession(withFeedback({ correctBlanks: [0] }))).toBeTruthy()
   })
 })
 

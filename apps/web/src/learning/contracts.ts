@@ -16,6 +16,7 @@ import {
   type QuestionType,
   type Subject,
 } from './types'
+import { normalizeEnglishSentence, normalizeEnglishSpelling } from './normalize-text'
 
 export class ContentValidationError extends Error {
   readonly path: string
@@ -262,16 +263,6 @@ function greatestCommonDivisor(left: number, right: number): number {
   return a
 }
 
-function normalizeSentence(
-  value: string,
-  caseSensitive: boolean,
-  ignoreTerminalPunctuation: boolean,
-): string {
-  let normalized = value.trim().replace(/[‘’]/g, "'").replace(/\s+/g, ' ')
-  if (ignoreTerminalPunctuation) normalized = normalized.replace(/[.!?。！？]+$/u, '')
-  return caseSensitive ? normalized : normalized.toLocaleLowerCase()
-}
-
 function assertStandardAnswerAccepted(answer: Answer, rule: AcceptedAnswerRule): void {
   let accepted = false
   if (rule.kind === 'number' && answer.kind === 'number') {
@@ -341,24 +332,24 @@ function assertStandardAnswerAccepted(answer: Answer, rule: AcceptedAnswerRule):
         : value.numerator * answer.denominator === answer.numerator * value.denominator,
     )
   } else if (rule.kind === 'english-spelling' && answer.kind === 'english-spelling') {
-    const normalize = (value: string) => {
-      const trimmed = value.trim()
-      return rule.caseSensitive ? trimmed : trimmed.toLocaleLowerCase()
-    }
+    const normalize = (value: string) => normalizeEnglishSpelling(value, rule.caseSensitive)
     accepted = rule.values.some((value) => normalize(value) === normalize(answer.value))
   } else if (rule.kind === 'sentence-completion' && answer.kind === 'sentence-completion') {
     accepted =
       answer.values.length === rule.values.length &&
       answer.values.every((value, index) => {
-        const normalized = normalizeSentence(
+        const normalized = normalizeEnglishSentence(
           value,
           rule.caseSensitive,
           rule.ignoreTerminalPunctuation,
         )
         return rule.values[index].some(
           (candidate) =>
-            normalizeSentence(candidate, rule.caseSensitive, rule.ignoreTerminalPunctuation) ===
-            normalized,
+            normalizeEnglishSentence(
+              candidate,
+              rule.caseSensitive,
+              rule.ignoreTerminalPunctuation,
+            ) === normalized,
         )
       })
   }

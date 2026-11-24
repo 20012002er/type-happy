@@ -27,6 +27,7 @@ import {
   getStreakMilestone,
 } from '../../../src/learning/tasks/streak'
 import type { QuestionSnapshot } from '../../../src/learning/types'
+import { buildQuestionFixture } from '../../helpers/question-fixtures'
 
 function at(day: number, hour = 12): number {
   return new Date(2026, 10, day, hour).getTime()
@@ -411,6 +412,45 @@ describe('learning projections', () => {
     })
     expect(abandoned).toMatchObject({ effectiveCompleted: 0, abandoned: 1, mastered: 0 })
     expect(content).toMatchObject({ effectiveCompleted: 0, contentError: 1, mastered: 0 })
+  })
+
+  it('breaks session statistics down by question type', () => {
+    const snapshot = createEmptyLearningSnapshot()
+    const numberQuestion = buildQuestionFixture({
+      instanceId: 'summary-number',
+      standardAnswer: { kind: 'number', value: 24 },
+      acceptedAnswerRule: { kind: 'number', values: [24] },
+    })
+    const blanksQuestion = buildQuestionFixture({
+      instanceId: 'summary-blanks',
+      standardAnswer: { kind: 'fill-blanks', values: ['交换', '结合'] },
+      acceptedAnswerRule: {
+        kind: 'fill-blanks',
+        values: [['交换'], ['结合']],
+        trimWhitespace: true,
+      },
+    })
+    let session = createPracticeSession({
+      id: 'summary-types',
+      mode: 'special',
+      questions: [{ question: numberQuestion }, { question: blanksQuestion }],
+      createdAt: at(19),
+    })
+    session = submitPracticeAnswer(session, numberQuestion.standardAnswer, at(19))
+    session = advancePracticeSession(session, at(19) + 1)
+    session = submitPracticeAnswer(session, blanksQuestion.standardAnswer, at(19) + 2)
+    session = advancePracticeSession(session, at(19) + 3)
+    settleAll(snapshot, session)
+    snapshot.practice.sessions = { ...snapshot.practice.sessions, [session.id]: session }
+
+    const summary = getPracticeSessionSummary(snapshot, 'summary-types')
+    expect(
+      summary?.questionTypes.map((item) => [item.questionType, item.effectiveCompleted]),
+    ).toEqual([
+      ['fill-blanks', 1],
+      ['number', 1],
+    ])
+    expect(summary?.questionTypes.every((item) => item.firstCorrect === 1)).toBe(true)
   })
 })
 

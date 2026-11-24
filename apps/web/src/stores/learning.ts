@@ -53,7 +53,7 @@ import {
   generateSpecialPaper,
   hasPracticeContent,
 } from '../learning/practice/paper'
-import { createRetestQuestion } from '../learning/practice/math-generator'
+import { createQuestionVariant } from '../learning/practice/question-variants'
 import { PracticeSessionRepository } from '../learning/practice/practice-repository'
 import {
   abandonPracticeSession,
@@ -477,6 +477,10 @@ export const useLearningStore = defineStore('learning', () => {
           seed: random.int(0, 0xffffffff),
           idPrefix: sessionId,
         },
+        {
+          seed: random.int(0, 0xffffffff),
+          idPrefix: sessionId,
+        },
       )
     } catch {
       return replaceContentError(sessionId)
@@ -489,7 +493,7 @@ export const useLearningStore = defineStore('learning', () => {
     if (!session || session.status !== 'active') return 'failed'
     const current = session.questions[session.currentIndex]
     try {
-      const replacement = createRetestQuestion(
+      const replacement = createQuestionVariant(
         current.question,
         random.int(0, 0xffffffff),
         `${sessionId}-replacement-${ids.next()}`,
