@@ -36,6 +36,15 @@ import {
   type FarmSupplyItemId,
 } from '../learning/farm/farm-transactions'
 import {
+  collectProcessingOutput,
+  purchaseProcessingWorkshop,
+  sellProcessingProducts,
+  settleProcessingWorkshop,
+  startProcessingTask,
+  type ProcessingSaleSelection,
+} from '../learning/processing/operations'
+import { transactProcessingOperation } from '../learning/persistence/processing-transactions'
+import {
   advanceFarmTime,
   getPendingHarvestCount,
   type AnimalKind,
@@ -124,6 +133,12 @@ export type FarmOperation =
   | { type: 'sell'; selection: FarmSaleSelection }
   | { type: 'claim-recovery' }
 
+export type ProcessingOperation =
+  | { type: 'buy-workshop' }
+  | { type: 'start-processing'; recipeId: string }
+  | { type: 'collect-processing' }
+  | { type: 'sell-processing'; selection: ProcessingSaleSelection }
+
 const DEFAULT_PREFERENCES: LearningPreferences = {
   courseIntroSeen: false,
   soundEnabled: true,
@@ -183,6 +198,13 @@ const FARM_OPERATION_NOTICES: Partial<Record<FarmOperation['type'], string>> = {
   'claim-recovery': '恢复补给已放入仓库：萝卜种子 × 2',
 }
 
+const PROCESSING_OPERATION_NOTICES: Record<ProcessingOperation['type'], string> = {
+  'buy-workshop': '加工坊已建成，可以开始加工农产品',
+  'start-processing': '原料已投入，加工会按真实时间进行',
+  'collect-processing': '加工品已收入仓库',
+  'sell-processing': '加工品已出售，学习金币已到账',
+}
+
 function applyFarmOperation(
   snapshot: LearningSnapshot,
   operation: FarmOperation,
@@ -193,7 +215,10 @@ function applyFarmOperation(
   const settlement = { settlementId: id, now }
   switch (operation.type) {
     case 'advance':
-      return { ...snapshot, farm: advanceFarmTime(snapshot.farm, now) }
+      return settleProcessingWorkshop(
+        { ...snapshot, farm: advanceFarmTime(snapshot.farm, now) },
+        now,
+      )
     case 'claim-gift':
       return { ...snapshot, farm: claimStarterGift(snapshot.farm, action) }
     case 'plant':
@@ -218,6 +243,45 @@ function applyFarmOperation(
       return sellFarmProducts(snapshot, { ...settlement, ...operation })
     case 'claim-recovery':
       return claimRecoverySupply(snapshot, action)
+  }
+}
+
+function applyProcessingOperation(
+  snapshot: LearningSnapshot,
+  operation: ProcessingOperation,
+  id: string,
+  now: number,
+): LearningSnapshot {
+  switch (operation.type) {
+    case 'buy-workshop':
+      return purchaseProcessingWorkshop(snapshot, { settlementId: id, now })
+    case 'start-processing':
+      return startProcessingTask(snapshot, { actionId: id, now, recipeId: operation.recipeId })
+    case 'collect-processing':
+      return collectProcessingOutput(snapshot, { actionId: id, now })
+    case 'sell-processing':
+      return sellProcessingProducts(snapshot, {
+        settlementId: id,
+        now,
+        selection: operation.selection,
+      })
+  }
+}
+
+function processingOperationSignature(operation: ProcessingOperation, now: number): string {
+  switch (operation.type) {
+    case 'buy-workshop':
+      return JSON.stringify({ type: 'purchase-workshop', now })
+    case 'start-processing':
+      return JSON.stringify({ type: 'start-processing', now, recipeId: operation.recipeId })
+    case 'collect-processing':
+      return JSON.stringify({ type: 'collect-processing', now })
+    case 'sell-processing':
+      return JSON.stringify({
+        type: 'sell-processed-product',
+        now,
+        selection: operation.selection,
+      })
   }
 }
 
@@ -618,6 +682,43 @@ export const useLearningStore = defineStore('learning', () => {
     }
   }
 
+  function performProcessingOperation(operation: ProcessingOperation): boolean {
+    if (saving.value) return false
+    if (!repository) {
+      saveError.value = '学习数据尚未准备好，请刷新后重试'
+      return false
+    }
+    saving.value = true
+    saveError.value = ''
+    try {
+      const now = getNow()
+      const id = `processing-${ids.next()}`
+      const next = transactProcessingOperation(
+        repository,
+        snapshot.value.revision,
+        { actionId: id, signature: processingOperationSignature(operation, now) },
+        (current) => applyProcessingOperation(current, operation, id, now),
+      )
+      snapshot.value = next
+      notice.value = PROCESSING_OPERATION_NOTICES[operation.type]
+      return true
+    } catch (error) {
+      saveError.value =
+        error instanceof RevisionConflictError ||
+        error instanceof PersistenceWriteError ||
+        error instanceof CorruptedSnapshotError ||
+        error instanceof UnsupportedSchemaVersionError
+          ? readableSaveError(error)
+          : error instanceof Error
+            ? error.message
+            : '加工操作暂时无法完成，请重试'
+      notice.value = ''
+      return false
+    } finally {
+      saving.value = false
+    }
+  }
+
   function writePreferences(next: LearningPreferences, failureMessage: string): boolean {
     if (!storage) {
       saveError.value = '学习数据尚未准备好，请刷新后重试'
@@ -721,6 +822,7 @@ export const useLearningStore = defineStore('learning', () => {
     practiceRewardFor,
     getNow,
     performFarmOperation,
+    performProcessingOperation,
     updatePreferences,
     updateDailyGoal,
     clearLearningData,

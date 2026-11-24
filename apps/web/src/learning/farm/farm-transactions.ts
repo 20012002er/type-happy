@@ -2,6 +2,7 @@ import { LEARNING_RULES } from '../config/rules'
 import { applyInventorySettlement } from '../persistence/inventory-transactions'
 import type { LearningRepository } from '../persistence/repository'
 import type { LearningSnapshot } from '../persistence/snapshot'
+import { PROCESSING_PRODUCT_IDS } from '../processing/types'
 import { SettlementConflictError, settleWallet, type WalletSource } from '../wallet/wallet'
 import {
   addFarmInventory,
@@ -387,6 +388,12 @@ export function getRecoverySupplyStatus(
   if (farm.plots.some((plot) => plot.crop !== null)) reasons.push('土地仍有生长中或成熟作物')
   if (farm.animals.some((animal) => animal.production !== null || animal.productPending)) {
     reasons.push('动物仍在生产或有待收产品')
+  }
+  const workshop = snapshot.processing.workshop
+  if (workshop.activeTask !== null) reasons.push('加工坊仍有加工中的原料')
+  if (workshop.pendingOutput !== null) reasons.push('加工坊仍有待收加工品')
+  if (PROCESSING_PRODUCT_IDS.some((itemId) => (farm.inventory[itemId] ?? 0) > 0)) {
+    reasons.push('仓库仍有可出售加工品')
   }
   const seedsOrFeed = [
     ...CROP_IDS.map((cropId) => seedItemId(cropId)),

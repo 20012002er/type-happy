@@ -13,7 +13,42 @@ interface DestroyOptions {
 type AssetRequest = string | { alias: string; src: string }
 
 export function createPixiTestDouble(resources: Record<string, unknown> = {}) {
-  class TestContainer {
+  class TestDisplayObject {
+    readonly position = {
+      x: 0,
+      y: 0,
+      set(x: number, y: number) {
+        this.x = x
+        this.y = y
+      },
+    }
+    readonly scale = {
+      x: 1,
+      y: 1,
+      set(x: number, y = x) {
+        this.x = x
+        this.y = y
+      },
+    }
+    readonly anchor = {
+      x: 0,
+      y: 0,
+      set(x: number, y = x) {
+        this.x = x
+        this.y = y
+      },
+    }
+    alpha = 1
+    visible = true
+    rotation = 0
+    destroyed = false
+
+    destroy() {
+      this.destroyed = true
+    }
+  }
+
+  class TestContainer extends TestDisplayObject {
     readonly children: TestContainer[] = []
 
     addChild<T extends TestContainer>(child: T): T {
@@ -30,6 +65,48 @@ export function createPixiTestDouble(resources: Record<string, unknown> = {}) {
     removeChildren(): TestContainer[] {
       return this.children.splice(0)
     }
+  }
+
+  class TestGraphics extends TestContainer {
+    readonly calls: string[] = []
+
+    rect(x: number, y: number, width: number, height: number): this {
+      this.calls.push(`rect:${x},${y},${width},${height}`)
+      return this
+    }
+
+    circle(x: number, y: number, radius: number): this {
+      this.calls.push(`circle:${x},${y},${radius}`)
+      return this
+    }
+
+    fill(color: unknown): this {
+      this.calls.push(`fill:${String(color)}`)
+      return this
+    }
+
+    clear(): this {
+      this.calls.push('clear')
+      return this
+    }
+  }
+
+  class TestText extends TestContainer {
+    text: string
+    constructor(options: { text?: string } = {}) {
+      super()
+      this.text = options.text ?? ''
+    }
+  }
+
+  class TestSprite extends TestContainer {
+    constructor(readonly texture: unknown) {
+      super()
+    }
+  }
+
+  class TestTextStyle {
+    constructor(readonly options: Record<string, unknown> = {}) {}
   }
 
   class TestTicker {
@@ -140,6 +217,10 @@ export function createPixiTestDouble(resources: Record<string, unknown> = {}) {
   return {
     Application: TestApplication,
     Container: TestContainer,
+    Graphics: TestGraphics,
+    Text: TestText,
+    TextStyle: TestTextStyle,
+    Sprite: TestSprite,
     Assets: new TestAssets(),
   }
 }

@@ -4,6 +4,7 @@ import { PROCESSING_RECIPES } from './recipes'
 import {
   isProcessingProduct,
   type PendingProcessingOutput,
+  type ProcessingRecipe,
   type ProcessingTask,
   type ProcessingWorkshopState,
 } from './types'
@@ -110,28 +111,57 @@ export function parseProcessingState(value: unknown): ProcessingState {
   return state as unknown as ProcessingState
 }
 
-export function getProcessingPurchaseEligibility(farm: FarmState): ProcessingPurchaseEligibility {
-  let manualHarvestQuantity = 0
+export interface ManualHarvestTally {
+  total: number
+  byItemId: Readonly<Record<string, number>>
+}
+
+export function getManualHarvestTally(farm: FarmState): ManualHarvestTally {
+  let total = 0
+  const byItemId: Record<string, number> = {}
   for (const signature of Object.values(farm.actions)) {
     try {
       const action = JSON.parse(signature) as Record<string, unknown>
       if (action.type === 'harvest-crop' && typeof action.plotId === 'string') {
-        manualHarvestQuantity += 1
+        total += 1
       }
       if (action.type === 'collect-animal-product' && typeof action.animalId === 'string') {
         const animal = farm.animals.find((candidate) => candidate.id === action.animalId)
         if (animal) {
-          manualHarvestQuantity += LEARNING_RULES.farm.animals[animal.kind].productQuantity
+          const rules = LEARNING_RULES.farm.animals[animal.kind]
+          total += rules.productQuantity
+          byItemId[rules.product] = (byItemId[rules.product] ?? 0) + rules.productQuantity
         }
       }
     } catch {
       // Legacy free-form action signatures do not prove a manual harvest.
     }
   }
+  return { total, byItemId }
+}
+
+export function getProcessingPurchaseEligibility(farm: FarmState): ProcessingPurchaseEligibility {
+  const manualHarvestQuantity = getManualHarvestTally(farm).total
   const requiredManualHarvestQuantity = LEARNING_RULES.farm.processing.unlockManualHarvestQuantity
   return {
     eligible: manualHarvestQuantity >= requiredManualHarvestQuantity,
     manualHarvestQuantity,
     requiredManualHarvestQuantity,
   }
+}
+
+export interface ProcessingRecipeAvailability {
+  available: boolean
+  missing: readonly { itemId: string; required: number; collected: number }[]
+}
+
+export function getRecipeAvailability(
+  farm: FarmState,
+  recipe: ProcessingRecipe,
+): ProcessingRecipeAvailability {
+  const tally = getManualHarvestTally(farm)
+  const missing = Object.entries(recipe.requiredManualHarvests)
+    .map(([itemId, required]) => ({ itemId, required, collected: tally.byItemId[itemId] ?? 0 }))
+    .filter((entry) => entry.collected < entry.required)
+  return { available: missing.length === 0, missing }
 }

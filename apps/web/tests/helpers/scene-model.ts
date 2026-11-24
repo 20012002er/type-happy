@@ -29,9 +29,10 @@ export function expectUniqueSceneObjectIds(tree: SceneObjectTree): void {
   expect([...duplicates], `Duplicate scene object IDs: ${[...duplicates].join(', ')}`).toEqual([])
 }
 
-export function expectSceneProjection<Input, Model extends SceneObjectTree>(
+export function expectSceneProjection<Input, Model>(
   project: (input: Input) => Model,
   input: Input,
+  toTree?: (model: Model) => SceneObjectTree,
 ): Model {
   const originalInput = structuredClone(input)
   const first = project(input)
@@ -40,6 +41,6 @@ export function expectSceneProjection<Input, Model extends SceneObjectTree>(
   const second = project(input)
   expect(second).toEqual(first)
   expect(input).toEqual(originalInput)
-  expectUniqueSceneObjectIds(first)
+  expectUniqueSceneObjectIds(toTree ? toTree(first) : (first as unknown as SceneObjectTree))
   return first
 }

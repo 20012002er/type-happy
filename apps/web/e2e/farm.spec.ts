@@ -307,3 +307,46 @@ test('E2E-13 余额差额、重复确认、保存失败刷新与重试只结算�
     1,
   )
 })
+
+test('WP09 动态画布装饰层、减动效静态降级与 360px 可操作', async ({ page }) => {
+  await openFarm(page, fundedFarm())
+
+  // Pixi 画布只作装饰层：aria-hidden，DOM 文字与按钮保持完整
+  await expect(page.locator('.farm-scene__canvas canvas')).toBeVisible()
+  await expect(page.locator('.farm-scene')).toHaveClass(/farm-scene--pixi/)
+  await expect(page.locator('.farm-scene__canvas')).toHaveAttribute('aria-hidden', 'true')
+  await expect(page.locator('.farm-plot')).toHaveCount(8)
+  await expect(page.locator('.farm-building--processing')).toContainText(
+    '累计手动收获 0 / 3 份后解锁购买',
+  )
+
+  // 播种后文字状态立即更新，画布不拦截点击
+  await page.locator('.farm-plot').first().click()
+  await page.getByRole('button', { name: '播种萝卜', exact: true }).click()
+  await expect(page.locator('.farm-plot').first()).toContainText('萝卜 · 生长中')
+
+  // 路由离开无残留画布，返回后重建
+  await page.goto('/learning')
+  await expect(page.locator('.farm-scene__canvas canvas')).toHaveCount(0)
+  await page.goto('/learning/farm')
+  await expect(page.locator('.farm-scene__canvas canvas')).toBeVisible()
+
+  // 系统减少动态效果优先：画布静态降级，核心操作与文字反馈完整
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/learning/farm')
+  await expect(page.locator('.learn-page')).toHaveClass(/farm-no-motion/)
+  await expect(page.locator('.farm-scene__canvas canvas')).toBeVisible()
+  await page.locator('.farm-plot').nth(1).click()
+  await page.getByRole('button', { name: '播种萝卜', exact: true }).click()
+  await expect(page.locator('.farm-plot').nth(1)).toContainText('萝卜 · 生长中')
+
+  // 360px 视口仍可完成选择与播种
+  await page.setViewportSize({ width: 360, height: 740 })
+  await page.locator('.farm-plot').nth(2).click()
+  await page.getByRole('button', { name: '播种萝卜', exact: true }).click()
+  await expect(page.locator('.farm-plot').nth(2)).toContainText('萝卜 · 生长中')
+
+  const stored = await snapshot(page)
+  expect(stored.farm.plots.filter((plot) => plot.crop !== null)).toHaveLength(3)
+  expect(stored.farm.inventory['radish-seed']).toBe(1)
+})

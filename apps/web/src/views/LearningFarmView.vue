@@ -5,6 +5,7 @@ import LearningConfirmDialog from '../components/learning/LearningConfirmDialog.
 import LearningPage from '../components/learning/LearningPage.vue'
 import { LEARNING_RULES } from '../learning/config/rules'
 import { getWarehouse } from '../learning/farm/farm'
+import type { FarmFeedbackKind } from '../learning/farm/scene-renderer'
 import {
   getRecoverySupplyStatus,
   quoteFarmSale,
@@ -35,6 +36,7 @@ const displayNow = ref(learning.getNow())
 const selectedKey = ref<string | null>('plot:plot-1')
 const plantingCrop = ref<CropId>('radish')
 const saleQuantities = ref<Record<string, number>>({})
+const sceneRef = ref<InstanceType<typeof FarmScene> | null>(null)
 let timer: number | undefined
 
 const cropNames: Record<CropId, string> = { radish: '萝卜', wheat: '小麦', corn: '玉米', pumpkin: '南瓜' }
@@ -43,6 +45,9 @@ const itemNames: Record<string, string> = {
   ...Object.fromEntries(CROP_IDS.map((cropId) => [`${cropId}-seed`, `${cropNames[cropId]}种子`])),
   egg: '鸡蛋',
   milk: '牛奶',
+  flour: '面粉',
+  cream: '奶油',
+  'egg-milk-pudding': '蛋奶布丁',
   fertilizer: '化肥',
   'chicken-feed': '鸡饲料',
   'cow-feed': '牛饲料',
@@ -203,10 +208,43 @@ function switchTab(tab: 'farm' | 'shop' | 'warehouse'): void {
 
 function execute(operation: FarmOperation): boolean {
   learning.clearMessages()
+  const balanceBefore = learning.today.walletBalance
   const succeeded = learning.performFarmOperation(operation)
   displayNow.value = learning.getNow()
   scheduleRefresh()
+  // 成功效果只在保存成功后播放；失败保留原视觉状态，不展示到账效果（T09-07）
+  if (succeeded) {
+    const target = feedbackTarget(operation)
+    if (target) sceneRef.value?.playFeedback(target.id, target.kind)
+    const delta = learning.today.walletBalance - balanceBefore
+    if (delta !== 0) sceneRef.value?.playCoins(delta)
+  }
   return succeeded
+}
+
+function feedbackTarget(operation: FarmOperation): { id: string; kind: FarmFeedbackKind } | null {
+  switch (operation.type) {
+    case 'plant':
+      return { id: `plot:${operation.plotId}`, kind: 'plant' }
+    case 'fertilize':
+      return { id: `plot:${operation.plotId}`, kind: 'fertilize' }
+    case 'harvest':
+      return { id: `plot:${operation.plotId}`, kind: 'harvest' }
+    case 'feed':
+      return { id: `animal:${operation.animalId}`, kind: 'feed' }
+    case 'collect':
+      return { id: `animal:${operation.animalId}`, kind: 'collect' }
+    case 'buy-plot':
+      return { id: `plot:plot-${farm.value.plots.length}`, kind: 'buy' }
+    case 'buy-building':
+      return { id: `building:${operation.building}`, kind: 'buy' }
+    case 'buy-animal': {
+      const count = farm.value.animals.filter((animal) => animal.kind === operation.kind).length
+      return { id: `animal:${operation.kind}-${count}`, kind: 'buy' }
+    }
+    default:
+      return null
+  }
 }
 
 function claimGift(): void {
@@ -390,7 +428,16 @@ onUnmounted(() => {
         </section>
 
         <div v-if="activeTab === 'farm'" class="farm-layout">
-          <FarmScene :farm="farm" :now="displayNow" :selected-key="selectedKey" :busy="learning.saving" @select="selectObject" />
+          <FarmScene
+            ref="sceneRef"
+            :farm="farm"
+            :processing="learning.snapshot.processing"
+            :now="displayNow"
+            :selected-key="selectedKey"
+            :busy="learning.saving"
+            :motion-reduced="learning.animationsReduced || learning.farmMotionReduced"
+            @select="selectObject"
+          />
 
           <aside class="learn-paper learn-section farm-context" aria-labelledby="farm-context-title">
             <p class="learn-kicker">对象操作卡</p>
@@ -570,7 +617,7 @@ onUnmounted(() => {
               <template v-else>
                 <ul class="farm-inventory-list">
                   <li v-for="item in group.items" :key="item.itemId" class="farm-inventory-item">
-                    <div class="farm-inventory-item__name"><strong>{{ itemNames[item.itemId] }}</strong><small>投入品 · 不可出售</small></div>
+                    <div class="farm-inventory-item__name"><strong>{{ itemNames[item.itemId] }}</strong><small>{{ group.category === 'processed-products' ? `加工品 · 单价 ${item.salePrice} 金币` : '投入品 · 不可出售' }}</small></div>
                     <span class="farm-inventory-item__quantity">库存 {{ item.quantity }}</span>
                   </li>
                 </ul>

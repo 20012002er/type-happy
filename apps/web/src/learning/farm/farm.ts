@@ -1,4 +1,6 @@
 import { LEARNING_RULES } from '../config/rules'
+import { getProcessingRecipe } from '../processing/recipes'
+import { PROCESSING_PRODUCT_IDS } from '../processing/types'
 import {
   addFarmInventory,
   advanceFarmTime,
@@ -217,6 +219,7 @@ export function getWarehouse(farm: FarmState): readonly WarehouseGroup[] {
     ...CROP_IDS,
     'egg',
     'milk',
+    ...PROCESSING_PRODUCT_IDS,
     ...CROP_IDS.map((cropId) => seedItemId(cropId)),
     'fertilizer',
     ...ANIMAL_KINDS.map((kind) => feedItemId(kind)),
@@ -224,6 +227,7 @@ export function getWarehouse(farm: FarmState): readonly WarehouseGroup[] {
   const categories: WarehouseCategory[] = [
     'crops',
     'animal-products',
+    'processed-products',
     'seeds',
     'fertilizer',
     'feed',
@@ -238,7 +242,9 @@ export function getWarehouse(farm: FarmState): readonly WarehouseGroup[] {
         salePrice:
           category === 'crops' || category === 'animal-products'
             ? getFarmProductPrice(itemId as FarmProductId)
-            : null,
+            : category === 'processed-products'
+              ? getProcessingRecipe(itemId).unitPrice
+              : null,
       })),
   }))
 }

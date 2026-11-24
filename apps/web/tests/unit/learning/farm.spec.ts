@@ -198,6 +198,7 @@ describe('farm animals, warehouse and monotonic time', () => {
     expect(warehouse.map((group) => group.category)).toEqual([
       'crops',
       'animal-products',
+      'processed-products',
       'seeds',
       'fertilizer',
       'feed',
@@ -211,9 +212,14 @@ describe('farm animals, warehouse and monotonic time', () => {
     ).toBe(true)
     expect(
       warehouse
-        .filter((group) => !['crops', 'animal-products'].includes(group.category))
+        .filter((group) => ['seeds', 'fertilizer', 'feed'].includes(group.category))
         .flatMap((group) => group.items)
         .every((item) => item.salePrice === null),
+    ).toBe(true)
+    expect(
+      warehouse
+        .find((group) => group.category === 'processed-products')
+        ?.items.every((item) => item.salePrice !== null),
     ).toBe(true)
   })
 
