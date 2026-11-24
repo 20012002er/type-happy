@@ -1,6 +1,8 @@
 import { parseQuestionSnapshot } from '../contracts'
 import type { QuestionSnapshot } from '../types'
 import { isMathTemplateDisabled } from './content-health'
+import { createEnglishRetestQuestion } from './english-generator'
+import { ENGLISH_TEMPLATES } from './english-templates'
 import { createRetestQuestion, generateMathQuestion } from './math-generator'
 import { filterMathTemplates, MATH_TEMPLATES } from './math-templates'
 
@@ -21,7 +23,11 @@ export function registerVariantGenerator(templateId: string, generator: VariantG
 }
 
 export function hasVariantGenerator(templateId: string): boolean {
-  return variantGenerators.has(templateId) || MATH_TEMPLATES.some((item) => item.id === templateId)
+  return (
+    variantGenerators.has(templateId) ||
+    MATH_TEMPLATES.some((item) => item.id === templateId) ||
+    ENGLISH_TEMPLATES.some((item) => item.id === templateId)
+  )
 }
 
 function assertVariant(original: QuestionSnapshot, variant: QuestionSnapshot): void {
@@ -72,6 +78,11 @@ export function createChoiceVariant(
   instanceId: string,
 ): QuestionSnapshot {
   if (original.type !== 'single-choice') throw new Error('只有选择题使用变式订正')
+  if (ENGLISH_TEMPLATES.some((item) => item.id === original.templateId)) {
+    const variant = createEnglishRetestQuestion(original, seed, instanceId)
+    assertVariant(original, variant)
+    return withVariantOrigin(original, variant)
+  }
   return generateRegisteredVariant(original, seed, instanceId)
 }
 
@@ -85,6 +96,9 @@ export function createQuestionVariant(
   }
   if (MATH_TEMPLATES.some((item) => item.id === original.templateId)) {
     return createRetestQuestion(original, seed, instanceId)
+  }
+  if (ENGLISH_TEMPLATES.some((item) => item.id === original.templateId)) {
+    return createEnglishRetestQuestion(original, seed, instanceId)
   }
   return generateRegisteredVariant(original, seed, instanceId)
 }

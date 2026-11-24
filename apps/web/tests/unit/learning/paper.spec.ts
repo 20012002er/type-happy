@@ -224,10 +224,11 @@ describe('comprehensive and special paper generation', () => {
   it('gates courses by practice content availability', () => {
     expect(hasPracticeContent(COURSE_ID)).toBe(true)
     expect(hasPracticeContent('pep-grade4-spring-math')).toBe(true)
-    expect(hasPracticeContent('pep-grade4-spring-english')).toBe(false)
+    expect(hasPracticeContent('pep-grade4-spring-english')).toBe(true)
+    expect(hasPracticeContent('pep-grade4-autumn-english')).toBe(false)
     expect(() =>
       generateComprehensivePaper({
-        courseId: 'pep-grade4-spring-english',
+        courseId: 'pep-grade4-autumn-english',
         seed: 1,
         idPrefix: 'no-content',
       }),

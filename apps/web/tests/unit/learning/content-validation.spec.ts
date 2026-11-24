@@ -9,6 +9,7 @@ import {
 import { GRADE4_AUTUMN_MATH_COURSE } from '../../../src/learning/content/grade4-math'
 import { generateMathQuestion } from '../../../src/learning/practice/math-generator'
 import { MATH_TEMPLATES } from '../../../src/learning/practice/math-templates'
+import { ENGLISH_TEMPLATES } from '../../../src/learning/practice/english-templates'
 import { parseLearningSnapshot } from '../../../src/learning/persistence/snapshot'
 import {
   createGrade4MathCourseGoldenFixture,
@@ -73,7 +74,7 @@ describe('WP00 learning content validation entry', () => {
   it('validates every registered math template and all supported difficulties', () => {
     expect(validateLearningContent()).toEqual({
       math: MATH_TEMPLATES.length,
-      english: 0,
+      english: ENGLISH_TEMPLATES.length,
       courseAvailability: 8,
       recipes: 3,
     })

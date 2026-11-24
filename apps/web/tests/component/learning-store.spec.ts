@@ -283,6 +283,49 @@ describe('learning store UI orchestration', () => {
     ).toThrow('没有该题型')
   })
 
+  it('starts english comprehensive and ability-filtered special practice', () => {
+    const { learning } = setup()
+    expect(learning.selectCourse({ grade: 4, semester: 'spring' })).toBe(true)
+    expect(learning.subjectStatuses.english.contentReady).toBe(true)
+
+    const comprehensive = learning.startPractice({ mode: 'comprehensive', subject: 'english' })
+    expect(comprehensive).toMatch(/^practice-/)
+    const session = learning.getSession(comprehensive!)
+    expect(session?.questions).toHaveLength(30)
+    expect(
+      session?.questions.every((entry) => entry.question.classification.subject === 'english'),
+    ).toBe(true)
+    const first = session!.questions[0]
+    expect(learning.submitAnswer(comprehensive!, first.question.standardAnswer)).toBe('submitted')
+    expect(learning.abandonSession(comprehensive!)).toBe(true)
+
+    const special = learning.startPractice({
+      mode: 'special',
+      subject: 'english',
+      ability: 'english-vocabulary',
+      difficulty: 'L1',
+    })
+    expect(special).toMatch(/^practice-/)
+    const specialSession = learning.getSession(special!)
+    expect(specialSession?.questions).toHaveLength(10)
+    expect(
+      specialSession?.questions.every(
+        (entry) => entry.question.classification.ability === 'english-vocabulary',
+      ),
+    ).toBe(true)
+    expect(learning.abandonSession(special!)).toBe(true)
+
+    expect(() =>
+      learning.startPractice({
+        mode: 'special',
+        subject: 'english',
+        ability: 'english-situational',
+        questionType: 'english-spelling',
+        difficulty: 'L2',
+      }),
+    ).toThrow('没有该题型')
+  })
+
   it('changes only the course when switching during practice and preserves the original group', () => {
     const { learning } = setup()
     const sessionId = startSpecial(learning)

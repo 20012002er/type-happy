@@ -6,7 +6,14 @@ import { GRADE4_AUTUMN_MATH_COURSE } from '../learning/content/grade4-math'
 import { LEARNING_RULES } from '../learning/config/rules'
 import type { CourseSelection } from '../learning/persistence/snapshot'
 import { filterMathTemplates } from '../learning/practice/math-templates'
-import { QUESTION_TYPES, type Difficulty, type QuestionType, type Subject } from '../learning/types'
+import { filterEnglishTemplates } from '../learning/practice/english-templates'
+import {
+  QUESTION_TYPES,
+  type Difficulty,
+  type LearningAbility,
+  type QuestionType,
+  type Subject,
+} from '../learning/types'
 import { useLearningStore } from '../stores/learning'
 
 const learning = useLearningStore()
@@ -16,6 +23,15 @@ const selectedKnowledgePoint = ref('')
 const selectedQuestionType = ref<QuestionType | ''>('')
 const selectedDifficulty = ref<Difficulty>('L2')
 const startError = ref('')
+const ENGLISH_ABILITIES: readonly { value: LearningAbility; label: string }[] = [
+  { value: 'english-vocabulary', label: '词汇' },
+  { value: 'english-sentence-grammar', label: '句型语法' },
+  { value: 'english-situational', label: '情境运用' },
+]
+const englishAbility = ref<LearningAbility | ''>('english-vocabulary')
+const englishUnit = ref('')
+const englishQuestionType = ref<QuestionType | ''>('')
+const englishDifficulty = ref<Difficulty>('L2')
 const QUESTION_TYPE_LABELS: Partial<Record<QuestionType, string>> = {
   number: '数字计算',
   'quotient-remainder': '商和余数',
@@ -23,6 +39,8 @@ const QUESTION_TYPE_LABELS: Partial<Record<QuestionType, string>> = {
   'single-choice': '单项选择',
   'word-problem': '应用题',
   fraction: '分数',
+  'english-spelling': '单词拼写',
+  'sentence-completion': '句子补全',
 }
 const terms: readonly (CourseSelection & { label: string })[] = [
   { grade: 4, semester: 'autumn', label: '四年级上学期' },
@@ -61,14 +79,46 @@ const supportedDifficulties = computed(
     new Set(
       unitKnowledgeTemplates.value
         .filter(
-          (template) =>
-            !selectedQuestionType.value || template.type === selectedQuestionType.value,
+          (template) => !selectedQuestionType.value || template.type === selectedQuestionType.value,
         )
         .flatMap((template) => template.supportedDifficulties),
     ),
 )
 const hasSpecialMatches = computed(
   () => learning.subjectStatuses.math.contentReady && supportedDifficulties.value.size > 0,
+)
+const englishCourse = computed(() => learning.subjectStatuses.english.course)
+const englishUnits = computed(() => englishCourse.value?.units ?? [])
+const englishTemplates = computed(() =>
+  englishCourse.value
+    ? filterEnglishTemplates({
+        courseId: englishCourse.value.id,
+        unitId: englishUnit.value || undefined,
+        ability: englishAbility.value || undefined,
+        includeReview: false,
+      })
+    : [],
+)
+const availableEnglishQuestionTypes = computed(() =>
+  QUESTION_TYPES.filter((type) =>
+    englishTemplates.value.some((template) => template.type === type),
+  ),
+)
+const englishSupportedDifficulties = computed(
+  () =>
+    new Set(
+      englishTemplates.value
+        .filter(
+          (template) => !englishQuestionType.value || template.type === englishQuestionType.value,
+        )
+        .flatMap((template) => template.supportedDifficulties),
+    ),
+)
+const hasEnglishSpecialMatches = computed(
+  () =>
+    learning.subjectStatuses.english.contentReady &&
+    Boolean(englishAbility.value || englishUnit.value) &&
+    englishSupportedDifficulties.value.size > 0,
 )
 const progress = computed(() =>
   Math.min(100, Math.round((learning.today.taskCompleted / learning.today.goal) * 100)),
@@ -108,8 +158,28 @@ watch(
     selectedKnowledgePoint.value = ''
     selectedQuestionType.value = ''
     selectedDifficulty.value = 'L2'
+    englishAbility.value = 'english-vocabulary'
+    englishUnit.value = ''
+    englishQuestionType.value = ''
+    englishDifficulty.value = 'L2'
   },
 )
+watch([englishAbility, englishUnit], () => {
+  if (
+    englishQuestionType.value &&
+    !availableEnglishQuestionTypes.value.includes(englishQuestionType.value)
+  ) {
+    englishQuestionType.value = ''
+  }
+})
+watch([englishAbility, englishUnit, englishQuestionType], () => {
+  if (
+    englishSupportedDifficulties.value.size > 0 &&
+    !englishSupportedDifficulties.value.has(englishDifficulty.value)
+  ) {
+    englishDifficulty.value = englishSupportedDifficulties.value.has('L2') ? 'L2' : 'L1'
+  }
+})
 
 function chooseCourse(selection: CourseSelection): void {
   startError.value = ''
@@ -145,6 +215,24 @@ function startSpecial(): void {
         knowledgePointId: selectedKnowledgePoint.value || undefined,
         questionType: selectedQuestionType.value || undefined,
         difficulty: selectedDifficulty.value,
+      }),
+    )
+  } catch (error) {
+    startError.value = error instanceof Error ? error.message : '所选专项暂时没有可用题目'
+  }
+}
+
+function startEnglishSpecial(): void {
+  startError.value = ''
+  try {
+    openPractice(
+      learning.startPractice({
+        mode: 'special',
+        subject: 'english',
+        unitId: englishUnit.value || undefined,
+        ability: englishAbility.value || undefined,
+        questionType: englishQuestionType.value || undefined,
+        difficulty: englishDifficulty.value,
       }),
     )
   } catch (error) {
@@ -291,9 +379,17 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
             <article class="learn-subject-card" aria-labelledby="english-card-title">
               <div class="learn-section__heading">
                 <h3 id="english-card-title">{{ currentTerm.label }}英语</h3>
-                <span class="learn-tag">暂未开放</span>
+                <span class="learn-tag">
+                  {{ learning.subjectStatuses.english.contentReady ? '可练习' : '暂未开放' }}
+                </span>
               </div>
-              <p>{{ learning.subjectStatuses.english.reason }}，不提供听力或跟读入口。</p>
+              <p>
+                {{
+                  learning.subjectStatuses.english.contentReady
+                    ? '词汇拼写、句型语法与情境表达综合练习；不提供听力或跟读入口。'
+                    : `${learning.subjectStatuses.english.reason}，不提供听力或跟读入口。`
+                }}
+              </p>
               <button
                 type="button"
                 class="learn-button learn-button--secondary"
@@ -384,6 +480,80 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
               @click="startSpecial"
             >
               开始专项练习
+            </button>
+          </div>
+        </section>
+
+        <section
+          v-if="englishCourse"
+          class="learn-paper learn-section"
+          aria-labelledby="english-special-title"
+        >
+          <div class="learn-section__heading">
+            <div>
+              <p class="learn-kicker">英语练一练</p>
+              <h2 id="english-special-title">英语专项练习</h2>
+            </div>
+            <span class="learn-tag">每组 10 题</span>
+          </div>
+          <div class="learn-form-grid">
+            <label class="learn-field">
+              专项能力
+              <select v-model="englishAbility">
+                <option v-for="item in ENGLISH_ABILITIES" :key="item.value" :value="item.value">
+                  {{ item.label }}
+                </option>
+              </select>
+            </label>
+            <label class="learn-field">
+              知识模块
+              <select v-model="englishUnit">
+                <option value="">全部单元</option>
+                <option v-for="unit in englishUnits" :key="unit.id" :value="unit.id">
+                  {{ unit.title }}
+                </option>
+              </select>
+            </label>
+            <label class="learn-field">
+              题型
+              <select v-model="englishQuestionType">
+                <option value="">全部题型</option>
+                <option v-for="type in availableEnglishQuestionTypes" :key="type" :value="type">
+                  {{ QUESTION_TYPE_LABELS[type] ?? type }}
+                </option>
+              </select>
+            </label>
+            <label class="learn-field">
+              难度
+              <select v-model="englishDifficulty">
+                <option
+                  v-for="level in ['L1', 'L2', 'L3']"
+                  :key="level"
+                  :value="level"
+                  :disabled="!englishSupportedDifficulties.has(level as Difficulty)"
+                >
+                  {{ level }} · {{ level === 'L1' ? '基础' : level === 'L2' ? '达标' : '综合' }}
+                </option>
+              </select>
+            </label>
+          </div>
+          <div v-if="!hasEnglishSpecialMatches" class="learn-empty learn-special-empty">
+            当前课程与筛选条件暂无可用题目。请更换专项能力、知识模块、难度或学期，不会创建空练习组。
+          </div>
+          <div class="learn-actions">
+            <button
+              type="button"
+              class="learn-button learn-button--secondary"
+              :disabled="
+                learning.saving ||
+                !learning.ready ||
+                learning.courseSelectionRequired ||
+                Boolean(learning.activeSession) ||
+                !hasEnglishSpecialMatches
+              "
+              @click="startEnglishSpecial"
+            >
+              开始英语专项练习
             </button>
           </div>
         </section>

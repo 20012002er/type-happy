@@ -51,6 +51,12 @@ describe('PRD fixed learning and task rules', () => {
         minimumPerAbility: 1,
       },
       mathRefillOrder: ['calculation', 'singleChoice', 'knowledgeApplication', 'wordProblems'],
+      englishRefillOrder: [
+        'singleChoice',
+        'spelling',
+        'sentenceCompletion',
+        'situationalExpression',
+      ],
       specialPracticeSize: 10,
       maximumReviewRatio: 0.2,
     })

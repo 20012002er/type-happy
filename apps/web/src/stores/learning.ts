@@ -74,7 +74,7 @@ import {
   validateDailyGoal,
 } from '../learning/tasks/daily-task'
 import { assertLocalDateKey } from '../learning/date-key'
-import type { Answer, Difficulty, QuestionType, Subject } from '../learning/types'
+import type { Answer, Difficulty, LearningAbility, QuestionType, Subject } from '../learning/types'
 
 const PREFERENCES_STORAGE_KEY = 'type-happy:learning:preferences:v1'
 
@@ -101,6 +101,7 @@ export type StartPracticeOptions =
       subject: Subject
       unitId?: string
       knowledgePointId?: string
+      ability?: LearningAbility
       questionType?: QuestionType
       difficulty: Difficulty
     }
@@ -441,6 +442,7 @@ export const useLearningStore = defineStore('learning', () => {
             courseId,
             unitId: options.unitId,
             knowledgePointId: options.knowledgePointId,
+            ability: options.ability,
             questionType: options.questionType,
             difficulty: options.difficulty,
             seed: random.int(0, 0xffffffff),

@@ -31,12 +31,24 @@ async function currentQuestion(page: Page): Promise<QuestionSnapshot> {
   }, id) as Promise<QuestionSnapshot>
 }
 
-function wrongAnswer(answer: Answer): Answer {
+function wrongAnswer(answer: Answer, question?: QuestionSnapshot): Answer {
   if (answer.kind === 'number') return { kind: 'number', value: answer.value + 1 }
   if (answer.kind === 'word-problem') {
     return { kind: 'word-problem', value: answer.value + 1, unit: answer.unit }
   }
-  if (answer.kind !== 'quotient-remainder') throw new Error('当前练习仅支持数值、商余数和应用题')
+  if (answer.kind === 'single-choice') {
+    const other = question?.options?.find((option) => option.id !== answer.optionId)
+    if (!other) throw new Error('选择题缺少可替换选项')
+    return { kind: 'single-choice', optionId: other.id }
+  }
+  if (answer.kind === 'english-spelling') {
+    return { kind: 'english-spelling', value: `${answer.value}x` }
+  }
+  if (answer.kind === 'sentence-completion') {
+    return { kind: 'sentence-completion', values: answer.values.map((value) => `${value}x`) }
+  }
+  if (answer.kind !== 'quotient-remainder')
+    throw new Error('当前练习仅支持数值、商余数、应用题与英语题型')
   return {
     kind: 'quotient-remainder',
     quotient: answer.quotient + 1,
@@ -53,8 +65,16 @@ async function fillAnswer(page: Page, answer: Answer): Promise<void> {
   } else if (answer.kind === 'word-problem') {
     await page.locator('input[name="word-problem-value"]').fill(String(answer.value))
     await page.locator('input[name="word-problem-unit"]').fill(answer.unit ?? '')
+  } else if (answer.kind === 'single-choice') {
+    await page.locator(`input[name="choice-option"][value="${answer.optionId}"]`).check()
+  } else if (answer.kind === 'english-spelling') {
+    await page.locator('input[name="spelling"]').fill(answer.value)
+  } else if (answer.kind === 'sentence-completion') {
+    for (const [index, value] of answer.values.entries()) {
+      await page.locator(`input[name="blank-${index}"]`).fill(value)
+    }
   } else {
-    throw new Error('当前练习仅支持数值、商余数和应用题')
+    throw new Error('当前练习仅支持数值、商余数、应用题与英语题型')
   }
 }
 
@@ -95,7 +115,7 @@ test('学习首访先选课程，体验设置与任务导航可用', async ({ pa
   await expect(page.getByText('当前连续 0 天')).toBeVisible()
 })
 
-test('四学期选择刷新保持，数学均可练习且未开放英语不建组', async ({ page }) => {
+test('四学期选择刷新保持，数学与新学期英语均可练习且四上英语不建组', async ({ page }) => {
   await page.goto('/learning')
   const selections = [
     { label: '四年级下学期', grade: 4, semester: 'spring' },
@@ -110,7 +130,8 @@ test('四学期选择刷新保持，数学均可练习且未开放英语不建�
     ).toBeEnabled()
     await expect(
       page.getByRole('button', { name: `开始${selection.label}英语综合练习` }),
-    ).toBeDisabled()
+    ).toBeEnabled()
+    await expect(page.getByRole('button', { name: '开始英语专项练习', exact: true })).toBeEnabled()
     await expect(page.locator('.learn-special-empty')).toHaveCount(0)
     const stored = await page.evaluate(() => {
       const raw = localStorage.getItem('type-happy:learning:snapshot')
@@ -128,6 +149,7 @@ test('四学期选择刷新保持，数学均可练习且未开放英语不建�
   await expect(page.getByRole('button', { name: '开始四年级上学期数学综合练习' })).toBeEnabled()
   await expect(page.getByRole('button', { name: '开始专项练习', exact: true })).toBeEnabled()
   await expect(page.getByRole('button', { name: '开始四年级上学期英语综合练习' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: '开始英语专项练习', exact: true })).toHaveCount(0)
   await expect(page.locator('.learn-special-empty')).toHaveCount(0)
 })
 
@@ -309,4 +331,105 @@ test('同一组跨过每日达标点自动切换为加练标准', async ({ page 
   await expect(page.getByText('30 金币每日奖励已经到账', { exact: false })).toHaveCount(0)
   await expect(page.getByText('20 金币每日奖励已经到账', { exact: false })).toBeVisible()
   await expect(page.getByText('加练不重复增加每日进度', { exact: false })).toBeVisible()
+})
+
+test('英语综合练习覆盖三类能力，订正与整组完成无听力入口', async ({ page }) => {
+  test.setTimeout(120_000)
+  await page.goto('/learning')
+  await page.locator('.learn-course-option').filter({ hasText: '四年级下学期' }).click()
+  await expect(
+    page.getByText('词汇拼写、句型语法与情境表达综合练习', { exact: false }),
+  ).toBeVisible()
+  await page.getByRole('button', { name: '开始四年级下学期英语综合练习' }).click()
+  await expect(page).toHaveURL(/\/learning\/practice\/practice-/)
+
+  const questions = await page.evaluate(() => {
+    const raw = localStorage.getItem('type-happy:learning:snapshot')
+    if (!raw) throw new Error('学习快照不存在')
+    const snapshot = JSON.parse(raw)
+    const sessions = Object.values(snapshot.practice.sessions) as Array<{
+      questions: Array<{ question: QuestionSnapshot }>
+    }>
+    return sessions[0].questions.map((entry) => entry.question)
+  })
+  expect(questions).toHaveLength(30)
+  expect(questions.every((question) => question.classification.subject === 'english')).toBe(true)
+  expect(questions.every((question) => question.resources.length === 0)).toBe(true)
+  const typeCounts = questions.reduce<Record<string, number>>((counts, question) => {
+    counts[question.type] = (counts[question.type] ?? 0) + 1
+    return counts
+  }, {})
+  expect(typeCounts).toEqual({
+    'single-choice': 15,
+    'english-spelling': 6,
+    'sentence-completion': 9,
+  })
+  expect(new Set(questions.map((question) => question.classification.ability))).toEqual(
+    new Set(['english-vocabulary', 'english-sentence-grammar', 'english-situational']),
+  )
+  await expect(page.locator('audio')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: /播放|听力|跟读/ })).toHaveCount(0)
+
+  const first = await currentQuestion(page)
+  const wrong = wrongAnswer(first.standardAnswer, first)
+  await submitCurrent(page, wrong)
+  await expect(page.getByText('提示 1：', { exact: false })).toBeVisible()
+  // 选择题订正不沿用旧选项，需要重新选择后再提交
+  await fillAnswer(page, wrong)
+  await page.getByRole('button', { name: '提交订正', exact: true }).click()
+  await expect(page.getByText('提示 2：', { exact: false })).toBeVisible()
+  await expect(page.getByRole('heading', { name: '分步讲解' })).toBeVisible()
+  await fillAnswer(page, first.standardAnswer)
+  await page.getByRole('button', { name: '提交订正', exact: true }).click()
+  await expect(page.getByText('本题不发放金币；', { exact: false })).toBeVisible()
+  await advance(page)
+
+  for (let index = 1; index < 30; index += 1) {
+    await submitCurrent(page)
+    await advance(page)
+  }
+
+  await expect(page.getByRole('heading', { name: '这一组完成了' })).toBeVisible()
+  await expect(page.getByText('完成 30 题，订正 1 题。', { exact: false })).toBeVisible()
+  // 29 题首答正确 ×3 + 订正题 0 + 每日达标奖励 20 = 107
+  await expect(page.locator('.learn-local-nav__coin')).toContainText('107 金币')
+  await expect(page.locator('audio')).toHaveCount(0)
+})
+
+test('英语专项可按能力、单元与题型筛选组卷', async ({ page }) => {
+  await page.goto('/learning')
+  await page.locator('.learn-course-option').filter({ hasText: '四年级下学期' }).click()
+  const englishFields = page.locator('section[aria-labelledby="english-special-title"] select')
+  await expect(englishFields).toHaveCount(4)
+  await expect(englishFields.nth(2).locator('option[value="sentence-completion"]')).toHaveCount(0)
+  await englishFields.nth(0).selectOption('english-sentence-grammar')
+  await englishFields.nth(1).selectOption('g4s-english-weather')
+  await englishFields.nth(2).selectOption('sentence-completion')
+  await englishFields.nth(3).selectOption('L2')
+  await page.getByRole('button', { name: '开始英语专项练习', exact: true }).click()
+  await expect(page).toHaveURL(/\/learning\/practice\/practice-/)
+
+  const questions = await page.evaluate(() => {
+    const raw = localStorage.getItem('type-happy:learning:snapshot')
+    if (!raw) throw new Error('学习快照不存在')
+    const snapshot = JSON.parse(raw)
+    const sessions = Object.values(snapshot.practice.sessions) as Array<{
+      questions: Array<{ question: QuestionSnapshot }>
+    }>
+    return sessions[0].questions.map((entry) => entry.question)
+  })
+  expect(questions).toHaveLength(10)
+  expect(
+    questions.every(
+      (question) =>
+        question.type === 'sentence-completion' &&
+        question.classification.unitId === 'g4s-english-weather' &&
+        question.classification.ability === 'english-sentence-grammar',
+    ),
+  ).toBe(true)
+
+  await submitCurrent(page)
+  await expect(page.getByText('+3 学习金币已到账')).toBeVisible()
+  await advance(page)
+  await expect(page.getByText('第 2 / 10 题', { exact: true })).toBeVisible()
 })
