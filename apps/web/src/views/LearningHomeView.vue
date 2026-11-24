@@ -341,6 +341,29 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
             <span>{{ progress }}%</span>
           </p>
 
+          <dl class="learn-stats learn-stats--five" aria-label="今日有效完成构成">
+            <div>
+              <dt>有效完成</dt>
+              <dd>{{ learning.today.effectiveCompleted }}</dd>
+            </div>
+            <div>
+              <dt>首次答对</dt>
+              <dd>{{ learning.today.firstCorrect }}</dd>
+            </div>
+            <div>
+              <dt>提示后订正</dt>
+              <dd>{{ learning.today.correctedAfterHint }}</dd>
+            </div>
+            <div>
+              <dt>讲解后订正</dt>
+              <dd>{{ learning.today.correctedAfterExplanation }}</dd>
+            </div>
+            <div>
+              <dt>待复测</dt>
+              <dd>{{ learning.today.pendingRetest }}</dd>
+            </div>
+          </dl>
+
           <div v-if="learning.today.taskRemaining === 0" class="learn-note learn-today-note">
             今日学习已完成，可以去农场看看，也可以休息。主动加练不再增加今日任务进度。
           </div>

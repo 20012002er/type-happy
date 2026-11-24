@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { LEARNING_RULES } from '../../../src/learning/config/rules'
 import { GRADE4_AUTUMN_MATH_COURSE } from '../../../src/learning/content/grade4-math'
+import { GRADE4_SPRING_ENGLISH_COURSE } from '../../../src/learning/content/course-registry'
 import { shiftLocalDateKey } from '../../../src/learning/date-key'
 import { createEmptyLearningSnapshot } from '../../../src/learning/persistence/snapshot'
 import { generateMathQuestion } from '../../../src/learning/practice/math-generator'
@@ -27,7 +28,7 @@ import {
   getNextStreakMilestone,
   getStreakMilestone,
 } from '../../../src/learning/tasks/streak'
-import type { QuestionSnapshot } from '../../../src/learning/types'
+import type { Answer, QuestionSnapshot } from '../../../src/learning/types'
 import { buildQuestionFixture } from '../../helpers/question-fixtures'
 
 function at(day: number, hour = 12): number {
@@ -462,5 +463,166 @@ describe('PRD fixed economic examples', () => {
       LEARNING_RULES.practiceRewards.withinGoal.firstCorrect * 30 +
         LEARNING_RULES.dailyTask.completionReward,
     ).toBe(110)
+  })
+})
+
+function makeEnglishSession(id: string, size = 1): PracticeSession {
+  const paper = generateSpecialPaper({
+    courseId: GRADE4_SPRING_ENGLISH_COURSE.id,
+    ability: 'english-vocabulary',
+    difficulty: 'L1',
+    seed: 81,
+    idPrefix: `${id}-paper`,
+    size,
+  })
+  return createPracticeSession({
+    id,
+    mode: 'special',
+    questions: paper.questions,
+    createdAt: at(19),
+  })
+}
+
+function wrongFor(question: QuestionSnapshot): Answer {
+  const answer = question.standardAnswer
+  if (answer.kind === 'number') return { kind: 'number', value: answer.value + 1 }
+  if (answer.kind === 'single-choice') {
+    const other = question.options?.find((option) => option.id !== answer.optionId)
+    if (!other) throw new Error('选择题缺少可替换选项')
+    return { kind: 'single-choice', optionId: other.id }
+  }
+  if (answer.kind === 'english-spelling') {
+    return { kind: 'english-spelling', value: `${answer.value}x` }
+  }
+  if (answer.kind === 'sentence-completion') {
+    return { kind: 'sentence-completion', values: answer.values.map((value) => `${value}x`) }
+  }
+  throw new Error('跨学科结算测试仅支持数字、单选、拼写与补全')
+}
+
+function completedEnglishSession(
+  id: string,
+  result: 'first-correct' | 'mastered-after-hint' | 'corrected-awaiting-retest',
+  settledAt = at(19),
+): PracticeSession {
+  let session = makeEnglishSession(id)
+  const question = session.questions[0].question
+  if (result !== 'first-correct') {
+    session = submitPracticeAnswer(session, wrongFor(question), settledAt - 2)
+  }
+  if (result === 'corrected-awaiting-retest') {
+    session = submitPracticeAnswer(session, wrongFor(question), settledAt - 1)
+  }
+  return submitPracticeAnswer(session, question.standardAnswer, settledAt)
+}
+
+describe('cross-subject daily goal and settlement reuse (WP07)', () => {
+  it('shares one daily goal between math and english and grants the daily reward once', () => {
+    const snapshot = createEmptyLearningSnapshot()
+    snapshot.tasks.daily = {
+      ...snapshot.tasks.daily,
+      '2026-11-19': { goal: 2, completed: 0, rewarded: false },
+    }
+    const math = completedSession('shared-math', 'first-correct')
+    const english = completedEnglishSession('shared-english', 'first-correct')
+    const mathSummary = settleAll(snapshot, math)[0]
+    const englishSummary = settleAll(snapshot, english)[0]
+
+    expect(mathSummary).toMatchObject({ phase: 'within-goal', practiceReward: 3, dailyReward: 0 })
+    expect(englishSummary).toMatchObject({
+      phase: 'within-goal',
+      practiceReward: 3,
+      dailyReward: 20,
+      dailyCompleted: 2,
+      streakCurrent: 1,
+    })
+    expect(snapshot.tasks.daily['2026-11-19']).toEqual({ goal: 2, completed: 2, rewarded: true })
+    expect(Object.keys(snapshot.tasks.daily)).toEqual(['2026-11-19'])
+    expect(snapshot.wallet.balance).toBe(26)
+    expect(snapshot.wallet.ledger.filter((entry) => entry.source === 'daily-task')).toHaveLength(1)
+    expect(snapshot.learning.records.map((record) => record.subject)).toEqual(['math', 'english'])
+  })
+
+  it.each([
+    ['first-correct', 3, 2],
+    ['mastered-after-hint', 1, 1],
+    ['corrected-awaiting-retest', 0, 0],
+  ] as const)(
+    'settles english %s at the same within-goal and extra-practice rates',
+    (result, within, extra) => {
+      const withinSnapshot = createEmptyLearningSnapshot()
+      expect(
+        settleAll(withinSnapshot, completedEnglishSession(`en-within-${result}`, result))[0],
+      ).toMatchObject({
+        phase: 'within-goal',
+        practiceReward: within,
+        dailyCompleted: 1,
+      })
+
+      const extraSnapshot = createEmptyLearningSnapshot()
+      extraSnapshot.tasks.daily = {
+        ...extraSnapshot.tasks.daily,
+        '2026-11-19': { goal: 1, completed: 1, rewarded: true },
+      }
+      expect(
+        settleAll(extraSnapshot, completedEnglishSession(`en-extra-${result}`, result))[0],
+      ).toMatchObject({
+        phase: 'extra-practice',
+        practiceReward: extra,
+        dailyCompleted: 1,
+      })
+    },
+  )
+
+  it('completes the daily goal with english only without extra mandatory tasks', () => {
+    const snapshot = createEmptyLearningSnapshot()
+    snapshot.tasks.daily = {
+      ...snapshot.tasks.daily,
+      '2026-11-19': { goal: 1, completed: 0, rewarded: false },
+    }
+    const english = completedEnglishSession('english-only', 'first-correct')
+    const summary = settleAll(snapshot, english)[0]
+    expect(summary).toMatchObject({ dailyReward: 20, dailyCompleted: 1, streakCurrent: 1 })
+    expect(snapshot.tasks.daily['2026-11-19']).toEqual({ goal: 1, completed: 1, rewarded: true })
+    expect(Object.keys(snapshot.tasks.daily)).toEqual(['2026-11-19'])
+    expect(snapshot.learning.records.every((record) => record.subject === 'english')).toBe(true)
+    expect(snapshot.learning.records[0]).toMatchObject({
+      courseId: GRADE4_SPRING_ENGLISH_COURSE.id,
+      subject: 'english',
+    })
+    expect(snapshot.learning.records[0].questionType).toBeDefined()
+  })
+
+  it('attributes cross-midnight english answers to their submission date', () => {
+    const snapshot = createEmptyLearningSnapshot()
+    const before = completedEnglishSession(
+      'en-before-midnight',
+      'first-correct',
+      new Date(2026, 10, 19, 23, 59, 59).getTime(),
+    )
+    const after = completedEnglishSession(
+      'en-after-midnight',
+      'first-correct',
+      new Date(2026, 10, 20, 0, 0, 1).getTime(),
+    )
+    settleAll(snapshot, before, 10)
+    settleAll(snapshot, after, 15)
+    expect(snapshot.tasks.daily['2026-11-19']).toMatchObject({ goal: 10, completed: 1 })
+    expect(snapshot.tasks.daily['2026-11-20']).toMatchObject({ goal: 15, completed: 1 })
+  })
+
+  it('deduplicates english instances and keeps subject/course/type from changing settlement', () => {
+    const snapshot = createEmptyLearningSnapshot()
+    const english = completedEnglishSession('en-dedup', 'first-correct')
+    const first = settleAll(snapshot, english)[0]
+    const before = structuredClone(snapshot)
+    const repeated = settleLearningRecord(snapshot, english, english.records[0])
+    expect(first.practiceReward).toBe(3)
+    expect(repeated.alreadySettled).toBe(true)
+    expect(snapshot).toEqual(before)
+
+    const math = completedSession('math-rate-parity', 'first-correct')
+    const mathSnapshot = createEmptyLearningSnapshot()
+    expect(settleAll(mathSnapshot, math)[0].practiceReward).toBe(first.practiceReward)
   })
 })

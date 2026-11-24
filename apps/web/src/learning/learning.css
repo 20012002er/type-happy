@@ -362,6 +362,32 @@
   font-weight: 800;
 }
 
+.learn-stats--five {
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.learn-stats--five > div {
+  padding: 20px 8px;
+}
+
+.learn-stats--five dt {
+  font-size: 12px;
+}
+
+@media (max-width: 600px) {
+  .learn-stats--five > div {
+    padding: 14px 4px;
+  }
+
+  .learn-stats--five dt {
+    font-size: 11px;
+  }
+
+  .learn-stats--five dd {
+    font-size: 20px;
+  }
+}
+
 .learn-ticket {
   padding: 26px;
   border: 1px dashed #ab9360;

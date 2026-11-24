@@ -50,6 +50,28 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
           <p v-else class="learn-note">
             再有效完成 {{ learning.today.taskRemaining }} 题即可达成今日目标。首次答对、提示后订正和讲解后订正都属于有效完成。
           </p>
+          <dl class="learn-stats learn-stats--five" aria-label="今日有效完成构成">
+            <div>
+              <dt>有效完成</dt>
+              <dd>{{ learning.today.effectiveCompleted }}</dd>
+            </div>
+            <div>
+              <dt>首次答对</dt>
+              <dd>{{ learning.today.firstCorrect }}</dd>
+            </div>
+            <div>
+              <dt>提示后订正</dt>
+              <dd>{{ learning.today.correctedAfterHint }}</dd>
+            </div>
+            <div>
+              <dt>讲解后订正</dt>
+              <dd>{{ learning.today.correctedAfterExplanation }}</dd>
+            </div>
+            <div>
+              <dt>待复测</dt>
+              <dd>{{ learning.today.pendingRetest }}</dd>
+            </div>
+          </dl>
           <div class="learn-actions">
             <RouterLink class="learn-button" to="/learning">
               {{ learning.activeSession ? '继续本组练习' : '去练习' }}

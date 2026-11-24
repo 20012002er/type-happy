@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { LEARNING_RULES } from '../../../src/learning/config/rules'
 import { createEmptyFarmState } from '../../../src/learning/farm/farm-state'
+import { sellFarmProducts } from '../../../src/learning/farm/farm-transactions'
 import { transactProcessingOperation } from '../../../src/learning/persistence/processing-transactions'
 import { LearningRepository } from '../../../src/learning/persistence/repository'
 import {
@@ -23,6 +24,7 @@ import {
   type ProcessingTask,
   type ProcessingWorkshopState,
 } from '../../../src/learning/processing/types'
+import { settleWallet } from '../../../src/learning/wallet/wallet'
 import { MemoryStorage } from '../../helpers/memory-storage'
 
 const NOW = 1_800_000_000_000
@@ -358,5 +360,122 @@ describe('processing transaction persistence', () => {
     })
     expect(mutated.processing.workshop.purchased).toBe(true)
     expect(mutated.processing.actions[request.actionId]).toBe(request.signature)
+  })
+})
+
+describe('WP07 processing isolation from learning module', () => {
+  it('keeps records, daily goal and streak untouched through purchase, processing and sale', () => {
+    const repository = new LearningRepository(new MemoryStorage())
+    let snapshot = createEmptyLearningSnapshot()
+    snapshot = {
+      ...snapshot,
+      tasks: {
+        daily: { '2027-01-15': { goal: 30, completed: 4, rewarded: false } },
+        streak: { current: 1, longest: 1, lastCompletedDateKey: '2027-01-14' },
+      },
+      farm: { ...snapshot.farm, inventory: { wheat: 2, radish: 1 } },
+      wallet: settleWallet(snapshot.wallet, {
+        settlementId: 'iso-fund',
+        occurredAt: NOW,
+        source: 'practice',
+        referenceId: 'iso-fund',
+        direction: 'earn',
+        amount: 300,
+      }),
+    }
+    const initial = repository.save(snapshot, 0)
+    let current = initial
+    const expectLearningUntouched = () => {
+      expect(current.learning).toEqual(initial.learning)
+      expect(current.tasks).toEqual(initial.tasks)
+      expect(current.practice).toEqual(initial.practice)
+    }
+
+    // 购买加工坊：只扣 240 并交付建筑
+    current = transactProcessingOperation(
+      repository,
+      current.revision,
+      { actionId: 'iso-buy', signature: 'purchase-workshop' },
+      (draft) => ({
+        ...draft,
+        wallet: settleWallet(draft.wallet, {
+          settlementId: 'iso-buy',
+          occurredAt: NOW,
+          source: 'processing-purchase',
+          referenceId: 'workshop',
+          direction: 'spend',
+          amount: LEARNING_RULES.farm.processing.purchasePrice,
+        }),
+        processing: {
+          ...draft.processing,
+          workshop: { ...draft.processing.workshop, purchased: true },
+        },
+      }),
+    )
+    expect(current.wallet.balance).toBe(60)
+    expectLearningUntouched()
+
+    // 投入原料：只消耗库存并写入任务，不产生金币流水
+    const task: ProcessingTask = {
+      id: 'iso-task',
+      recipeId: 'flour',
+      recipeVersion: 1,
+      startedAt: NOW,
+      completesAt: NOW + 20 * MINUTE_MS,
+    }
+    current = transactProcessingOperation(
+      repository,
+      current.revision,
+      { actionId: 'iso-start', signature: 'start-processing' },
+      (draft) => ({
+        ...draft,
+        farm: { ...draft.farm, inventory: { ...draft.farm.inventory, wheat: 0 } },
+        processing: {
+          ...draft.processing,
+          workshop: { ...draft.processing.workshop, activeTask: task },
+        },
+      }),
+    )
+    expect(current.wallet.balance).toBe(60)
+    expectLearningUntouched()
+
+    // 收取产出：只把待收产出转入库存
+    current = transactProcessingOperation(
+      repository,
+      current.revision,
+      { actionId: 'iso-collect', signature: 'collect-processing' },
+      (draft) => ({
+        ...draft,
+        farm: { ...draft.farm, inventory: { ...draft.farm.inventory, flour: 1 } },
+        processing: {
+          ...draft.processing,
+          workshop: { purchased: true, activeTask: null, pendingOutput: null },
+        },
+      }),
+    )
+    expect(current.wallet.balance).toBe(60)
+    expect(current.farm.inventory.flour).toBe(1)
+    expectLearningUntouched()
+
+    // 农场出售不影响加工状态与学习模块（加工品出售通道属 WP10 交付）
+    const workshopBeforeSale = current.processing.workshop
+    current = transactProcessingOperation(
+      repository,
+      current.revision,
+      { actionId: 'iso-sell', signature: 'farm-sale-with-workshop' },
+      (draft) =>
+        sellFarmProducts(draft, {
+          settlementId: 'iso-sell',
+          now: NOW + 20 * MINUTE_MS,
+          selection: { kind: 'item', itemId: 'radish', quantity: 1 },
+        }),
+    )
+    expect(current.wallet.balance).toBe(69)
+    expect(current.farm.inventory.radish).toBe(0)
+    expect(current.farm.inventory.flour).toBe(1)
+    expect(current.processing.workshop).toEqual(workshopBeforeSale)
+    expect(current.wallet.ledger.at(-1)).toMatchObject({ source: 'farm-sale', amount: 9 })
+    expectLearningUntouched()
+    expect(repository.load().tasks).toEqual(initial.tasks)
   })
 })

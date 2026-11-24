@@ -433,3 +433,158 @@ test('英语专项可按能力、单元与题型筛选组卷', async ({ page }) 
   await advance(page)
   await expect(page.getByText('第 2 / 10 题', { exact: true })).toBeVisible()
 })
+
+test('数学与英语有效完成计入同一个每日目标', async ({ page }) => {
+  await page.goto('/learning')
+  await page.locator('.learn-course-option').filter({ hasText: '四年级下学期' }).click()
+  await page.getByRole('button', { name: '开始专项练习', exact: true }).click()
+  await expect(page).toHaveURL(/\/learning\/practice\/practice-/)
+  await submitCurrent(page)
+  await expect(page.getByText('+3 学习金币已到账')).toBeVisible()
+  await advance(page)
+
+  await page.getByRole('button', { name: '结束本组', exact: true }).click()
+  await page.getByRole('button', { name: '确认结束本组', exact: true }).click()
+  await expect(page.getByRole('heading', { name: '本组练习已结束' })).toBeVisible()
+  await page.getByRole('link', { name: '返回学习首页' }).click()
+  await expect(page).toHaveURL(/\/learning$/)
+  await expect(page.getByRole('progressbar', { name: '今日有效完成进度' })).toHaveAttribute(
+    'aria-valuenow',
+    '1',
+  )
+
+  await page.getByRole('button', { name: '开始英语专项练习', exact: true }).click()
+  await expect(page).toHaveURL(/\/learning\/practice\/practice-/)
+  await submitCurrent(page)
+  await expect(page.getByText('+3 学习金币已到账')).toBeVisible()
+  await expect(page.locator('.learn-local-nav__coin')).toContainText('6 金币')
+
+  const stored = await page.evaluate(() => {
+    const raw = localStorage.getItem('type-happy:learning:snapshot')
+    if (!raw) throw new Error('学习快照不存在')
+    const snapshot = JSON.parse(raw)
+    return {
+      daily: snapshot.tasks.daily,
+      subjects: snapshot.learning.records.map((record: { subject: string }) => record.subject),
+      effectiveResults: snapshot.learning.records
+        .filter((record: { result: string }) => record.result !== 'abandoned')
+        .map((record: { subject: string; result: string }) => `${record.subject}:${record.result}`),
+      sessionStatuses: Object.values(snapshot.practice.sessions).map(
+        (session) => (session as { status: string }).status,
+      ),
+      balance: snapshot.wallet.balance,
+    }
+  })
+  const dailyKeys = Object.keys(stored.daily)
+  expect(dailyKeys).toHaveLength(1)
+  expect(stored.daily[dailyKeys[0]]).toMatchObject({ goal: 30, completed: 2, rewarded: false })
+  expect(new Set(stored.subjects)).toEqual(new Set(['math', 'english']))
+  // 结束本组时未答题目记为 abandoned，不计入有效完成
+  expect(stored.effectiveResults).toEqual(['math:first-correct', 'english:first-correct'])
+  expect(stored.sessionStatuses.sort()).toEqual(['abandoned', 'active'])
+  expect(stored.balance).toBe(6)
+
+  await page.goto('/learning')
+  await expect(page.getByRole('progressbar', { name: '今日有效完成进度' })).toHaveAttribute(
+    'aria-valuenow',
+    '2',
+  )
+  const breakdown = page.locator('dl[aria-label="今日有效完成构成"] > div')
+  await expect(breakdown.first()).toContainText('有效完成')
+  await expect(breakdown.first()).toContainText('2')
+})
+
+test('英语保存失败不伪造到账，重试后原子入账', async ({ page }) => {
+  await page.goto('/learning')
+  await page.locator('.learn-course-option').filter({ hasText: '四年级下学期' }).click()
+  await page.getByRole('button', { name: '开始英语专项练习', exact: true }).click()
+  await expect(page).toHaveURL(/\/learning\/practice\/practice-/)
+  await page.evaluate(() => {
+    const original = Storage.prototype.setItem
+    let failOnce = true
+    Storage.prototype.setItem = function (key, value) {
+      if (failOnce && key === 'type-happy:learning:snapshot') {
+        failOnce = false
+        throw new DOMException('Injected quota failure', 'QuotaExceededError')
+      }
+      return original.call(this, key, value)
+    }
+  })
+
+  await submitCurrent(page)
+  await expect(page.getByRole('alert').filter({ hasText: '本次进度暂未保存' })).toBeVisible()
+  await expect(page.getByText('+3 学习金币已到账')).toHaveCount(0)
+  await expect(page.locator('.learn-local-nav__coin')).toContainText('0 金币')
+  const failed = await page.evaluate(() => {
+    const raw = localStorage.getItem('type-happy:learning:snapshot')
+    if (!raw) throw new Error('学习快照不存在')
+    const snapshot = JSON.parse(raw)
+    return {
+      records: snapshot.learning.records.length,
+      balance: snapshot.wallet.balance,
+      completed: Object.values(snapshot.tasks.daily).reduce<number>(
+        (sum, entry) => sum + (entry as { completed: number }).completed,
+        0,
+      ),
+    }
+  })
+  expect(failed).toEqual({ records: 0, balance: 0, completed: 0 })
+
+  await submitCurrent(page)
+  await expect(page.getByText('+3 学习金币已到账')).toBeVisible()
+  await expect(page.locator('.learn-local-nav__coin')).toContainText('3 金币')
+  const retried = await page.evaluate(() => {
+    const raw = localStorage.getItem('type-happy:learning:snapshot')
+    if (!raw) throw new Error('学习快照不存在')
+    const snapshot = JSON.parse(raw)
+    return {
+      subjects: snapshot.learning.records.map((record: { subject: string }) => record.subject),
+      balance: snapshot.wallet.balance,
+      practiceLedger: snapshot.wallet.ledger.filter(
+        (entry: { source: string }) => entry.source === 'practice',
+      ).length,
+      completed: Object.values(snapshot.tasks.daily).reduce<number>(
+        (sum, entry) => sum + (entry as { completed: number }).completed,
+        0,
+      ),
+    }
+  })
+  expect(retried).toEqual({ subjects: ['english'], balance: 3, practiceLedger: 1, completed: 1 })
+})
+
+test('同一组跨过 00:00 按提交日分别计入每日目标并可刷新恢复', async ({ page }) => {
+  const beforeMidnight = new Date()
+  beforeMidnight.setHours(23, 59, 30, 0)
+  await page.clock.install({ time: beforeMidnight })
+  await startSpecial(page)
+
+  await submitCurrent(page)
+  await expect(page.getByText('+3 学习金币已到账')).toBeVisible()
+  await advance(page)
+
+  await page.clock.fastForward('00:01:00')
+  await submitCurrent(page)
+  await expect(page.getByText('+3 学习金币已到账')).toBeVisible()
+  await advance(page)
+
+  const stored = await page.evaluate(() => {
+    const raw = localStorage.getItem('type-happy:learning:snapshot')
+    if (!raw) throw new Error('学习快照不存在')
+    const snapshot = JSON.parse(raw)
+    return {
+      daily: snapshot.tasks.daily as Record<string, { goal: number; completed: number }>,
+      settledDays: snapshot.learning.records.map((record: { settledAt: number }) =>
+        new Date(record.settledAt).getDate(),
+      ),
+    }
+  })
+  const dailyKeys = Object.keys(stored.daily).sort()
+  expect(dailyKeys).toHaveLength(2)
+  expect(stored.daily[dailyKeys[0]]).toMatchObject({ goal: 30, completed: 1 })
+  expect(stored.daily[dailyKeys[1]]).toMatchObject({ goal: 30, completed: 1 })
+  expect(stored.settledDays[0]).not.toBe(stored.settledDays[1])
+
+  await page.reload()
+  await expect(page.getByText('第 3 / 10 题', { exact: true })).toBeVisible()
+  await expect(page.locator('.learn-local-nav__coin')).toContainText('6 金币')
+})

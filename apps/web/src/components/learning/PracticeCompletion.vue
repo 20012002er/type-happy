@@ -35,7 +35,11 @@ const summary = computed(() => learning.getSessionSummary(props.sessionId))
       每一次检查和订正都已经记录。
     </p>
 
-    <dl class="learn-stats">
+    <dl class="learn-stats learn-stats--five">
+      <div>
+        <dt>有效完成</dt>
+        <dd>{{ summary.effectiveCompleted }}</dd>
+      </div>
       <div>
         <dt>首次答对</dt>
         <dd>{{ summary.firstCorrect }}</dd>
@@ -43,6 +47,10 @@ const summary = computed(() => learning.getSessionSummary(props.sessionId))
       <div>
         <dt>提示后订正</dt>
         <dd>{{ summary.correctedAfterHint }}</dd>
+      </div>
+      <div>
+        <dt>讲解后订正</dt>
+        <dd>{{ summary.correctedAfterExplanation }}</dd>
       </div>
       <div>
         <dt>待复测</dt>

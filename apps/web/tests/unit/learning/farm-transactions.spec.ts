@@ -4,6 +4,7 @@ import {
   claimStarterGift,
   collectAnimalProduct,
   feedAnimal,
+  fertilizeCrop,
   harvestCrop,
   plantCrop,
 } from '../../../src/learning/farm/farm'
@@ -636,5 +637,201 @@ describe('farm economic simulation', () => {
     expect(dailySales).toEqual([36, 36])
     expect(snapshot.wallet.ledger.filter((entry) => entry.source === 'practice')).toHaveLength(2)
     expect(snapshot.wallet.ledger.filter((entry) => entry.source === 'farm-sale')).toHaveLength(2)
+  })
+})
+
+describe('WP07 farm isolation from learning module', () => {
+  function snapshotWithLearningProgress(): LearningSnapshot {
+    const snapshot = fundedSnapshot()
+    return {
+      ...snapshot,
+      tasks: {
+        daily: { '2026-11-20': { goal: 30, completed: 5, rewarded: false } },
+        streak: { current: 2, longest: 2, lastCompletedDateKey: '2026-11-19' },
+      },
+    }
+  }
+
+  function expectLearningUntouched(before: LearningSnapshot, after: LearningSnapshot): void {
+    expect(after.learning).toEqual(before.learning)
+    expect(after.tasks).toEqual(before.tasks)
+    expect(after.practice).toEqual(before.practice)
+  }
+
+  it('keeps daily goal, streak and records untouched through the whole farm operation chain', () => {
+    const repository = new LearningRepository(new MemoryStorage())
+    const initial = repository.save(snapshotWithLearningProgress(), 0)
+    let snapshot = initial
+
+    const steps: Array<{ name: string; run: (current: LearningSnapshot) => LearningSnapshot }> = [
+      {
+        name: 'plant',
+        run: (current) => ({
+          ...current,
+          farm: plantCrop(current.farm, {
+            actionId: 'iso-plant',
+            now: NOW,
+            plotId: 'plot-1',
+            cropId: 'radish',
+          }),
+        }),
+      },
+      {
+        name: 'buy-fertilizer',
+        run: (current) =>
+          purchaseFarmSupplies(current, {
+            settlementId: 'iso-fertilizer',
+            now: NOW,
+            itemId: 'fertilizer',
+            quantity: 1,
+          }),
+      },
+      {
+        name: 'fertilize',
+        run: (current) => ({
+          ...current,
+          farm: fertilizeCrop(current.farm, {
+            actionId: 'iso-fertilize',
+            now: NOW,
+            plotId: 'plot-1',
+          }),
+        }),
+      },
+      {
+        name: 'harvest',
+        run: (current) => ({
+          ...current,
+          farm: harvestCrop(current.farm, {
+            actionId: 'iso-harvest',
+            now: NOW + 10 * MINUTE,
+            plotId: 'plot-1',
+          }),
+        }),
+      },
+      {
+        name: 'feed',
+        run: (current) => ({
+          ...current,
+          farm: feedAnimal(current.farm, {
+            actionId: 'iso-feed',
+            now: NOW + 10 * MINUTE,
+            animalId: 'chicken-1',
+          }),
+        }),
+      },
+      {
+        name: 'collect',
+        run: (current) => ({
+          ...current,
+          farm: collectAnimalProduct(current.farm, {
+            actionId: 'iso-collect',
+            now: NOW + 10 * MINUTE + HOUR,
+            animalId: 'chicken-1',
+          }),
+        }),
+      },
+      {
+        name: 'sell-egg',
+        run: (current) =>
+          sellFarmProducts(current, {
+            settlementId: 'iso-sell-egg',
+            now: NOW + 10 * MINUTE + HOUR,
+            selection: { kind: 'item', itemId: 'egg', quantity: 1 },
+          }),
+      },
+      {
+        name: 'sell-radish',
+        run: (current) =>
+          sellFarmProducts(current, {
+            settlementId: 'iso-sell-radish',
+            now: NOW + 10 * MINUTE + HOUR,
+            selection: { kind: 'item', itemId: 'radish', quantity: 1 },
+          }),
+      },
+    ]
+
+    for (const step of steps) {
+      const balanceBefore = snapshot.wallet.balance
+      snapshot = transactFarmOperation(repository, snapshot.revision, step.run)
+      expectLearningUntouched(initial, snapshot)
+      if (step.name === 'sell-egg') expect(snapshot.wallet.balance).toBe(balanceBefore + 14)
+      else if (step.name === 'sell-radish') expect(snapshot.wallet.balance).toBe(balanceBefore + 9)
+      else if (step.name === 'buy-fertilizer')
+        expect(snapshot.wallet.balance).toBeLessThan(balanceBefore)
+      else expect(snapshot.wallet.balance).toBe(balanceBefore)
+    }
+    expect(snapshot.farm.inventory).toMatchObject({ radish: 0, egg: 0 })
+    expect(repository.load().tasks).toEqual(initial.tasks)
+  })
+
+  it('does not let sales or collection alter animal and crop production cycles', () => {
+    let snapshot = snapshotWithLearningProgress()
+    snapshot.farm = feedAnimal(snapshot.farm, {
+      actionId: 'cycle-feed',
+      now: NOW,
+      animalId: 'chicken-1',
+    })
+    snapshot.farm = advanceFarmTime(snapshot.farm, NOW + HOUR)
+    snapshot.farm = collectAnimalProduct(snapshot.farm, {
+      actionId: 'cycle-collect',
+      now: NOW + HOUR,
+      animalId: 'chicken-1',
+    })
+    const animalAfterCollect = snapshot.farm.animals[0]
+    expect(animalAfterCollect.productPending).toBe(false)
+    expect(animalAfterCollect.production).toBeNull()
+
+    snapshot.farm = plantCrop(snapshot.farm, {
+      actionId: 'cycle-plant',
+      now: NOW + HOUR,
+      plotId: 'plot-1',
+      cropId: 'radish',
+    })
+    const plotsBeforeSale = snapshot.farm.plots
+    const animalsBeforeSale = snapshot.farm.animals
+    snapshot = sellFarmProducts(snapshot, {
+      settlementId: 'cycle-sale',
+      now: NOW + HOUR,
+      selection: { kind: 'all' },
+    })
+    expect(snapshot.farm.plots).toEqual(plotsBeforeSale)
+    expect(snapshot.farm.animals).toEqual(animalsBeforeSale)
+
+    // 收取后重新喂食，生产周期仍按规则重置，不受出售影响
+    snapshot.farm = feedAnimal(snapshot.farm, {
+      actionId: 'cycle-refeed',
+      now: NOW + HOUR,
+      animalId: 'chicken-1',
+    })
+    expect(snapshot.farm.animals[0].production).toEqual({
+      startedAt: NOW + HOUR,
+      readyAt: NOW + HOUR + LEARNING_RULES.farm.animals.chicken.productionMs,
+    })
+    expectLearningUntouched(snapshotWithLearningProgress(), snapshot)
+  })
+
+  it('resets the daily sale cap across days without rewriting daily history or streak', () => {
+    let snapshot = snapshotWithLearningProgress()
+    snapshot.farm = { ...snapshot.farm, inventory: { egg: 2, milk: 1, radish: 1 } }
+    snapshot = sellFarmProducts(snapshot, {
+      settlementId: 'iso-cap-day1',
+      now: NOW,
+      selection: { kind: 'category', category: 'animal-products' },
+    })
+    expect(snapshot.wallet.balance).toBe(2_060)
+    snapshot = sellFarmProducts(snapshot, {
+      settlementId: 'iso-cap-day2',
+      now: NEXT_DAY,
+      selection: { kind: 'item', itemId: 'radish', quantity: 1 },
+    })
+    expect(snapshot.wallet.balance).toBe(2_069)
+    expect(snapshot.tasks.daily).toEqual({
+      '2026-11-20': { goal: 30, completed: 5, rewarded: false },
+    })
+    expect(snapshot.tasks.streak).toEqual({
+      current: 2,
+      longest: 2,
+      lastCompletedDateKey: '2026-11-19',
+    })
   })
 })
