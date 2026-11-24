@@ -10,6 +10,7 @@ import {
   submitPracticeAnswer,
 } from '../../../src/learning/practice/practice-session'
 import {
+  getFilteredLearningSummary,
   getLearningRecordsPage,
   getParentLearningSummary,
   getWalletLedgerPage,
@@ -353,5 +354,234 @@ describe('stable learning pagination', () => {
     expect(getLearningRecordsPage(snapshot, 3, 100).items).toHaveLength(100)
     expect(snapshot.learning.records).toBe(records)
     expect(snapshot.learning.records[0].id).toBe('record-00000')
+  })
+})
+
+describe('WP08 filtered learning summary', () => {
+  function crossSubjectSnapshot(): LearningSnapshot {
+    const snapshot = createEmptyLearningSnapshot()
+    // 当前学期已切换到五下，旧记录仍应归属原课程
+    snapshot.course = { grade: 5, semester: 'spring' }
+    snapshot.learning.records = [
+      makeRecord('math-today', {
+        courseId: 'pep-grade4-autumn-integrated-math',
+        knowledgePointId: 'written-division-by-two-digits',
+        subject: 'math',
+        grade: 4,
+        semester: 'autumn',
+        ability: 'math-calculation',
+      }),
+      makeRecord('english-today', {
+        courseId: 'pep-grade4-spring-english',
+        knowledgePointId: 'g4s-english-weather-vocabulary',
+        subject: 'english',
+        grade: 4,
+        semester: 'spring',
+        ability: 'english-vocabulary',
+      }),
+      makeRecord('math-week', {
+        courseId: 'pep-grade4-autumn-integrated-math',
+        knowledgePointId: 'written-division-by-two-digits',
+        subject: 'math',
+        grade: 4,
+        semester: 'autumn',
+        ability: 'math-application',
+        result: 'mastered-after-hint',
+        attempts: 2,
+        highestHintLevel: 1,
+        settledAt: at(-6),
+        startedAt: at(-6) - 1_000,
+      }),
+      makeRecord('math-old', {
+        subject: 'math',
+        grade: 4,
+        semester: 'autumn',
+        settledAt: at(-7),
+        startedAt: at(-7) - 1_000,
+      }),
+      makeRecord('pending', { settledAt: undefined }),
+    ]
+    return snapshot
+  }
+
+  it('filters today and recent seven natural days by settlement date key', () => {
+    const snapshot = crossSubjectSnapshot()
+    const today = getFilteredLearningSummary(snapshot, TODAY, { period: 'today' })
+    expect(today.from).toBe(dateKey())
+    expect(today.to).toBe(dateKey())
+    expect(today.counts).toMatchObject({ effectiveCompleted: 2, firstCorrect: 2 })
+
+    const week = getFilteredLearningSummary(snapshot, TODAY, { period: 'recent-7-days' })
+    expect(week.from).toBe(dateKey(-6))
+    expect(week.to).toBe(dateKey())
+    expect(week.counts).toMatchObject({
+      effectiveCompleted: 3,
+      firstCorrect: 2,
+      correctedAfterHint: 1,
+    })
+  })
+
+  it('filters by subject, course and knowledge point while keeping original-course attribution', () => {
+    const snapshot = crossSubjectSnapshot()
+    const english = getFilteredLearningSummary(snapshot, TODAY, {
+      period: 'recent-7-days',
+      subject: 'english',
+    })
+    expect(english.counts.effectiveCompleted).toBe(1)
+    expect(english.subjects).toEqual([
+      expect.objectContaining({ subject: 'english', effectiveCompleted: 1 }),
+    ])
+    expect(english.courses).toEqual([
+      expect.objectContaining({
+        courseId: 'pep-grade4-spring-english',
+        subject: 'english',
+        grade: 4,
+        semester: 'spring',
+        effectiveCompleted: 1,
+      }),
+    ])
+
+    const mathCourse = getFilteredLearningSummary(snapshot, TODAY, {
+      period: 'recent-7-days',
+      courseId: 'pep-grade4-autumn-integrated-math',
+    })
+    expect(mathCourse.counts).toMatchObject({ effectiveCompleted: 2, correctedAfterHint: 1 })
+    expect(mathCourse.courses).toEqual([
+      expect.objectContaining({ courseId: 'pep-grade4-autumn-integrated-math', grade: 4 }),
+    ])
+
+    const point = getFilteredLearningSummary(snapshot, TODAY, {
+      period: 'recent-7-days',
+      knowledgePointId: 'g4s-english-weather-vocabulary',
+    })
+    expect(point.counts.effectiveCompleted).toBe(1)
+    expect(point.knowledgePoints).toHaveLength(1)
+
+    const none = getFilteredLearningSummary(snapshot, TODAY, {
+      period: 'today',
+      subject: 'english',
+      courseId: 'pep-grade4-autumn-integrated-math',
+    })
+    expect(none.counts.effectiveCompleted).toBe(0)
+    expect(none.subjects).toEqual([])
+    expect(none.courses).toEqual([])
+    expect(none.abilities).toEqual([])
+    expect(none.knowledgePoints).toEqual([])
+  })
+
+  it('projects ability counts sorted by name without ranking or mastery labels', () => {
+    const snapshot = crossSubjectSnapshot()
+    const week = getFilteredLearningSummary(snapshot, TODAY, { period: 'recent-7-days' })
+    expect(week.abilities.map((entry) => entry.ability)).toEqual([
+      'english-vocabulary',
+      'math-application',
+      'math-calculation',
+    ])
+    expect(week.abilities[1]).toMatchObject({
+      ability: 'math-application',
+      effectiveCompleted: 1,
+      correctedAfterHint: 1,
+      firstCorrect: 0,
+    })
+    for (const entry of week.abilities) {
+      expect(Object.keys(entry).sort()).toEqual(
+        [
+          'ability',
+          'effectiveCompleted',
+          'firstCorrect',
+          'correctedAfterHint',
+          'correctedAfterExplanation',
+          'corrected',
+          'mastered',
+          'abandoned',
+          'contentError',
+        ].sort(),
+      )
+    }
+  })
+
+  it('backfills knowledge point attribution from the original records', () => {
+    const snapshot = crossSubjectSnapshot()
+    const week = getFilteredLearningSummary(snapshot, TODAY, { period: 'recent-7-days' })
+    const mathPoint = week.knowledgePoints.find(
+      (point) => point.knowledgePointId === 'written-division-by-two-digits',
+    )
+    expect(mathPoint).toMatchObject({
+      courseId: 'pep-grade4-autumn-integrated-math',
+      subject: 'math',
+      ability: 'math-calculation',
+      effectiveCompleted: 2,
+    })
+    const englishPoint = week.knowledgePoints.find(
+      (point) => point.knowledgePointId === 'g4s-english-weather-vocabulary',
+    )
+    expect(englishPoint).toMatchObject({
+      courseId: 'pep-grade4-spring-english',
+      subject: 'english',
+      ability: 'english-vocabulary',
+    })
+    // 家长页全量知识点摘要同样回填归属
+    const parent = getParentLearningSummary(snapshot, TODAY)
+    expect(
+      parent.knowledgePoints.find(
+        (point) => point.knowledgePointId === 'g4s-english-weather-vocabulary',
+      )?.courseId,
+    ).toBe('pep-grade4-spring-english')
+  })
+
+  it('falls back to the course registry for legacy records missing classification', () => {
+    const snapshot = createEmptyLearningSnapshot()
+    snapshot.learning.records = [
+      makeRecord('legacy', { courseId: 'pep-grade5-autumn-math' }),
+      makeRecord('unknown-course', { courseId: 'course-not-registered' }),
+    ]
+    const summary = getFilteredLearningSummary(snapshot, TODAY, { period: 'today' })
+    expect(summary.counts.effectiveCompleted).toBe(2)
+    expect(summary.courses).toEqual([
+      expect.objectContaining({
+        courseId: 'pep-grade5-autumn-math',
+        subject: 'math',
+        grade: 5,
+        semester: 'autumn',
+      }),
+    ])
+  })
+
+  it('keeps wallet category totals consistent with the raw ledger and balance', () => {
+    const snapshot = createEmptyLearningSnapshot()
+    addLedgerEntry(snapshot, 'fund', 'practice', 'earn', 300, TODAY)
+    addLedgerEntry(snapshot, 'workshop', 'processing-purchase', 'spend', 240, TODAY)
+    addLedgerEntry(snapshot, 'flour-sale', 'processing-sale', 'earn', 42, TODAY)
+    addLedgerEntry(snapshot, 'radish-sale', 'farm-sale', 'earn', 9, TODAY)
+    addLedgerEntry(snapshot, 'seed-buy', 'farm-purchase', 'spend', 5, at(-1))
+
+    const summary = getParentLearningSummary(snapshot, TODAY)
+    const earned = summary.wallet.reduce((total, entry) => total + entry.totalEarned, 0)
+    const spent = summary.wallet.reduce((total, entry) => total + entry.totalSpent, 0)
+    expect(earned - spent).toBe(snapshot.wallet.balance)
+    expect(snapshot.wallet.balance).toBe(106)
+    const ledgerEarned = snapshot.wallet.ledger
+      .filter((entry) => entry.direction === 'earn')
+      .reduce((total, entry) => total + entry.amount, 0)
+    const ledgerSpent = snapshot.wallet.ledger
+      .filter((entry) => entry.direction === 'spend')
+      .reduce((total, entry) => total + entry.amount, 0)
+    expect(earned).toBe(ledgerEarned)
+    expect(spent).toBe(ledgerSpent)
+    expect(summary.wallet.find((entry) => entry.source === 'processing-purchase')).toEqual({
+      source: 'processing-purchase',
+      todayEarned: 0,
+      todaySpent: 240,
+      totalEarned: 0,
+      totalSpent: 240,
+    })
+    expect(summary.wallet.find((entry) => entry.source === 'processing-sale')).toMatchObject({
+      todayEarned: 42,
+      totalEarned: 42,
+    })
+    expect(summary.wallet.find((entry) => entry.source === 'farm-purchase')).toMatchObject({
+      todaySpent: 0,
+      totalSpent: 5,
+    })
   })
 })

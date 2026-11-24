@@ -1,4 +1,5 @@
 import { LEARNING_RULES } from '../config/rules'
+import { getCourseById } from '../content/course-registry'
 import { shiftLocalDateKey, toLocalDateKey } from '../date-key'
 import type { LearningSnapshot } from '../persistence/snapshot'
 import type {
@@ -92,6 +93,17 @@ export interface CourseLearningSummary extends LearningCounts {
 
 export interface AbilityLearningSummary extends LearningCounts {
   ability: LearningAbility
+}
+
+export interface FilteredLearningSummary {
+  period: LearningSummaryPeriod
+  from: string
+  to: string
+  counts: LearningCounts
+  subjects: SubjectLearningSummary[]
+  courses: CourseLearningSummary[]
+  abilities: AbilityLearningSummary[]
+  knowledgePoints: KnowledgePointSummary[]
 }
 
 export interface DailyLearningSummary extends LearningCounts {
@@ -252,9 +264,15 @@ function summarizeKnowledgePoints(records: readonly LearningRecord[]): Knowledge
         }
       }
     }
+    // 归属字段取自记录本身，切换当前学期不会重写旧数据的课程归属
+    const origin = pointRecords[0]
     return {
       ...countRecords(pointRecords),
       knowledgePointId,
+      courseId: origin.courseId,
+      unitId: origin.unitId,
+      subject: origin.subject,
+      ability: origin.ability,
       errorCauses: Array.from(causes.values()).sort(
         (left, right) =>
           right.count - left.count ||
@@ -317,6 +335,81 @@ export function getParentLearningSummary(
     longestStreak: snapshot.tasks.streak.longest,
     knowledgePoints: summarizeKnowledgePoints(snapshot.learning.records),
     wallet: summarizeWallet(snapshot, todayKey),
+  }
+}
+
+function groupRecordsBy<Key>(
+  records: readonly LearningRecord[],
+  keyOf: (record: LearningRecord) => Key | undefined,
+): Map<Key, LearningRecord[]> {
+  const grouped = new Map<Key, LearningRecord[]>()
+  for (const record of records) {
+    const key = keyOf(record)
+    if (key === undefined) continue
+    const group = grouped.get(key) ?? []
+    group.push(record)
+    grouped.set(key, group)
+  }
+  return grouped
+}
+
+export function getFilteredLearningSummary(
+  snapshot: LearningSnapshot,
+  at: Date | number,
+  filter: LearningSummaryFilter,
+): FilteredLearningSummary {
+  const to = toLocalDateKey(at)
+  const from = filter.period === 'today' ? to : shiftLocalDateKey(to, -6)
+  const records = snapshot.learning.records.filter((record) => {
+    if (record.settledAt === undefined) return false
+    const dateKey = toLocalDateKey(record.settledAt)
+    if (dateKey < from || dateKey > to) return false
+    if (filter.subject !== undefined && record.subject !== filter.subject) return false
+    if (filter.courseId !== undefined && record.courseId !== filter.courseId) return false
+    if (
+      filter.knowledgePointId !== undefined &&
+      record.knowledgePointId !== filter.knowledgePointId
+    )
+      return false
+    return true
+  })
+
+  const subjects = Array.from(
+    groupRecordsBy(records, (record) => record.subject),
+    ([subject, subjectRecords]) => ({ ...countRecords(subjectRecords), subject }),
+  ).sort((left, right) => compareText(left.subject, right.subject))
+
+  // 课程归属以记录原课程为准；旧记录缺失字段时回退到课程注册表，仍无法确定则不展示该行
+  const courses: CourseLearningSummary[] = []
+  for (const [courseId, courseRecords] of groupRecordsBy(records, (record) => record.courseId)) {
+    const registered = getCourseById(courseId)
+    const origin = courseRecords.find(
+      (record) =>
+        record.subject !== undefined && record.grade !== undefined && record.semester !== undefined,
+    )
+    const subject = origin?.subject ?? registered?.subject
+    const grade = origin?.grade ?? registered?.grade
+    const semester = origin?.semester ?? registered?.semester
+    if (subject === undefined || grade === undefined || semester === undefined) continue
+    courses.push({ ...countRecords(courseRecords), courseId, subject, grade, semester })
+  }
+  courses.sort((left, right) => compareText(left.courseId, right.courseId))
+
+  // 能力分布只展示计数，按能力名称排序，不生成排名或“掌握良好”等标签
+  const abilities = Array.from(
+    groupRecordsBy(records, (record) => record.ability),
+    ([ability, abilityRecords]) => ({ ...countRecords(abilityRecords), ability }),
+  ).sort((left, right) => compareText(left.ability, right.ability))
+
+  return {
+    period: filter.period,
+    from,
+    to,
+    counts: countRecords(records),
+    subjects,
+    courses,
+    abilities,
+    knowledgePoints: summarizeKnowledgePoints(records),
   }
 }
 

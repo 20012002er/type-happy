@@ -181,10 +181,13 @@ test('E2E-16 练习和农场出售后的知识点、任务与金币流水保持�
   expect(afterSale.tasks.daily['2026-11-20'].completed).toBe(1)
 
   await page.getByRole('link', { name: '家长设置', exact: true }).click()
-  await expect(page.locator('.parent-metrics')).toContainText(/有效完成\s*1/)
-  await expect(page.locator('.parent-metrics')).toContainText(/首次答对\s*1/)
-  await expect(page.locator('.parent-metrics')).toContainText(/提示后订正\s*0/)
-  await expect(page.locator('.parent-metrics')).toContainText(/讲解后订正\s*0/)
+  const todayMetrics = page.locator(
+    'section[aria-labelledby="today-summary-title"] .parent-metrics',
+  )
+  await expect(todayMetrics).toContainText(/有效完成\s*1/)
+  await expect(todayMetrics).toContainText(/首次答对\s*1/)
+  await expect(todayMetrics).toContainText(/提示后订正\s*0/)
+  await expect(todayMetrics).toContainText(/讲解后订正\s*0/)
   await expect(page.locator('#today-summary-title').locator('../..')).toContainText(
     '任务 1 / 30 题',
   )
@@ -199,4 +202,59 @@ test('E2E-16 练习和农场出售后的知识点、任务与金币流水保持�
   await expect(page.locator('.learn-record-list').first()).toContainText('首次答对')
   await expect(page.locator('.learn-record-list').nth(1)).toContainText('农产品出售')
   expect((await snapshot(page)).tasks.daily['2026-11-20'].completed).toBe(1)
+})
+
+test('WP08 减少农场动态效果、系统偏好优先与摘要筛选归属原课程', async ({ page }) => {
+  await useFixedClock(page)
+  await page.goto('/learning/parent')
+
+  // 课程范围展示：建议范围声明、四上旧课程标记与四上无英语说明
+  await page.getByText('查看全部课程范围与题型说明').click()
+  await expect(page.getByText('不代表地区统一教材目录')).toBeVisible()
+  await expect(page.getByText('保留旧课程').first()).toBeVisible()
+  await expect(page.getByText('该学期暂未开放英语')).toBeVisible()
+
+  // 开启“减少农场动态效果”只影响农场动效，不影响页面动画
+  await page
+    .locator('.learn-switch')
+    .filter({ hasText: '减少农场动态效果' })
+    .locator('input')
+    .check()
+  await page.goto('/learning/farm')
+  await expect(page.locator('.learn-page')).toHaveClass(/farm-no-motion/)
+  await expect(page.locator('.learn-page')).not.toHaveClass(/learn-no-motion/)
+
+  // 系统级减少动态效果优先于应用内开关
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.goto('/learning/parent')
+  await expect(page.getByRole('note')).toContainText('系统已开启“减少动态效果”')
+  await expect(page.locator('.learn-page')).toHaveClass(/learn-no-motion/)
+  await expect(page.locator('.learn-page')).toHaveClass(/farm-no-motion/)
+  await page.emulateMedia({ reducedMotion: 'no-preference' })
+
+  // 设置不改变判分与奖励：练习仍正常 +3
+  await page.goto('/learning')
+  await page.getByRole('button', { name: '开始专项练习', exact: true }).click()
+  await submitFirstCorrect(page)
+  await expect(page.getByText('+3 学习金币已到账')).toBeVisible()
+
+  // 摘要筛选：今日/7 天、学科、能力分布与知识点原课程归属
+  await page.goto('/learning/parent')
+  const filterSection = page.locator('section[aria-labelledby="filter-summary-title"]')
+  await expect(filterSection.locator('.parent-metrics dd').first()).toHaveText('1')
+  await expect(filterSection).toContainText('能力分布')
+  await page.locator('#summary-subject').selectOption('math')
+  await expect(filterSection.locator('.parent-metrics dd').first()).toHaveText('1')
+  await page.locator('#summary-subject').selectOption('english')
+  await expect(filterSection).toContainText('当前筛选范围内还没有学习记录')
+  await page.locator('#summary-subject').selectOption('')
+  await page.locator('#summary-period').selectOption('recent-7-days')
+  await expect(filterSection.locator('.parent-metrics dd').first()).toHaveText('1')
+  await expect(page.locator('section[aria-labelledby="knowledge-summary-title"]')).toContainText(
+    '4 年级上学期数学',
+  )
+
+  const stored = await snapshot(page)
+  expect(stored.wallet.balance).toBe(3)
+  expect(stored.tasks.daily['2026-11-20'].completed).toBe(1)
 })

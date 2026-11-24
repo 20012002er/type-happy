@@ -416,6 +416,7 @@ describe('WP07 processing isolation from learning module', () => {
     expectLearningUntouched()
 
     // 投入原料：只消耗库存并写入任务，不产生金币流水
+    const ledgerAfterPurchase = current.wallet.ledger
     const task: ProcessingTask = {
       id: 'iso-task',
       recipeId: 'flour',
@@ -437,6 +438,7 @@ describe('WP07 processing isolation from learning module', () => {
       }),
     )
     expect(current.wallet.balance).toBe(60)
+    expect(current.wallet.ledger).toEqual(ledgerAfterPurchase)
     expectLearningUntouched()
 
     // 收取产出：只把待收产出转入库存
@@ -455,6 +457,7 @@ describe('WP07 processing isolation from learning module', () => {
     )
     expect(current.wallet.balance).toBe(60)
     expect(current.farm.inventory.flour).toBe(1)
+    expect(current.wallet.ledger).toEqual(ledgerAfterPurchase)
     expectLearningUntouched()
 
     // 农场出售不影响加工状态与学习模块（加工品出售通道属 WP10 交付）
@@ -477,5 +480,20 @@ describe('WP07 processing isolation from learning module', () => {
     expect(current.wallet.ledger.at(-1)).toMatchObject({ source: 'farm-sale', amount: 9 })
     expectLearningUntouched()
     expect(repository.load().tasks).toEqual(initial.tasks)
+
+    // 分类汇总口径：原始流水收支差与余额一致，加工坊购买单独归类
+    const earned = current.wallet.ledger
+      .filter((entry) => entry.direction === 'earn')
+      .reduce((total, entry) => total + entry.amount, 0)
+    const spent = current.wallet.ledger
+      .filter((entry) => entry.direction === 'spend')
+      .reduce((total, entry) => total + entry.amount, 0)
+    expect(earned - spent).toBe(current.wallet.balance)
+    expect(
+      current.wallet.ledger.filter((entry) => entry.source === 'processing-purchase'),
+    ).toHaveLength(1)
+    expect(
+      current.wallet.ledger.filter((entry) => entry.source === 'processing-sale'),
+    ).toHaveLength(0)
   })
 })

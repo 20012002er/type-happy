@@ -356,6 +356,11 @@
   .farm-inventory-item__name { grid-column: 1 / -1; }
 }
 
+/* “减少农场动态效果”偏好或系统减少动态效果开启时，只关闭农场场景动效，不影响文字反馈 */
+.farm-no-motion .farm-workspace *,
+.farm-no-motion .farm-workspace *::before,
+.farm-no-motion .farm-workspace *::after { animation: none !important; transition: none !important; }
+
 @media (prefers-reduced-motion: reduce) {
   .farm-crop.is-ready { animation: none; }
 }

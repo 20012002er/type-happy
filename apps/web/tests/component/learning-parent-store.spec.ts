@@ -1,5 +1,5 @@
 import { createPinia, setActivePinia } from 'pinia'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   createEmptyLearningSnapshot,
   LEARNING_STORAGE_KEY,
@@ -131,5 +131,66 @@ describe('learning data clearing', () => {
 
     expect(learning.clearLearningData()).toBe(true)
     expect(storage.getItem(LEARNING_STORAGE_KEY)).toBeNull()
+  })
+})
+
+describe('WP08 motion preferences', () => {
+  beforeEach(() => setActivePinia(createPinia()))
+  afterEach(() => vi.unstubAllGlobals())
+
+  it('persists reduce-farm-motion without changing scoring, rewards or farm output', () => {
+    const { learning, storage } = setup()
+    expect(learning.preferences.reduceFarmMotion).toBe(false)
+    expect(learning.farmMotionReduced).toBe(false)
+    expect(learning.animationsReduced).toBe(false)
+
+    expect(learning.updatePreferences({ reduceFarmMotion: true })).toBe(true)
+    expect(learning.farmMotionReduced).toBe(true)
+    expect(learning.animationsReduced).toBe(false)
+    expect(learning.today.goal).toBe(30)
+    expect(learning.snapshot.wallet.balance).toBe(0)
+
+    const restored = setup(storage).learning
+    expect(restored.preferences.reduceFarmMotion).toBe(true)
+    expect(restored.farmMotionReduced).toBe(true)
+
+    storage.setItem(PREFERENCES_KEY, JSON.stringify({ reduceFarmMotion: 'yes' }))
+    expect(setup(storage).learning.preferences.reduceFarmMotion).toBe(false)
+  })
+
+  it('reduces page animations only when the animation switch is off', () => {
+    const { learning } = setup()
+    expect(learning.updatePreferences({ animationsEnabled: false })).toBe(true)
+    expect(learning.animationsReduced).toBe(true)
+    expect(learning.farmMotionReduced).toBe(false)
+  })
+
+  it('lets the system reduced-motion preference override both in-app switches', () => {
+    let listener: ((event: { matches: boolean }) => void) | undefined
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockReturnValue({
+        matches: true,
+        addEventListener: (_type: string, handler: (event: { matches: boolean }) => void) => {
+          listener = handler
+        },
+      }),
+    )
+    const { learning } = setup()
+    expect(learning.systemReducedMotion).toBe(true)
+    expect(learning.animationsReduced).toBe(true)
+    expect(learning.farmMotionReduced).toBe(true)
+
+    // 应用内开关全部打开也不能覆盖系统偏好
+    expect(learning.updatePreferences({ animationsEnabled: true, reduceFarmMotion: false })).toBe(
+      true,
+    )
+    expect(learning.animationsReduced).toBe(true)
+    expect(learning.farmMotionReduced).toBe(true)
+
+    listener?.({ matches: false })
+    expect(learning.systemReducedMotion).toBe(false)
+    expect(learning.animationsReduced).toBe(false)
+    expect(learning.farmMotionReduced).toBe(false)
   })
 })

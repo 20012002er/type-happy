@@ -1,8 +1,27 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import LearningConfirmDialog from '../components/learning/LearningConfirmDialog.vue'
 import LearningPage from '../components/learning/LearningPage.vue'
-import { getWalletLedgerPage } from '../learning/tasks/learning-summary'
+import {
+  COURSE_AVAILABILITY,
+  COURSE_REGISTRY,
+  getCourseById,
+} from '../learning/content/course-registry'
+import { filterEnglishTemplates } from '../learning/practice/english-templates'
+import { filterMathTemplates } from '../learning/practice/math-templates'
+import {
+  getFilteredLearningSummary,
+  getWalletLedgerPage,
+  type KnowledgePointSummary,
+  type LearningSummaryPeriod,
+} from '../learning/tasks/learning-summary'
+import {
+  QUESTION_TYPES,
+  type LearningAbility,
+  type QuestionType,
+  type Semester,
+  type Subject,
+} from '../learning/types'
 import type { WalletSource } from '../learning/wallet/wallet'
 import { useLearningStore } from '../stores/learning'
 
@@ -22,6 +41,98 @@ const sourceLabels: Record<WalletSource, string> = {
   recovery: '恢复补给',
   activity: '活动奖励',
 }
+const subjectLabels: Record<Subject, string> = { math: '数学', english: '英语' }
+const semesterLabels: Record<Semester, string> = { autumn: '上学期', spring: '下学期' }
+const abilityLabels: Record<LearningAbility, string> = {
+  'math-calculation': '数学计算',
+  'math-concept': '数学概念',
+  'math-application': '数学应用',
+  'english-vocabulary': '英语词汇',
+  'english-sentence-grammar': '英语句型语法',
+  'english-situational': '英语情境运用',
+}
+const questionTypeLabels: Record<QuestionType, string> = {
+  number: '数字计算',
+  'quotient-remainder': '商和余数',
+  'fill-blanks': '填空',
+  'single-choice': '单项选择',
+  'word-problem': '应用题',
+  fraction: '分数',
+  'english-spelling': '单词拼写',
+  'sentence-completion': '句子补全',
+}
+
+function courseLabel(courseId: string): string {
+  const course = getCourseById(courseId)
+  if (!course) return courseId
+  return `${course.grade} 年级${semesterLabels[course.semester]}${subjectLabels[course.subject]}`
+}
+
+// 课程范围来自课程注册表与真实题库，仅作建议学习范围展示，不宣称地区统一教材目录
+const courseScopes = COURSE_REGISTRY.map((course) => {
+  const templates =
+    course.subject === 'math'
+      ? filterMathTemplates({ courseId: course.id, includeReview: true })
+      : filterEnglishTemplates({ courseId: course.id, includeReview: true })
+  return {
+    course,
+    units: course.units.filter((unit) => unit.id !== 'prior-review'),
+    questionTypes: QUESTION_TYPES.filter((type) =>
+      templates.some((template) => template.type === type),
+    ).map((type) => questionTypeLabels[type]),
+    legacy: course.knowledgePoints.some((point) => point.source !== 'new-pep'),
+  }
+})
+const unavailableTerms = COURSE_AVAILABILITY.filter((entry) => !entry.available)
+const currentScope = computed(() =>
+  courseScopes.find((scope) => scope.course.id === learning.course.id),
+)
+
+const filterPeriod = ref<LearningSummaryPeriod>('today')
+const filterSubject = ref<Subject | ''>('')
+const filterCourse = ref('')
+const filterKnowledgePoint = ref('')
+const filteredSummary = computed(() =>
+  getFilteredLearningSummary(learning.snapshot, learning.farmNow, {
+    period: filterPeriod.value,
+    subject: filterSubject.value || undefined,
+    courseId: filterCourse.value || undefined,
+    knowledgePointId: filterKnowledgePoint.value || undefined,
+  }),
+)
+const filteredEmpty = computed(() =>
+  Object.values(filteredSummary.value.counts).every((value) => value === 0),
+)
+const knowledgePointOptions = computed(() => {
+  const seen = new Map<string, { id: string; label: string }>()
+  for (const record of learning.snapshot.learning.records) {
+    if (filterCourse.value && record.courseId !== filterCourse.value) continue
+    if (filterSubject.value && record.subject !== filterSubject.value) continue
+    if (seen.has(record.knowledgePointId)) continue
+    const name = getCourseById(record.courseId)?.knowledgePoints.find(
+      (point) => point.id === record.knowledgePointId,
+    )?.name
+    seen.set(record.knowledgePointId, {
+      id: record.knowledgePointId,
+      label: name ? `${name}（${courseLabel(record.courseId)}）` : record.knowledgePointId,
+    })
+  }
+  return [...seen.values()].sort((left, right) => left.label.localeCompare(right.label, 'zh-CN'))
+})
+watch([filterSubject, filterCourse, knowledgePointOptions], () => {
+  if (filterCourse.value) {
+    const course = getCourseById(filterCourse.value)
+    if (filterSubject.value && course && course.subject !== filterSubject.value) {
+      filterCourse.value = ''
+    }
+  }
+  if (
+    filterKnowledgePoint.value &&
+    !knowledgePointOptions.value.some((option) => option.id === filterKnowledgePoint.value)
+  ) {
+    filterKnowledgePoint.value = ''
+  }
+})
 
 const summary = computed(() => learning.parentSummary)
 const mainErrorCauses = computed(() => {
@@ -53,8 +164,14 @@ const unclassifiedErrorRecords = computed(() =>
   summary.value.knowledgePoints.reduce((total, point) => total + point.unclassifiedErrorRecords, 0),
 )
 
-function knowledgeName(id: string): string {
-  return learning.course.knowledgePoints.find((point) => point.id === id)?.name ?? '综合计算'
+function knowledgeName(point: KnowledgePointSummary): string {
+  // 知识点名称按记录原课程解析，切换当前学期不影响旧数据展示
+  const course = point.courseId ? getCourseById(point.courseId) : undefined
+  return (
+    (course ?? learning.course).knowledgePoints.find(
+      (candidate) => candidate.id === point.knowledgePointId,
+    )?.name ?? '综合计算'
+  )
 }
 
 function saveGoal(): void {
@@ -107,14 +224,50 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
           <span class="learn-tag">{{ learning.course.textbook }}</span>
         </div>
         <p v-if="learning.subjectStatuses.math.contentReady">
-          人教版新旧融合课程，包含多位数乘两位数和两位数除法；不包含小数、分数或系统混合运算。
+          当前课程建议范围与题型如下；专项练习限当前课程范围内的知识点与题型。
         </p>
         <p v-else>{{ learning.subjectStatuses.math.reason }}，课程目录仅用于预览和选择。</p>
-        <div class="learn-course-tags" aria-label="课程知识模块">
-          <span v-for="unit in learning.course.units" :key="unit.id" class="learn-tag">
+        <div class="learn-course-tags" aria-label="当前课程知识模块">
+          <span v-for="unit in currentScope?.units ?? []" :key="unit.id" class="learn-tag">
             {{ unit.title }}
           </span>
         </div>
+        <p v-if="currentScope" class="parent-help">
+          题型：{{ currentScope.questionTypes.join('、') }}。
+        </p>
+        <details class="learn-details">
+          <summary>查看全部课程范围与题型说明</summary>
+          <div>
+            <p class="parent-help">
+              以下范围为建议学习范围，不代表地区统一教材目录；不同地区教学进度可能有差异。
+            </p>
+            <details v-for="scope in courseScopes" :key="scope.course.id" class="learn-details">
+              <summary>
+                {{ scope.course.title }}
+                <span v-if="scope.legacy" class="learn-tag">保留旧课程</span>
+              </summary>
+              <div>
+                <div class="learn-course-tags" :aria-label="`${scope.course.title}知识模块`">
+                  <span v-for="unit in scope.units" :key="unit.id" class="learn-tag">
+                    {{ unit.title }}
+                  </span>
+                </div>
+                <p class="parent-help">题型：{{ scope.questionTypes.join('、') }}。</p>
+                <p v-if="scope.legacy" class="parent-help">
+                  四年级上学期数学为保留的新旧融合旧课程，含已学复习；复习题保留来源标签，不计作本学期新知掌握。
+                </p>
+              </div>
+            </details>
+            <p
+              v-for="entry in unavailableTerms"
+              :key="`${entry.grade}-${entry.semester}-${entry.subject}`"
+              class="parent-help"
+            >
+              {{ entry.grade }} 年级{{ semesterLabels[entry.semester]
+              }}{{ subjectLabels[entry.subject] }}：{{ entry.unavailableReason }}。
+            </p>
+          </div>
+        </details>
         <div class="parent-goal">
           <label class="learn-field" for="daily-goal">
             次日起每日目标
@@ -145,6 +298,60 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
             保存每日目标
           </button>
         </div>
+      </section>
+
+      <section class="learn-paper learn-section" aria-labelledby="experience-settings-title">
+        <div class="learn-section__heading">
+          <div>
+            <p class="learn-kicker">体验设置</p>
+            <h2 id="experience-settings-title">音效、动画与农场动态效果</h2>
+          </div>
+        </div>
+        <p>这些设置只影响呈现效果，不改变判分、奖励或农场经营产出。</p>
+        <div class="learn-switches">
+          <label class="learn-switch">
+            <input
+              type="checkbox"
+              :checked="learning.preferences.soundEnabled"
+              @change="
+                learning.updatePreferences({
+                  soundEnabled: ($event.target as HTMLInputElement).checked,
+                })
+              "
+            />
+            正反馈音效
+          </label>
+          <label class="learn-switch">
+            <input
+              type="checkbox"
+              :checked="learning.preferences.animationsEnabled"
+              @change="
+                learning.updatePreferences({
+                  animationsEnabled: ($event.target as HTMLInputElement).checked,
+                })
+              "
+            />
+            页面动画
+          </label>
+          <label class="learn-switch">
+            <input
+              type="checkbox"
+              :checked="learning.preferences.reduceFarmMotion"
+              @change="
+                learning.updatePreferences({
+                  reduceFarmMotion: ($event.target as HTMLInputElement).checked,
+                })
+              "
+            />
+            减少农场动态效果
+          </label>
+        </div>
+        <p v-if="learning.systemReducedMotion" class="parent-help" role="note">
+          系统已开启“减少动态效果”，优先于应用内设置：页面动画和农场动态效果均已减少。
+        </p>
+        <p v-else class="parent-help">
+          系统开启“减少动态效果”时会优先于以上开关；关闭农场动态效果后，生长状态与剩余时间仍以文字展示。
+        </p>
       </section>
 
       <section class="learn-ticket parent-streak" aria-labelledby="streak-summary-title">
@@ -233,6 +440,144 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
         </div>
       </section>
 
+      <section class="learn-paper learn-section parent-wide" aria-labelledby="filter-summary-title">
+        <div class="learn-section__heading">
+          <div>
+            <p class="learn-kicker">{{ filteredSummary.from }} 至 {{ filteredSummary.to }}</p>
+            <h2 id="filter-summary-title">筛选统计与能力分布</h2>
+          </div>
+        </div>
+        <div class="parent-filters">
+          <label class="learn-field" for="summary-period">
+            统计时间段
+            <select id="summary-period" v-model="filterPeriod">
+              <option value="today">今日</option>
+              <option value="recent-7-days">最近 7 天</option>
+            </select>
+          </label>
+          <label class="learn-field" for="summary-subject">
+            学科
+            <select id="summary-subject" v-model="filterSubject">
+              <option value="">全部学科</option>
+              <option value="math">数学</option>
+              <option value="english">英语</option>
+            </select>
+          </label>
+          <label class="learn-field" for="summary-course">
+            年级学期
+            <select id="summary-course" v-model="filterCourse">
+              <option value="">全部课程</option>
+              <option v-for="scope in courseScopes" :key="scope.course.id" :value="scope.course.id">
+                {{ courseLabel(scope.course.id) }}
+              </option>
+            </select>
+          </label>
+          <label class="learn-field" for="summary-knowledge-point">
+            知识点
+            <select id="summary-knowledge-point" v-model="filterKnowledgePoint">
+              <option value="">全部知识点</option>
+              <option v-for="option in knowledgePointOptions" :key="option.id" :value="option.id">
+                {{ option.label }}
+              </option>
+            </select>
+          </label>
+        </div>
+        <div v-if="filteredEmpty" class="learn-empty">当前筛选范围内还没有学习记录。</div>
+        <template v-else>
+          <dl class="parent-metrics">
+            <div>
+              <dt>有效完成</dt>
+              <dd>{{ filteredSummary.counts.effectiveCompleted }}</dd>
+            </div>
+            <div>
+              <dt>首次答对</dt>
+              <dd>{{ filteredSummary.counts.firstCorrect }}</dd>
+            </div>
+            <div>
+              <dt>提示后订正</dt>
+              <dd>{{ filteredSummary.counts.correctedAfterHint }}</dd>
+            </div>
+            <div>
+              <dt>讲解后订正</dt>
+              <dd>{{ filteredSummary.counts.correctedAfterExplanation }}</dd>
+            </div>
+            <div>
+              <dt>未计入完成</dt>
+              <dd>{{ filteredSummary.counts.abandoned + filteredSummary.counts.contentError }}</dd>
+            </div>
+          </dl>
+          <div class="parent-table-wrap">
+            <table class="parent-table">
+              <thead>
+                <tr>
+                  <th scope="col">学科</th>
+                  <th scope="col">有效完成</th>
+                  <th scope="col">首次答对</th>
+                  <th scope="col">提示后订正</th>
+                  <th scope="col">讲解后订正</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="entry in filteredSummary.subjects" :key="entry.subject">
+                  <th scope="row">{{ subjectLabels[entry.subject] }}</th>
+                  <td>{{ entry.effectiveCompleted }}</td>
+                  <td>{{ entry.firstCorrect }}</td>
+                  <td>{{ entry.correctedAfterHint }}</td>
+                  <td>{{ entry.correctedAfterExplanation }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="parent-table-wrap">
+            <table class="parent-table">
+              <thead>
+                <tr>
+                  <th scope="col">原课程</th>
+                  <th scope="col">有效完成</th>
+                  <th scope="col">首次答对</th>
+                  <th scope="col">提示后订正</th>
+                  <th scope="col">讲解后订正</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="entry in filteredSummary.courses" :key="entry.courseId">
+                  <th scope="row">{{ courseLabel(entry.courseId) }}</th>
+                  <td>{{ entry.effectiveCompleted }}</td>
+                  <td>{{ entry.firstCorrect }}</td>
+                  <td>{{ entry.correctedAfterHint }}</td>
+                  <td>{{ entry.correctedAfterExplanation }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div v-if="filteredSummary.abilities.length > 0" class="parent-table-wrap">
+            <table class="parent-table">
+              <thead>
+                <tr>
+                  <th scope="col">能力分布</th>
+                  <th scope="col">有效完成</th>
+                  <th scope="col">首次答对</th>
+                  <th scope="col">提示后订正</th>
+                  <th scope="col">讲解后订正</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="entry in filteredSummary.abilities" :key="entry.ability">
+                  <th scope="row">{{ abilityLabels[entry.ability] }}</th>
+                  <td>{{ entry.effectiveCompleted }}</td>
+                  <td>{{ entry.firstCorrect }}</td>
+                  <td>{{ entry.correctedAfterHint }}</td>
+                  <td>{{ entry.correctedAfterExplanation }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </template>
+        <p class="parent-help">
+          统计按记录原课程归属，切换当前学期不会重写旧数据；能力分布仅展示练习计数，不生成排名或“掌握良好”等能力标签。
+        </p>
+      </section>
+
       <section class="learn-paper learn-section" aria-labelledby="knowledge-summary-title">
         <div class="learn-section__heading">
           <div>
@@ -248,6 +593,7 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
             <thead>
               <tr>
                 <th scope="col">知识点</th>
+                <th scope="col">所属课程</th>
                 <th scope="col">有效完成</th>
                 <th scope="col">首次答对</th>
                 <th scope="col">提示后订正</th>
@@ -256,7 +602,8 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
             </thead>
             <tbody>
               <tr v-for="point in summary.knowledgePoints" :key="point.knowledgePointId">
-                <th scope="row">{{ knowledgeName(point.knowledgePointId) }}</th>
+                <th scope="row">{{ knowledgeName(point) }}</th>
+                <td>{{ point.courseId ? courseLabel(point.courseId) : '旧记录' }}</td>
                 <td>{{ point.effectiveCompleted }}</td>
                 <td>{{ point.firstCorrect }}</td>
                 <td>{{ point.correctedAfterHint }}</td>
@@ -315,6 +662,9 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
             </tbody>
           </table>
         </div>
+        <p class="parent-help">
+          分类汇总与原始流水、余额一致；加工原料投入只扣减仓库物品，不产生金币流水。
+        </p>
         <div class="parent-recent-ledger">
           <div class="learn-section__heading">
             <h3>最近金币流水</h3>
@@ -419,6 +769,17 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
 .parent-help {
   color: var(--learn-muted);
   font-size: 13px;
+}
+
+.parent-filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.parent-table-wrap + .parent-table-wrap {
+  margin-top: 18px;
 }
 
 .parent-streak__numbers {
@@ -607,6 +968,10 @@ time {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .parent-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .parent-wide {
     grid-column: auto;
   }
@@ -631,6 +996,10 @@ time {
 
 @media (max-width: 520px) {
   .parent-goal {
+    grid-template-columns: 1fr;
+  }
+
+  .parent-filters {
     grid-template-columns: 1fr;
   }
 

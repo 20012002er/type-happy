@@ -13,7 +13,13 @@ const learning = useLearningStore()
 </script>
 
 <template>
-  <div class="learn-page" :class="{ 'learn-no-motion': !learning.preferences.animationsEnabled }">
+  <div
+    class="learn-page"
+    :class="{
+      'learn-no-motion': learning.animationsReduced,
+      'farm-no-motion': learning.farmMotionReduced,
+    }"
+  >
     <div class="learn-page__inner">
       <nav class="learn-local-nav" aria-label="学习模块导航">
         <RouterLink to="/learning" exact-active-class="is-active">学习首页</RouterLink>

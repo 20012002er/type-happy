@@ -1,6 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import LearningParentView from '../../src/views/LearningParentView.vue'
 import LearningRecordsView from '../../src/views/LearningRecordsView.vue'
@@ -109,6 +109,7 @@ function mountView(
 
 afterEach(() => {
   document.body.innerHTML = ''
+  vi.unstubAllGlobals()
 })
 
 describe('parent settings and summary view', () => {
@@ -224,6 +225,107 @@ describe('long history pagination view', () => {
     expect(
       wrapper.find('nav[aria-label="学习记录分页"] button:last-child').attributes('disabled'),
     ).toBeDefined()
+    wrapper.unmount()
+  })
+})
+
+describe('WP08 parent course scope, motion settings and filters', () => {
+  it('shows all course scopes, question types, the legacy marker and the unavailable english note', () => {
+    const { pinia } = setup()
+    const wrapper = mountView(LearningParentView, pinia)
+    const text = wrapper.text()
+    expect(text).toContain('查看全部课程范围与题型说明')
+    expect(text).toContain('不代表地区统一教材目录')
+    expect(text).toContain('保留旧课程')
+    expect(text).toContain('该学期暂未开放英语')
+    expect(text).toContain('人教版 PEP 五年级下册英语')
+    expect(text).toContain('人教版 PEP 四年级下册英语')
+    expect(text).toContain('题型：')
+    expect(text).toContain('单词拼写')
+    expect(text).toContain('商和余数')
+    wrapper.unmount()
+  })
+
+  it('toggles motion switches and applies farm-no-motion / learn-no-motion classes', async () => {
+    const { pinia, learning } = setup()
+    const wrapper = mountView(LearningParentView, pinia)
+    const switches = wrapper.findAll('.learn-switch input')
+    expect(switches).toHaveLength(3)
+
+    await switches[2].setValue(true)
+    expect(learning.preferences.reduceFarmMotion).toBe(true)
+    expect(wrapper.find('.learn-page').classes()).toContain('farm-no-motion')
+    expect(wrapper.find('.learn-page').classes()).not.toContain('learn-no-motion')
+
+    await switches[1].setValue(false)
+    expect(learning.preferences.animationsEnabled).toBe(false)
+    expect(wrapper.find('.learn-page').classes()).toContain('learn-no-motion')
+    wrapper.unmount()
+  })
+
+  it('shows the system reduced-motion note and reduces motion regardless of switches', () => {
+    vi.stubGlobal(
+      'matchMedia',
+      vi.fn().mockReturnValue({
+        matches: true,
+        addEventListener: () => {},
+      }),
+    )
+    const { pinia } = setup()
+    const wrapper = mountView(LearningParentView, pinia)
+    expect(wrapper.text()).toContain('系统已开启“减少动态效果”')
+    expect(wrapper.find('.learn-page').classes()).toContain('learn-no-motion')
+    expect(wrapper.find('.learn-page').classes()).toContain('farm-no-motion')
+    wrapper.unmount()
+  })
+
+  it('filters by period, subject, course and knowledge point with ability distribution', async () => {
+    const snapshot = richSnapshot()
+    snapshot.learning.records = [
+      makeRecord('math-1', 'first-correct', {
+        subject: 'math',
+        grade: 4,
+        semester: 'autumn',
+        ability: 'math-calculation',
+      }),
+      makeRecord('english-1', 'first-correct', {
+        courseId: 'pep-grade4-spring-english',
+        knowledgePointId: 'g4s-english-weather-vocabulary',
+        subject: 'english',
+        grade: 4,
+        semester: 'spring',
+        ability: 'english-vocabulary',
+      }),
+    ]
+    const { pinia } = setup(snapshot)
+    const wrapper = mountView(LearningParentView, pinia)
+    const section = wrapper.find('section[aria-labelledby="filter-summary-title"]')
+    expect(section.find('.parent-metrics dd').text()).toBe('2')
+
+    await wrapper.find('#summary-subject').setValue('english')
+    expect(section.find('.parent-metrics dd').text()).toBe('1')
+    expect(section.text()).toContain('英语词汇')
+    expect(section.text()).toContain('4 年级下学期英语')
+    expect(section.text()).not.toContain('数学计算')
+
+    await wrapper.find('#summary-course').setValue('pep-grade4-spring-english')
+    await wrapper.find('#summary-knowledge-point').setValue('g4s-english-weather-vocabulary')
+    expect(section.find('.parent-metrics dd').text()).toBe('1')
+
+    await wrapper.find('#summary-period').setValue('recent-7-days')
+    expect(section.find('.parent-metrics dd').text()).toBe('1')
+
+    // 知识点摘要按记录原课程解析名称与归属
+    const knowledge = wrapper.find('section[aria-labelledby="knowledge-summary-title"]')
+    expect(knowledge.text()).toContain('天气词汇')
+    expect(knowledge.text()).toContain('4 年级下学期英语')
+    wrapper.unmount()
+  })
+
+  it('shows an empty filter state instead of fabricating counts', () => {
+    const { pinia } = setup()
+    const wrapper = mountView(LearningParentView, pinia)
+    expect(wrapper.text()).toContain('当前筛选范围内还没有学习记录')
     wrapper.unmount()
   })
 })

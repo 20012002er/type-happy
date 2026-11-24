@@ -82,6 +82,7 @@ export interface LearningPreferences {
   courseIntroSeen: boolean
   soundEnabled: boolean
   animationsEnabled: boolean
+  reduceFarmMotion: boolean
   dailyGoal: number
   pendingDailyGoal?: number
   pendingDailyGoalEffectiveFrom?: string
@@ -127,6 +128,7 @@ const DEFAULT_PREFERENCES: LearningPreferences = {
   courseIntroSeen: false,
   soundEnabled: true,
   animationsEnabled: true,
+  reduceFarmMotion: false,
   dailyGoal: LEARNING_RULES.dailyTask.defaultGoal,
 }
 
@@ -149,6 +151,7 @@ function parsePreferences(raw: string | null): LearningPreferences {
       courseIntroSeen: value.courseIntroSeen === true,
       soundEnabled: value.soundEnabled !== false,
       animationsEnabled: value.animationsEnabled !== false,
+      reduceFarmMotion: value.reduceFarmMotion === true,
       dailyGoal: validateDailyGoal(value.dailyGoal ?? LEARNING_RULES.dailyTask.defaultGoal),
     }
     if (value.pendingDailyGoal !== undefined && value.pendingDailyGoalEffectiveFrom !== undefined) {
@@ -228,6 +231,7 @@ export const useLearningStore = defineStore('learning', () => {
   const farmNow = ref(systemClock.now())
   const preferences = ref<LearningPreferences>({ ...DEFAULT_PREFERENCES })
   const courseSelectionRequired = ref(false)
+  const systemReducedMotion = ref(false)
 
   let storage: StoragePort | undefined
   let repository: LearningRepository | undefined
@@ -235,6 +239,16 @@ export const useLearningStore = defineStore('learning', () => {
   let clock: Clock = systemClock
   let ids: IdGenerator = createCryptoIdGenerator()
   let random: Random = mathRandom
+  let motionQuery: MediaQueryList | undefined
+
+  function watchSystemReducedMotion(): void {
+    if (motionQuery || typeof window === 'undefined' || !window.matchMedia) return
+    motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    systemReducedMotion.value = motionQuery.matches
+    motionQuery.addEventListener('change', (event) => {
+      systemReducedMotion.value = event.matches
+    })
+  }
 
   const course = computed(() => {
     const availability = getCourseAvailability(
@@ -285,6 +299,13 @@ export const useLearningStore = defineStore('learning', () => {
     ),
   )
   const pendingHarvests = computed(() => getPendingHarvestCount(snapshot.value.farm, farmNow.value))
+  // 系统级“减少动态效果”优先于应用内开关：系统开启时无论偏好如何都减少动效
+  const animationsReduced = computed(
+    () => systemReducedMotion.value || !preferences.value.animationsEnabled,
+  )
+  const farmMotionReduced = computed(
+    () => systemReducedMotion.value || preferences.value.reduceFarmMotion,
+  )
 
   function getSubjectStatus(subject: Subject) {
     const availability = getCourseAvailability(
@@ -313,6 +334,7 @@ export const useLearningStore = defineStore('learning', () => {
     if (dependencies.clock) clock = dependencies.clock
     if (dependencies.ids) ids = dependencies.ids
     if (dependencies.random) random = dependencies.random
+    watchSystemReducedMotion()
     getNow()
     const selectedStorage = storage ?? getBrowserStorage()
     storage = selectedStorage
@@ -670,7 +692,11 @@ export const useLearningStore = defineStore('learning', () => {
     saveError,
     notice,
     saving,
+    farmNow,
     preferences,
+    systemReducedMotion,
+    animationsReduced,
+    farmMotionReduced,
     courseSelectionRequired,
     course,
     subjectStatuses,
