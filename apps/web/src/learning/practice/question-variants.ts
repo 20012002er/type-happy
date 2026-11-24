@@ -1,7 +1,8 @@
 import { parseQuestionSnapshot } from '../contracts'
 import type { QuestionSnapshot } from '../types'
-import { createRetestQuestion } from './math-generator'
-import { MATH_TEMPLATES } from './math-templates'
+import { isMathTemplateDisabled } from './content-health'
+import { createRetestQuestion, generateMathQuestion } from './math-generator'
+import { filterMathTemplates, MATH_TEMPLATES } from './math-templates'
 
 export type VariantGenerator = (
   original: QuestionSnapshot,
@@ -79,8 +80,48 @@ export function createQuestionVariant(
   seed: number,
   instanceId: string,
 ): QuestionSnapshot {
+  if (isMathTemplateDisabled(original.templateId)) {
+    return createReplacementForDisabledTemplate(original, seed, instanceId)
+  }
   if (MATH_TEMPLATES.some((item) => item.id === original.templateId)) {
     return createRetestQuestion(original, seed, instanceId)
   }
   return generateRegisteredVariant(original, seed, instanceId)
+}
+
+/** 模板停用后优先用同知识点模板换题；没有时退回同单元同题型，仍保持课程与难度不变。 */
+function createReplacementForDisabledTemplate(
+  original: QuestionSnapshot,
+  seed: number,
+  instanceId: string,
+): QuestionSnapshot {
+  if (!Number.isSafeInteger(seed) || seed < 0) throw new Error('变式种子必须是非负安全整数')
+  if (instanceId.trim().length === 0) throw new Error('变式实例 ID 不能为空')
+  const baseFilter = {
+    courseId: original.classification.courseId,
+    questionType: original.type,
+    difficulty: original.difficulty,
+    includeReview: false,
+  }
+  const sameKnowledgePoint = filterMathTemplates({
+    ...baseFilter,
+    knowledgePointId: original.classification.knowledgePointId,
+  }).filter((template) => template.id !== original.templateId)
+  const candidates =
+    sameKnowledgePoint.length > 0
+      ? sameKnowledgePoint
+      : filterMathTemplates({ ...baseFilter, unitId: original.classification.unitId }).filter(
+          (template) => template.id !== original.templateId,
+        )
+  if (candidates.length === 0) throw new Error('该知识点没有可替换的题目模板')
+  const template = candidates[seed % candidates.length]
+  const replacement = generateMathQuestion(template.id, seed, instanceId, original.difficulty)
+  if (
+    replacement.classification.courseId !== original.classification.courseId ||
+    replacement.difficulty !== original.difficulty ||
+    replacement.type !== original.type
+  ) {
+    throw new Error('替换题必须保持相同课程、难度与题型')
+  }
+  return withVariantOrigin(original, replacement)
 }

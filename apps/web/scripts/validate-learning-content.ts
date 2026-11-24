@@ -1,15 +1,20 @@
 import { pathToFileURL } from 'node:url'
 import { LEARNING_RULES } from '../src/learning/config/rules'
-import { GRADE4_AUTUMN_MATH_COURSE } from '../src/learning/content/grade4-math'
-import { COURSE_AVAILABILITY, COURSE_REGISTRY } from '../src/learning/content/course-registry'
+import {
+  COURSE_AVAILABILITY,
+  COURSE_REGISTRY,
+  getCourseById,
+} from '../src/learning/content/course-registry'
 import {
   parseCourse,
   parseQuestionSnapshot,
   parseQuestionTemplate,
 } from '../src/learning/contracts'
 import { generateMathQuestion } from '../src/learning/practice/math-generator'
+import { judgeAnswer } from '../src/learning/practice/answer'
 import { MATH_TEMPLATES } from '../src/learning/practice/math-templates'
 import { PROCESSING_RECIPES } from '../src/learning/processing/recipes'
+import type { QuestionSnapshot } from '../src/learning/types'
 
 export interface VersionedContent {
   id: string
@@ -113,19 +118,44 @@ function validateRecipes(recipes: readonly RecipeContent[]): void {
   }
 }
 
+/** 逐学期批量质检的语义守卫：除数 0、多解选择和不现实应用结果在发布前拦截。 */
+const CONTENT_CHECK_SEEDS = [42, 7, 11, 99, 2026] as const
+
 export function validateCurrentMathContent(): void {
-  const course = parseCourse(GRADE4_AUTUMN_MATH_COURSE)
   for (const template of MATH_TEMPLATES) {
+    const course = getCourseById(template.classification.courseId)
+    if (!course) throw new Error(`模板课程不存在：${template.classification.courseId}`)
     parseQuestionTemplate(template, course)
     for (const difficulty of template.supportedDifficulties) {
-      const question = generateMathQuestion(
-        template.id,
-        42,
-        `content-check-${template.id}-${difficulty}`,
-        difficulty,
-      )
-      parseQuestionSnapshot(question, course)
+      for (const seed of CONTENT_CHECK_SEEDS) {
+        const question = generateMathQuestion(
+          template.id,
+          seed,
+          `content-check-${template.id}-${difficulty}-${seed}`,
+          difficulty,
+        )
+        parseQuestionSnapshot(question, course)
+        validateMathQuestionSemantics(question)
+      }
     }
+  }
+}
+
+function validateMathQuestionSemantics(question: QuestionSnapshot): void {
+  const label = `${question.templateId}/${question.instanceId}`
+  if (/÷\s*0(?![\d.])/.test(question.prompt)) throw new Error(`${label} 存在除数 0`)
+  if (question.type === 'single-choice') {
+    const correctCount = (question.options ?? []).filter(
+      (option) => judgeAnswer(question, { kind: 'single-choice', optionId: option.id }).correct,
+    ).length
+    if (correctCount !== 1) throw new Error(`${label} 选择题必须有唯一正确答案`)
+  }
+  const answer = question.standardAnswer
+  if (answer.kind === 'number' && !Number.isFinite(answer.value)) {
+    throw new Error(`${label} 数字答案必须是有限数`)
+  }
+  if (answer.kind === 'word-problem' && (!Number.isFinite(answer.value) || answer.value < 0)) {
+    throw new Error(`${label} 应用题结果不符合现实语义`)
   }
 }
 

@@ -74,7 +74,7 @@ import {
   validateDailyGoal,
 } from '../learning/tasks/daily-task'
 import { assertLocalDateKey } from '../learning/date-key'
-import type { Answer, Difficulty, Subject } from '../learning/types'
+import type { Answer, Difficulty, QuestionType, Subject } from '../learning/types'
 
 const PREFERENCES_STORAGE_KEY = 'type-happy:learning:preferences:v1'
 
@@ -96,7 +96,14 @@ export interface LearningStoreDependencies {
 
 export type StartPracticeOptions =
   | { mode: 'comprehensive'; subject: Subject }
-  | { mode: 'special'; subject: Subject; unitId: string; difficulty: Difficulty }
+  | {
+      mode: 'special'
+      subject: Subject
+      unitId?: string
+      knowledgePointId?: string
+      questionType?: QuestionType
+      difficulty: Difficulty
+    }
 
 export type SubmitPracticeResult = 'submitted' | 'replaced' | 'failed'
 
@@ -414,22 +421,27 @@ export const useLearningStore = defineStore('learning', () => {
       return null
     }
     const status = getSubjectStatus(options.subject)
-    if (status.availability?.available !== true || !status.contentReady) {
+    if (status.availability?.available !== true || !status.contentReady || !status.course) {
       saveError.value = status.reason
       return null
     }
+    const courseId = status.course.id
     const now = getNow()
     const id = `practice-${ids.next()}`
     const paper =
       options.mode === 'comprehensive'
         ? generateComprehensivePaper({
+            courseId,
             total: today.value.goal,
             seed: random.int(0, 0xffffffff),
             idPrefix: id,
             retestPool: snapshot.value.practice.retestPool,
           })
         : generateSpecialPaper({
+            courseId,
             unitId: options.unitId,
+            knowledgePointId: options.knowledgePointId,
+            questionType: options.questionType,
             difficulty: options.difficulty,
             seed: random.int(0, 0xffffffff),
             idPrefix: id,

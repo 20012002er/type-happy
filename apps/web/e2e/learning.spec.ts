@@ -33,7 +33,10 @@ async function currentQuestion(page: Page): Promise<QuestionSnapshot> {
 
 function wrongAnswer(answer: Answer): Answer {
   if (answer.kind === 'number') return { kind: 'number', value: answer.value + 1 }
-  if (answer.kind !== 'quotient-remainder') throw new Error('当前练习仅支持数值题和商余数题')
+  if (answer.kind === 'word-problem') {
+    return { kind: 'word-problem', value: answer.value + 1, unit: answer.unit }
+  }
+  if (answer.kind !== 'quotient-remainder') throw new Error('当前练习仅支持数值、商余数和应用题')
   return {
     kind: 'quotient-remainder',
     quotient: answer.quotient + 1,
@@ -47,8 +50,11 @@ async function fillAnswer(page: Page, answer: Answer): Promise<void> {
   } else if (answer.kind === 'quotient-remainder') {
     await page.getByLabel('商', { exact: true }).fill(String(answer.quotient))
     await page.getByLabel('余数', { exact: true }).fill(String(answer.remainder))
+  } else if (answer.kind === 'word-problem') {
+    await page.locator('input[name="word-problem-value"]').fill(String(answer.value))
+    await page.locator('input[name="word-problem-unit"]').fill(answer.unit ?? '')
   } else {
-    throw new Error('当前练习仅支持数值题和商余数题')
+    throw new Error('当前练习仅支持数值、商余数和应用题')
   }
 }
 
@@ -89,7 +95,7 @@ test('学习首访先选课程，体验设置与任务导航可用', async ({ pa
   await expect(page.getByText('当前连续 0 天')).toBeVisible()
 })
 
-test('四学期选择刷新保持，无内容课程只显示空状态且不建组', async ({ page }) => {
+test('四学期选择刷新保持，数学均可练习且未开放英语不建组', async ({ page }) => {
   await page.goto('/learning')
   const selections = [
     { label: '四年级下学期', grade: 4, semester: 'spring' },
@@ -101,8 +107,11 @@ test('四学期选择刷新保持，无内容课程只显示空状态且不建�
     await expect(page.getByText(`当前：${selection.label}`, { exact: true })).toBeVisible()
     await expect(
       page.getByRole('button', { name: `开始${selection.label}数学综合练习` }),
+    ).toBeEnabled()
+    await expect(
+      page.getByRole('button', { name: `开始${selection.label}英语综合练习` }),
     ).toBeDisabled()
-    await expect(page.locator('.learn-special-empty')).toBeVisible()
+    await expect(page.locator('.learn-special-empty')).toHaveCount(0)
     const stored = await page.evaluate(() => {
       const raw = localStorage.getItem('type-happy:learning:snapshot')
       if (!raw) throw new Error('学习快照不存在')
@@ -120,6 +129,34 @@ test('四学期选择刷新保持，无内容课程只显示空状态且不建�
   await expect(page.getByRole('button', { name: '开始专项练习', exact: true })).toBeEnabled()
   await expect(page.getByRole('button', { name: '开始四年级上学期英语综合练习' })).toBeDisabled()
   await expect(page.locator('.learn-special-empty')).toHaveCount(0)
+})
+
+test('专项可按知识点与题型筛选组卷', async ({ page }) => {
+  await page.goto('/learning')
+  await page.locator('.learn-course-option').filter({ hasText: '五年级下学期' }).click()
+  const specialFields = page.locator('section[aria-labelledby="special-title"] select')
+  await specialFields.nth(0).selectOption('g5s-fraction-addition-subtraction')
+  await specialFields.nth(1).selectOption('g5s-different-denominator-add-sub')
+  await specialFields.nth(2).selectOption('fraction')
+  await page.getByRole('button', { name: '开始专项练习', exact: true }).click()
+  await expect(page).toHaveURL(/\/learning\/practice\/practice-/)
+  const questions = await page.evaluate(() => {
+    const raw = localStorage.getItem('type-happy:learning:snapshot')
+    if (!raw) throw new Error('学习快照不存在')
+    const snapshot = JSON.parse(raw)
+    const sessions = Object.values(snapshot.practice.sessions) as Array<{
+      questions: Array<{ question: { type: string; classification: { knowledgePointId: string } } }>
+    }>
+    return sessions[0].questions.map((entry) => entry.question)
+  })
+  expect(questions).toHaveLength(10)
+  expect(
+    questions.every(
+      (question) =>
+        question.type === 'fraction' &&
+        question.classification.knowledgePointId === 'g5s-different-denominator-add-sub',
+    ),
+  ).toBe(true)
 })
 
 test('练中切课保留原题快照并继续原课程入口', async ({ page }) => {

@@ -16,29 +16,95 @@ function answersEqual(left: Answer, right: Answer): boolean {
   return JSON.stringify(left) === JSON.stringify(right)
 }
 
+function acceptedMatchesStandard(question: QuestionSnapshot): boolean {
+  const rule = question.acceptedAnswerRule
+  const standard = question.standardAnswer
+  if (rule.kind !== standard.kind) return false
+  switch (standard.kind) {
+    case 'number':
+      return rule.kind === 'number' && rule.values.length === 1 && rule.values[0] === standard.value
+    case 'quotient-remainder':
+      return (
+        rule.kind === 'quotient-remainder' &&
+        rule.values.length === 1 &&
+        rule.values[0].quotient === standard.quotient &&
+        rule.values[0].remainder === standard.remainder
+      )
+    case 'fill-blanks':
+      return (
+        rule.kind === 'fill-blanks' &&
+        rule.values.length === standard.values.length &&
+        standard.values.every((value, index) => rule.values[index].includes(value))
+      )
+    case 'single-choice':
+      return (
+        rule.kind === 'single-choice' &&
+        rule.values.length === 1 &&
+        rule.values[0] === standard.optionId
+      )
+    case 'word-problem':
+      return (
+        rule.kind === 'word-problem' &&
+        rule.values.length === 1 &&
+        rule.values[0].value === standard.value &&
+        rule.values[0].unit === standard.unit
+      )
+    case 'fraction':
+      return (
+        rule.kind === 'fraction' &&
+        rule.values.length === 1 &&
+        rule.values[0].numerator === standard.numerator &&
+        rule.values[0].denominator === standard.denominator
+      )
+    case 'english-spelling':
+      return (
+        rule.kind === 'english-spelling' &&
+        rule.values.length === 1 &&
+        rule.values[0] === standard.value
+      )
+    case 'sentence-completion':
+      return (
+        rule.kind === 'sentence-completion' &&
+        rule.values.length === standard.values.length &&
+        standard.values.every((value, index) => rule.values[index].includes(value))
+      )
+  }
+}
+
+function answerLeakTokens(question: QuestionSnapshot): string[] {
+  const answer = question.standardAnswer
+  switch (answer.kind) {
+    case 'number':
+      return [String(answer.value)]
+    case 'quotient-remainder':
+      return [String(answer.quotient)]
+    case 'fill-blanks':
+    case 'sentence-completion':
+      return [...answer.values]
+    case 'single-choice': {
+      const option = question.options?.find((item) => item.id === answer.optionId)
+      return option ? [option.text] : []
+    }
+    case 'word-problem':
+      return [String(answer.value)]
+    case 'fraction':
+      return [`${answer.numerator}/${answer.denominator}`]
+    case 'english-spelling':
+      return [answer.value]
+  }
+}
+
 function expectCommonInvariants(question: QuestionSnapshot): void {
   expect(question.instanceId).toBe(`instance-${question.seed}`)
-  expect(question.acceptedAnswerRule.values).toHaveLength(1)
-  const accepted = question.acceptedAnswerRule.values[0]
-  const acceptedAnswer: Answer =
-    question.acceptedAnswerRule.kind === 'number'
-      ? { kind: 'number', value: accepted as number }
-      : { kind: 'quotient-remainder', ...(accepted as { quotient: number; remainder: number }) }
-  expect(answersEqual(acceptedAnswer, question.standardAnswer)).toBe(true)
-  if (
-    question.standardAnswer.kind !== 'number' &&
-    question.standardAnswer.kind !== 'quotient-remainder'
-  ) {
-    throw new Error('当前数学生成器仅支持数值题和商余数题')
-  }
+  expect(question.acceptedAnswerRule.kind).toBe(question.standardAnswer.kind)
+  expect(acceptedMatchesStandard(question)).toBe(true)
+  if (question.type === 'single-choice') expect(question.options).toHaveLength(4)
   expect(question.retestKnowledgePointIds).toEqual([question.classification.knowledgePointId])
   expect(question.participatesInTask).toBe(true)
   expect(question.rewardEligible).toBe(true)
-  expect(question.hints.level1).not.toContain(
-    question.standardAnswer.kind === 'number'
-      ? String(question.standardAnswer.value)
-      : String(question.standardAnswer.quotient),
-  )
+  for (const token of answerLeakTokens(question)) {
+    expect(question.hints.level1).not.toContain(token)
+  }
   for (const rule of question.errorCauseRules) {
     expect(rule.answers.length).toBeGreaterThan(0)
     for (const answer of rule.answers) {
@@ -153,6 +219,114 @@ function expectTemplateArithmetic(templateId: string, question: QuestionSnapshot
     return
   }
 
+  if (templateId === 'product-rule-choice-v1') {
+    const match = question.prompt.match(
+      /^(\d+) × (\d+) = (\d+)。如果 \d+ (乘|除以) (\d+) 变成 (\d+)，\d+ 不变，积会怎样变化？$/,
+    )
+    expect(match).not.toBeNull()
+    const a = Number(match?.[1])
+    const factor = Number(match?.[5])
+    expect(a * Number(match?.[2])).toBe(Number(match?.[3]))
+    expect(Number(match?.[6])).toBe(match?.[4] === '乘' ? a * factor : a / factor)
+    expect(answer).toEqual({ kind: 'single-choice', optionId: 'opt-a' })
+    expect(question.options?.find((option) => option.id === 'opt-a')?.text).toBe(
+      `也${match?.[4]} ${factor}`,
+    )
+    return
+  }
+
+  if (templateId === 'quotient-rule-choice-v1') {
+    const both = question.prompt.match(
+      /^(\d+) ÷ (\d+) = (\d+)。如果被除数和除数同时乘 (\d+)，商会怎样变化？$/,
+    )
+    const single = question.prompt.match(
+      /^(\d+) ÷ (\d+) = (\d+)。如果被除数乘 (\d+)，除数不变，商会怎样变化？$/,
+    )
+    const match = both ?? single
+    expect(match).not.toBeNull()
+    expect(Number(match?.[1]) / Number(match?.[2])).toBe(Number(match?.[3]))
+    expect(answer).toEqual({ kind: 'single-choice', optionId: 'opt-a' })
+    expect(question.options?.find((option) => option.id === 'opt-a')?.text).toBe(
+      both ? '不变' : `也乘 ${Number(match?.[4])}`,
+    )
+    return
+  }
+
+  if (templateId === 'estimate-method-choice-v1') {
+    const match = question.prompt.match(
+      /^估算 (\d+) × (\d+) 时，按四舍五入到整百、整十数，下面哪种估法最合适？$/,
+    )
+    expect(match).not.toBeNull()
+    const roundedA = Math.round(Number(match?.[1]) / 100) * 100
+    const roundedB = Math.round(Number(match?.[2]) / 10) * 10
+    expect(answer).toEqual({ kind: 'single-choice', optionId: 'opt-a' })
+    expect(question.options?.find((option) => option.id === 'opt-a')?.text).toBe(
+      `${roundedA} × ${roundedB}`,
+    )
+    expect(new Set(question.options?.map((option) => option.text)).size).toBe(4)
+    return
+  }
+
+  if (templateId === 'product-rule-blank-v1') {
+    const match = question.prompt.match(
+      /^一个乘数乘 (\d+)，另一个乘数不变，积就（____）；两个乘数分别乘 (\d+) 和乘 (\d+)，积就（____）。$/,
+    )
+    expect(match).not.toBeNull()
+    const k = Number(match?.[1])
+    const m = Number(match?.[3])
+    expect(Number(match?.[2])).toBe(k)
+    expect(k * m).not.toBe(k + m)
+    expect(answer).toEqual({ kind: 'fill-blanks', values: [`乘 ${k}`, `乘 ${k * m}`] })
+    return
+  }
+
+  if (templateId === 'quotient-rule-blank-v1') {
+    const match = question.prompt.match(
+      /^被除数乘 (\d+)，除数不变，商就（____）；被除数和除数同时除以 (\d+)，商就（____）。$/,
+    )
+    expect(match).not.toBeNull()
+    const k = Number(match?.[1])
+    expect(Number(match?.[2])).toBe(k)
+    expect(answer).toEqual({ kind: 'fill-blanks', values: [`乘 ${k}`, '不变'] })
+    return
+  }
+
+  if (templateId === 'shopping-estimate-word-v1') {
+    const match = question.prompt.match(
+      /^学校买 (\d+) 个篮球，每个 (\d+) 元。把 (\d+) 看作 (\d+)，把 (\d+) 看作 (\d+) 估算，大约一共要多少元？$/,
+    )
+    expect(match).not.toBeNull()
+    const count = Number(match?.[1])
+    const price = Number(match?.[2])
+    const roundedCount = Number(match?.[4])
+    const roundedPrice = Number(match?.[6])
+    expect(Number(match?.[3])).toBe(count)
+    expect(Number(match?.[5])).toBe(price)
+    expect(Math.abs(count - roundedCount)).toBeLessThanOrEqual(4)
+    expect(Math.abs(price - roundedPrice)).toBeLessThanOrEqual(4)
+    expect(roundedCount % 10).toBe(0)
+    expect(roundedPrice % 10).toBe(0)
+    expect(answer).toEqual({ kind: 'word-problem', value: roundedCount * roundedPrice, unit: '元' })
+    expect(question.acceptedAnswerRule.kind).toBe('word-problem')
+    if (question.acceptedAnswerRule.kind === 'word-problem') {
+      expect(question.acceptedAnswerRule.unitRequired).toBe(true)
+    }
+    return
+  }
+
+  if (templateId === 'shopping-multiplication-word-v1') {
+    const match = question.prompt.match(/^一套科普书 (\d+) 元，学校买 (\d+) 套。一共要多少元？$/)
+    expect(match).not.toBeNull()
+    const price = Number(match?.[1])
+    const count = Number(match?.[2])
+    expect(price).toBeGreaterThanOrEqual(105)
+    expect(price).toBeLessThanOrEqual(399)
+    expect(count).toBeGreaterThanOrEqual(11)
+    expect(count).toBeLessThanOrEqual(24)
+    expect(answer).toEqual({ kind: 'word-problem', value: price * count, unit: '元' })
+    return
+  }
+
   if (templateId === 'prior-review-v1') {
     const multiplication = question.prompt.match(/^(\d+) × (\d+) = \?$/)
     const division = question.prompt.match(/^(\d+) ÷ (\d+) = \?$/)
@@ -168,9 +342,11 @@ function expectTemplateArithmetic(templateId: string, question: QuestionSnapshot
 
 describe('math template catalogue', () => {
   it('covers every course knowledge point and supports difficulty and unit filters', () => {
+    const grade4Templates = filterMathTemplates({ courseId: GRADE4_AUTUMN_MATH_COURSE.id })
     expect(
-      new Set(MATH_TEMPLATES.map((template) => template.classification.knowledgePointId)),
+      new Set(grade4Templates.map((template) => template.classification.knowledgePointId)),
     ).toEqual(new Set(GRADE4_AUTUMN_MATH_COURSE.knowledgePoints.map((point) => point.id)))
+    expect(filterMathTemplates({ courseId: 'missing-course' })).toHaveLength(0)
     for (const difficulty of ['L1', 'L2', 'L3'] as const) {
       expect(filterMathTemplates({ difficulty }).length).toBeGreaterThan(0)
     }
@@ -180,6 +356,9 @@ describe('math template catalogue', () => {
         (template) => template.id,
       ),
     ).toEqual(['remainder-div-v1'])
+    const choiceTemplates = filterMathTemplates({ questionType: 'single-choice' })
+    expect(choiceTemplates.length).toBeGreaterThan(0)
+    expect(choiceTemplates.every((template) => template.type === 'single-choice')).toBe(true)
     expect(filterMathTemplates({ includeReview: false }).some((template) => template.review)).toBe(
       false,
     )

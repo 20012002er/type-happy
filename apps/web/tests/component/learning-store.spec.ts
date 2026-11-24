@@ -234,7 +234,7 @@ describe('learning store UI orchestration', () => {
     expect(learning.saveError).toContain('暂未开放英语')
 
     expect(learning.selectCourse({ grade: 4, semester: 'spring' })).toBe(true)
-    expect(learning.subjectStatuses.math.contentReady).toBe(false)
+    expect(learning.subjectStatuses.math.contentReady).toBe(true)
     expect(
       learning.startPractice({
         mode: 'special',
@@ -242,12 +242,45 @@ describe('learning store UI orchestration', () => {
         unitId: 'g4s-four-operations',
         difficulty: 'L2',
       }),
-    ).toBeNull()
-    expect(learning.practiceSessions).toHaveLength(0)
+    ).toMatch(/^practice-/)
+    expect(learning.practiceSessions).toHaveLength(1)
+    expect(learning.abandonSession(learning.practiceSessions[0].id)).toBe(true)
 
     expect(learning.selectCourse({ grade: 4, semester: 'autumn' })).toBe(true)
     expect(learning.subjectStatuses.math.contentReady).toBe(true)
     expect(startSpecial(learning)).toMatch(/^practice-/)
+  })
+
+  it('starts special practice filtered by knowledge point and question type', () => {
+    const { learning } = setup()
+    expect(learning.selectCourse({ grade: 5, semester: 'spring' })).toBe(true)
+    const id = learning.startPractice({
+      mode: 'special',
+      subject: 'math',
+      knowledgePointId: 'g5s-defective-item-strategy',
+      questionType: 'number',
+      difficulty: 'L2',
+    })
+    expect(id).toMatch(/^practice-/)
+    const session = learning.getSession(id!)
+    expect(session?.questions).toHaveLength(10)
+    expect(
+      session?.questions.every(
+        (entry) =>
+          entry.question.classification.knowledgePointId === 'g5s-defective-item-strategy' &&
+          entry.question.type === 'number',
+      ),
+    ).toBe(true)
+    expect(learning.abandonSession(id!)).toBe(true)
+    expect(() =>
+      learning.startPractice({
+        mode: 'special',
+        subject: 'math',
+        knowledgePointId: 'g5s-factors-and-multiples',
+        questionType: 'fraction',
+        difficulty: 'L1',
+      }),
+    ).toThrow('没有该题型')
   })
 
   it('changes only the course when switching during practice and preserves the original group', () => {

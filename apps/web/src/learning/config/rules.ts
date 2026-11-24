@@ -34,13 +34,6 @@ export const LEARNING_RULES = {
     recurringReward: 70,
   },
   paper: {
-    defaultBlueprint: {
-      oralCalculation: 6,
-      writtenMultiplication: 8,
-      writtenDivision: 10,
-      changeRules: 3,
-      estimationVerification: 3,
-    },
     mathBlueprint: {
       calculation: 12,
       singleChoice: 6,
@@ -56,15 +49,7 @@ export const LEARNING_RULES = {
       situationalExpression: 3,
       minimumPerAbility: 1,
     },
-    refillOrder: [
-      'writtenDivision',
-      'writtenMultiplication',
-      'oralCalculation',
-      'changeRules',
-      'estimationVerification',
-    ],
-    minimumChangeRules: 1,
-    minimumEstimationVerification: 1,
+    mathRefillOrder: ['calculation', 'singleChoice', 'knowledgeApplication', 'wordProblems'],
     specialPracticeSize: 10,
     maximumReviewRatio: 0.2,
   },

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { LEARNING_RULES } from '../../../src/learning/config/rules'
+import { GRADE4_AUTUMN_MATH_COURSE } from '../../../src/learning/content/grade4-math'
 import { shiftLocalDateKey } from '../../../src/learning/date-key'
 import { createEmptyLearningSnapshot } from '../../../src/learning/persistence/snapshot'
 import { generateMathQuestion } from '../../../src/learning/practice/math-generator'
@@ -35,6 +36,7 @@ function at(day: number, hour = 12): number {
 
 function makeSession(id: string, size = 1): PracticeSession {
   const paper = generateSpecialPaper({
+    courseId: GRADE4_AUTUMN_MATH_COURSE.id,
     knowledgePointId: 'oral-multiplication-by-one-digit',
     difficulty: 'L1',
     seed: 81,

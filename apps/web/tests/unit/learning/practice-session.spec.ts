@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { GRADE4_AUTUMN_MATH_COURSE } from '../../../src/learning/content/grade4-math'
 import { generateMathQuestion } from '../../../src/learning/practice/math-generator'
 import { generateSpecialPaper } from '../../../src/learning/practice/paper'
 import {
@@ -18,6 +19,7 @@ import { buildChoiceFixture, buildQuestionFixture } from '../../helpers/question
 
 function makeSession(size = 6, id = 'session-1'): PracticeSession {
   const paper = generateSpecialPaper({
+    courseId: GRADE4_AUTUMN_MATH_COURSE.id,
     knowledgePointId: 'oral-multiplication-by-one-digit',
     difficulty: 'L1',
     seed: 91,
@@ -40,6 +42,7 @@ function wrongAnswer(question: QuestionSnapshot): Answer {
 
 function makeCausedSession(id: string) {
   const paper = generateSpecialPaper({
+    courseId: GRADE4_AUTUMN_MATH_COURSE.id,
     knowledgePointId: 'oral-multiplication-by-one-digit',
     difficulty: 'L1',
     seed: 91,
@@ -240,6 +243,7 @@ describe('practice question state machine', () => {
     expect(parsePracticeSession(structuredClone(session))).toEqual(session)
 
     const division = generateSpecialPaper({
+      courseId: GRADE4_AUTUMN_MATH_COURSE.id,
       knowledgePointId: 'division-with-remainder',
       difficulty: 'L2',
       seed: 14,

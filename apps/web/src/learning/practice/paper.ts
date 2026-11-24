@@ -1,32 +1,36 @@
 import { LEARNING_RULES } from '../config/rules'
-import type { Difficulty } from '../types'
+import type { Difficulty, QuestionType } from '../types'
 import { generateMathQuestion } from './math-generator'
-import { filterMathTemplates, MATH_TEMPLATES, type MathQuestionTemplate } from './math-templates'
+import type { MathPaperCategory } from './math-template-kit'
+import { filterMathTemplates, type MathQuestionTemplate } from './math-templates'
 import type { PracticeMode, PracticeQuestionInput } from './practice-session'
 import { injectRetestsIntoPaper, type RetestPoolEntry } from './retest'
 
-export type PaperCategory = keyof typeof LEARNING_RULES.paper.defaultBlueprint
-export type PaperBlueprint = Record<PaperCategory, number>
+export type MathPaperBlueprint = Record<MathPaperCategory, number>
 
 export interface PracticePaper {
   mode: PracticeMode
-  blueprint?: PaperBlueprint
+  blueprint?: MathPaperBlueprint
   questions: readonly PracticeQuestionInput[]
 }
 
 export function hasPracticeContent(courseId: string): boolean {
-  return MATH_TEMPLATES.some((template) => template.classification.courseId === courseId)
+  return filterMathTemplates({ courseId }).length > 0
 }
 
-const CATEGORY_UNITS: Record<PaperCategory, string> = {
-  oralCalculation: 'oral-calculation',
-  writtenMultiplication: 'written-multiplication',
-  writtenDivision: 'written-division',
-  changeRules: 'change-rules',
-  estimationVerification: 'estimation-verification',
-}
+const CATEGORY_SEQUENCE: readonly MathPaperCategory[] = [
+  'calculation',
+  'singleChoice',
+  'knowledgeApplication',
+  'wordProblems',
+]
 
-const CATEGORY_SEQUENCE = Object.keys(CATEGORY_UNITS) as PaperCategory[]
+const CATEGORY_LABELS: Record<MathPaperCategory, string> = {
+  calculation: '数字计算与直接填空',
+  singleChoice: '单项选择',
+  knowledgeApplication: '知识应用填空',
+  wordProblems: '应用问题',
+}
 
 function assertSeed(seed: number): void {
   if (!Number.isSafeInteger(seed) || seed < 0) throw new Error('组卷种子必须是非负安全整数')
@@ -45,43 +49,41 @@ function deriveSeed(seed: number, index: number, attempt = 0): number {
   return (value ^ (value >>> 16)) >>> 0
 }
 
-export function scalePaperBlueprint(total: number): PaperBlueprint {
-  const { minimumGoal, maximumGoal } = LEARNING_RULES.dailyTask
+export function scaleMathBlueprint(total: number): MathPaperBlueprint {
+  const { minimumGoal, maximumGoal, defaultGoal } = LEARNING_RULES.dailyTask
   if (!Number.isInteger(total) || total < minimumGoal || total > maximumGoal) {
     throw new Error(`组卷题量必须是 ${minimumGoal}–${maximumGoal} 的整数`)
   }
-  const blueprint = {} as PaperBlueprint
-  const defaultTotal = LEARNING_RULES.dailyTask.defaultGoal
+  const base = LEARNING_RULES.paper.mathBlueprint
+  const blueprint = {} as MathPaperBlueprint
   let assigned = 0
   for (const category of CATEGORY_SEQUENCE) {
-    const count = Math.floor(
-      (LEARNING_RULES.paper.defaultBlueprint[category] * total) / defaultTotal,
-    )
+    const count = Math.floor((base[category] * total) / defaultGoal)
     blueprint[category] = count
     assigned += count
   }
   let remaining = total - assigned
   let index = 0
   while (remaining > 0) {
-    const category = LEARNING_RULES.paper.refillOrder[
-      index % LEARNING_RULES.paper.refillOrder.length
-    ] as PaperCategory
+    const category = LEARNING_RULES.paper.mathRefillOrder[
+      index % LEARNING_RULES.paper.mathRefillOrder.length
+    ] as MathPaperCategory
     blueprint[category] += 1
     remaining -= 1
     index += 1
   }
-  if (blueprint.changeRules < LEARNING_RULES.paper.minimumChangeRules) {
-    throw new Error('规律题数量低于组卷下限')
+  if (blueprint.singleChoice < base.minimumSingleChoice) {
+    throw new Error('单项选择题数量低于组卷下限')
   }
-  if (blueprint.estimationVerification < LEARNING_RULES.paper.minimumEstimationVerification) {
-    throw new Error('估算与验算题数量低于组卷下限')
+  if (blueprint.wordProblems < base.minimumWordProblems) {
+    throw new Error('应用问题数量低于组卷下限')
   }
   return blueprint
 }
 
-function categorySequence(blueprint: PaperBlueprint): PaperCategory[] {
+function categorySequence(blueprint: MathPaperBlueprint): MathPaperCategory[] {
   const remaining = { ...blueprint }
-  const sequence: PaperCategory[] = []
+  const sequence: MathPaperCategory[] = []
   let total = CATEGORY_SEQUENCE.reduce((sum, category) => sum + remaining[category], 0)
   while (total > 0) {
     for (const category of CATEGORY_SEQUENCE) {
@@ -104,6 +106,30 @@ function preferredTemplates(
       Number(preferred.has(right.classification.knowledgePointId)) -
       Number(preferred.has(left.classification.knowledgePointId)),
   )
+}
+
+function spreadAcrossUnits(
+  templates: readonly MathQuestionTemplate[],
+  preferredKnowledgePointIds: readonly string[],
+): MathQuestionTemplate[] {
+  const ordered = preferredTemplates(templates, preferredKnowledgePointIds)
+  const byUnit = new Map<string, MathQuestionTemplate[]>()
+  for (const template of ordered) {
+    const group = byUnit.get(template.classification.unitId) ?? []
+    group.push(template)
+    byUnit.set(template.classification.unitId, group)
+  }
+  const groups = [...byUnit.values()]
+  const spread: MathQuestionTemplate[] = []
+  let offset = 0
+  while (spread.length < ordered.length) {
+    for (const group of groups) {
+      const template = group[offset]
+      if (template) spread.push(template)
+    }
+    offset += 1
+  }
+  return spread
 }
 
 function generateDistinctQuestion(
@@ -132,6 +158,7 @@ function generateDistinctQuestion(
 }
 
 export function generateComprehensivePaper(options: {
+  courseId: string
   total?: number
   seed: number
   idPrefix: string
@@ -141,14 +168,28 @@ export function generateComprehensivePaper(options: {
   assertSeed(options.seed)
   assertIdPrefix(options.idPrefix)
   const total = options.total ?? LEARNING_RULES.dailyTask.defaultGoal
-  const blueprint = scalePaperBlueprint(total)
-  const occurrences: Partial<Record<PaperCategory, number>> = {}
+  const blueprint = scaleMathBlueprint(total)
+  const courseTemplates = filterMathTemplates({ courseId: options.courseId, includeReview: false })
+  if (courseTemplates.length === 0) throw new Error('该课程没有可用练习内容')
+  const preferred = options.preferredKnowledgePointIds ?? []
+  const pools = new Map<MathPaperCategory, MathQuestionTemplate[]>()
+  for (const category of CATEGORY_SEQUENCE) {
+    if (blueprint[category] === 0) continue
+    const templates = courseTemplates.filter((template) => template.paperCategory === category)
+    if (templates.length === 0) {
+      throw new Error(`该课程缺少${CATEGORY_LABELS[category]}内容，暂不能组综合卷`)
+    }
+    pools.set(
+      category,
+      category === 'wordProblems'
+        ? spreadAcrossUnits(templates, preferred)
+        : preferredTemplates(templates, preferred),
+    )
+  }
+  const occurrences: Partial<Record<MathPaperCategory, number>> = {}
   const questions: PracticeQuestionInput[] = []
   for (const [index, category] of categorySequence(blueprint).entries()) {
-    const templates = preferredTemplates(
-      filterMathTemplates({ unitId: CATEGORY_UNITS[category], includeReview: false }),
-      options.preferredKnowledgePointIds ?? [],
-    )
+    const templates = pools.get(category) as MathQuestionTemplate[]
     const occurrence = occurrences[category] ?? 0
     const template = templates[occurrence % templates.length]
     questions.push(
@@ -164,8 +205,10 @@ export function generateComprehensivePaper(options: {
 }
 
 export function generateSpecialPaper(options: {
+  courseId: string
   unitId?: string
   knowledgePointId?: string
+  questionType?: QuestionType
   difficulty: Difficulty
   seed: number
   idPrefix: string
@@ -178,13 +221,20 @@ export function generateSpecialPaper(options: {
     throw new Error('专项练习必须选择知识模块或知识点')
   const size = options.size ?? LEARNING_RULES.paper.specialPracticeSize
   if (!Number.isInteger(size) || size < 1) throw new Error('专项题量必须是正整数')
-  const templates = filterMathTemplates({
+  const baseFilter = {
+    courseId: options.courseId,
     unitId: options.unitId,
     knowledgePointId: options.knowledgePointId,
     difficulty: options.difficulty,
     includeReview: false,
-  })
-  if (templates.length === 0) throw new Error('所选知识点与难度没有可用题目')
+  }
+  const templates = filterMathTemplates({ ...baseFilter, questionType: options.questionType })
+  if (templates.length === 0) {
+    if (options.questionType && filterMathTemplates(baseFilter).length > 0) {
+      throw new Error('所选知识点没有该题型，请更换题型或条件')
+    }
+    throw new Error('所选知识点与难度没有可用题目')
+  }
   const questions: PracticeQuestionInput[] = []
   for (let index = 0; index < size; index += 1) {
     const template = templates[index % templates.length]

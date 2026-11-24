@@ -101,6 +101,11 @@ function submit(): void {
   font-weight: 700;
 }
 
+/* 数量宽、单位窄；首页筛选网格改为等宽两列后在此保留原比例 */
+.learn-form-grid {
+  grid-template-columns: minmax(0, 1.4fr) minmax(140px, 0.6fr);
+}
+
 @media (max-width: 480px) {
   .learn-form-grid {
     grid-template-columns: 1fr;

@@ -5,15 +5,25 @@ import LearningPage from '../components/learning/LearningPage.vue'
 import { GRADE4_AUTUMN_MATH_COURSE } from '../learning/content/grade4-math'
 import { LEARNING_RULES } from '../learning/config/rules'
 import type { CourseSelection } from '../learning/persistence/snapshot'
-import { MATH_TEMPLATES } from '../learning/practice/math-templates'
-import type { Difficulty, Subject } from '../learning/types'
+import { filterMathTemplates } from '../learning/practice/math-templates'
+import { QUESTION_TYPES, type Difficulty, type QuestionType, type Subject } from '../learning/types'
 import { useLearningStore } from '../stores/learning'
 
 const learning = useLearningStore()
 const router = useRouter()
 const selectedUnit = ref('written-multiplication')
+const selectedKnowledgePoint = ref('')
+const selectedQuestionType = ref<QuestionType | ''>('')
 const selectedDifficulty = ref<Difficulty>('L2')
 const startError = ref('')
+const QUESTION_TYPE_LABELS: Partial<Record<QuestionType, string>> = {
+  number: '数字计算',
+  'quotient-remainder': '商和余数',
+  'fill-blanks': '填空',
+  'single-choice': '单项选择',
+  'word-problem': '应用题',
+  fraction: '分数',
+}
 const terms: readonly (CourseSelection & { label: string })[] = [
   { grade: 4, semester: 'autumn', label: '四年级上学期' },
   { grade: 4, semester: 'spring', label: '四年级下学期' },
@@ -30,15 +40,31 @@ const currentTerm = computed(
     ) ?? terms[0],
 )
 const units = computed(() => learning.course.units.filter((unit) => unit.id !== 'prior-review'))
+const knowledgePoints = computed(() =>
+  learning.course.knowledgePoints.filter((point) => point.unitId === selectedUnit.value),
+)
+const unitKnowledgeTemplates = computed(() =>
+  filterMathTemplates({
+    courseId: learning.course.id,
+    unitId: selectedUnit.value,
+    knowledgePointId: selectedKnowledgePoint.value || undefined,
+    includeReview: false,
+  }),
+)
+const availableQuestionTypes = computed(() =>
+  QUESTION_TYPES.filter((type) =>
+    unitKnowledgeTemplates.value.some((template) => template.type === type),
+  ),
+)
 const supportedDifficulties = computed(
   () =>
     new Set(
-      MATH_TEMPLATES.filter(
-        (template) =>
-          template.classification.courseId === learning.course.id &&
-          template.classification.unitId === selectedUnit.value &&
-          !template.review,
-      ).flatMap((template) => template.supportedDifficulties),
+      unitKnowledgeTemplates.value
+        .filter(
+          (template) =>
+            !selectedQuestionType.value || template.type === selectedQuestionType.value,
+        )
+        .flatMap((template) => template.supportedDifficulties),
     ),
 )
 const hasSpecialMatches = computed(
@@ -55,6 +81,16 @@ const activeCourseChanged = computed(
 )
 
 watch(selectedUnit, () => {
+  selectedKnowledgePoint.value = ''
+  selectedQuestionType.value = ''
+})
+watch([selectedUnit, selectedKnowledgePoint, selectedQuestionType], () => {
+  if (
+    selectedQuestionType.value &&
+    !availableQuestionTypes.value.includes(selectedQuestionType.value)
+  ) {
+    selectedQuestionType.value = ''
+  }
   if (
     supportedDifficulties.value.size > 0 &&
     !supportedDifficulties.value.has(selectedDifficulty.value)
@@ -69,6 +105,8 @@ watch(
       learning.course.id === GRADE4_AUTUMN_MATH_COURSE.id
         ? 'written-multiplication'
         : (units.value[0]?.id ?? '')
+    selectedKnowledgePoint.value = ''
+    selectedQuestionType.value = ''
     selectedDifficulty.value = 'L2'
   },
 )
@@ -104,6 +142,8 @@ function startSpecial(): void {
         mode: 'special',
         subject: 'math',
         unitId: selectedUnit.value,
+        knowledgePointId: selectedKnowledgePoint.value || undefined,
+        questionType: selectedQuestionType.value || undefined,
         difficulty: selectedDifficulty.value,
       }),
     )
@@ -296,6 +336,24 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
               </select>
             </label>
             <label class="learn-field">
+              知识点
+              <select v-model="selectedKnowledgePoint">
+                <option value="">全部知识点</option>
+                <option v-for="point in knowledgePoints" :key="point.id" :value="point.id">
+                  {{ point.name }}
+                </option>
+              </select>
+            </label>
+            <label class="learn-field">
+              题型
+              <select v-model="selectedQuestionType">
+                <option value="">全部题型</option>
+                <option v-for="type in availableQuestionTypes" :key="type" :value="type">
+                  {{ QUESTION_TYPE_LABELS[type] ?? type }}
+                </option>
+              </select>
+            </label>
+            <label class="learn-field">
               难度
               <select v-model="selectedDifficulty">
                 <option
@@ -411,7 +469,7 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
               <span v-for="unit in units" :key="unit.id" class="learn-tag">{{ unit.title }}</span>
             </div>
             <template v-if="learning.subjectStatuses.math.contentReady">
-              四上专项仍限既有口算、笔算、变化规律、估算与验算范围。新版同步内容与旧版补充内容保留来源标签。
+              专项练习限当前课程范围内的知识点与题型；复习题保留来源标签，不计作本学期新知掌握。
             </template>
             <template v-else>{{ learning.subjectStatuses.math.reason }}</template>
             每日目标默认 30 题，可在家长设置中按 5 题调整，调整次日生效。

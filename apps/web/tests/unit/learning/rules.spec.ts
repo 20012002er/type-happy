@@ -33,15 +33,8 @@ describe('PRD fixed learning and task rules', () => {
     expect([37, 44, 51].map((day) => (day - 30) % 7)).toEqual([0, 0, 0])
   })
 
-  it('pins the default paper blueprint and refill priority', () => {
+  it('pins the math and english paper blueprints and refill priority', () => {
     expect(LEARNING_RULES.paper).toEqual({
-      defaultBlueprint: {
-        oralCalculation: 6,
-        writtenMultiplication: 8,
-        writtenDivision: 10,
-        changeRules: 3,
-        estimationVerification: 3,
-      },
       mathBlueprint: {
         calculation: 12,
         singleChoice: 6,
@@ -57,15 +50,7 @@ describe('PRD fixed learning and task rules', () => {
         situationalExpression: 3,
         minimumPerAbility: 1,
       },
-      refillOrder: [
-        'writtenDivision',
-        'writtenMultiplication',
-        'oralCalculation',
-        'changeRules',
-        'estimationVerification',
-      ],
-      minimumChangeRules: 1,
-      minimumEstimationVerification: 1,
+      mathRefillOrder: ['calculation', 'singleChoice', 'knowledgeApplication', 'wordProblems'],
       specialPracticeSize: 10,
       maximumReviewRatio: 0.2,
     })

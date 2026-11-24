@@ -1,76 +1,27 @@
 import { describe, expect, it } from 'vitest'
 import { LEARNING_RULES } from '../../../src/learning/config/rules'
+import { GRADE4_AUTUMN_MATH_COURSE } from '../../../src/learning/content/grade4-math'
 import {
   generateComprehensivePaper,
   generateSpecialPaper,
-  scalePaperBlueprint,
-  type PaperBlueprint,
+  hasPracticeContent,
+  scaleMathBlueprint,
+  type MathPaperBlueprint,
 } from '../../../src/learning/practice/paper'
+import { getMathTemplate } from '../../../src/learning/practice/math-templates'
 
-const expectedBlueprints: Record<number, PaperBlueprint> = {
-  10: {
-    oralCalculation: 2,
-    writtenMultiplication: 2,
-    writtenDivision: 4,
-    changeRules: 1,
-    estimationVerification: 1,
-  },
-  15: {
-    oralCalculation: 3,
-    writtenMultiplication: 4,
-    writtenDivision: 6,
-    changeRules: 1,
-    estimationVerification: 1,
-  },
-  20: {
-    oralCalculation: 4,
-    writtenMultiplication: 5,
-    writtenDivision: 7,
-    changeRules: 2,
-    estimationVerification: 2,
-  },
-  25: {
-    oralCalculation: 5,
-    writtenMultiplication: 7,
-    writtenDivision: 9,
-    changeRules: 2,
-    estimationVerification: 2,
-  },
-  30: {
-    oralCalculation: 6,
-    writtenMultiplication: 8,
-    writtenDivision: 10,
-    changeRules: 3,
-    estimationVerification: 3,
-  },
-  35: {
-    oralCalculation: 7,
-    writtenMultiplication: 10,
-    writtenDivision: 12,
-    changeRules: 3,
-    estimationVerification: 3,
-  },
-  40: {
-    oralCalculation: 8,
-    writtenMultiplication: 10,
-    writtenDivision: 14,
-    changeRules: 4,
-    estimationVerification: 4,
-  },
-  45: {
-    oralCalculation: 9,
-    writtenMultiplication: 12,
-    writtenDivision: 16,
-    changeRules: 4,
-    estimationVerification: 4,
-  },
-  50: {
-    oralCalculation: 10,
-    writtenMultiplication: 13,
-    writtenDivision: 17,
-    changeRules: 5,
-    estimationVerification: 5,
-  },
+const COURSE_ID = GRADE4_AUTUMN_MATH_COURSE.id
+
+const expectedBlueprints: Record<number, MathPaperBlueprint> = {
+  10: { calculation: 4, singleChoice: 2, knowledgeApplication: 2, wordProblems: 2 },
+  15: { calculation: 6, singleChoice: 3, knowledgeApplication: 3, wordProblems: 3 },
+  20: { calculation: 8, singleChoice: 4, knowledgeApplication: 4, wordProblems: 4 },
+  25: { calculation: 10, singleChoice: 5, knowledgeApplication: 5, wordProblems: 5 },
+  30: { calculation: 12, singleChoice: 6, knowledgeApplication: 6, wordProblems: 6 },
+  35: { calculation: 14, singleChoice: 7, knowledgeApplication: 7, wordProblems: 7 },
+  40: { calculation: 16, singleChoice: 8, knowledgeApplication: 8, wordProblems: 8 },
+  45: { calculation: 18, singleChoice: 9, knowledgeApplication: 9, wordProblems: 9 },
+  50: { calculation: 20, singleChoice: 10, knowledgeApplication: 10, wordProblems: 10 },
 }
 
 function expectNoRepeatedNumbersNextToEachOther(
@@ -83,39 +34,53 @@ function expectNoRepeatedNumbersNextToEachOther(
   }
 }
 
-describe('practice paper blueprint scaling', () => {
+describe('math paper blueprint scaling', () => {
   it.each(Object.entries(expectedBlueprints))(
-    'matches the PRD fixed sample for %s questions',
+    'matches the PRD 12/6/6/6 sample for %s questions',
     (total, expected) => {
-      expect(scalePaperBlueprint(Number(total))).toEqual(expected)
+      expect(scaleMathBlueprint(Number(total))).toEqual(expected)
     },
   )
 
-  it('preserves exact totals and minimum rule/estimation coverage for every integer from 10 to 50', () => {
+  it('preserves exact totals and minimum choice/application coverage for every integer from 10 to 50', () => {
+    const base = LEARNING_RULES.paper.mathBlueprint
     for (let total = 10; total <= 50; total += 1) {
-      const blueprint = scalePaperBlueprint(total)
+      const blueprint = scaleMathBlueprint(total)
       expect(Object.values(blueprint).reduce((sum, count) => sum + count, 0)).toBe(total)
-      expect(blueprint.changeRules).toBeGreaterThanOrEqual(LEARNING_RULES.paper.minimumChangeRules)
-      expect(blueprint.estimationVerification).toBeGreaterThanOrEqual(
-        LEARNING_RULES.paper.minimumEstimationVerification,
-      )
-      for (const category of Object.keys(blueprint) as (keyof PaperBlueprint)[]) {
+      expect(blueprint.singleChoice).toBeGreaterThanOrEqual(base.minimumSingleChoice)
+      expect(blueprint.wordProblems).toBeGreaterThanOrEqual(base.minimumWordProblems)
+      for (const category of Object.keys(blueprint) as (keyof MathPaperBlueprint)[]) {
         expect(blueprint[category]).toBeGreaterThanOrEqual(
-          Math.floor((LEARNING_RULES.paper.defaultBlueprint[category] * total) / 30),
+          Math.floor((base[category] * total) / 30),
         )
       }
     }
   })
 
+  it('refills remainders in the configured category order', () => {
+    expect(scaleMathBlueprint(11)).toEqual({
+      calculation: 5,
+      singleChoice: 2,
+      knowledgeApplication: 2,
+      wordProblems: 2,
+    })
+    expect(scaleMathBlueprint(14)).toEqual({
+      calculation: 6,
+      singleChoice: 3,
+      knowledgeApplication: 3,
+      wordProblems: 2,
+    })
+  })
+
   it('rejects out-of-range and fractional totals', () => {
     for (const total of [9, 51, 10.5, Number.NaN])
-      expect(() => scalePaperBlueprint(total)).toThrow('组卷题量')
+      expect(() => scaleMathBlueprint(total)).toThrow('组卷题量')
   })
 })
 
 describe('comprehensive and special paper generation', () => {
-  it('generates the full default blueprint with reproducible instances and no review questions', () => {
-    const options = { seed: 2026, idPrefix: 'daily-1' }
+  it('generates the full 12/6/6/6 blueprint with reproducible instances and no review questions', () => {
+    const options = { courseId: COURSE_ID, seed: 2026, idPrefix: 'daily-1' }
     const paper = generateComprehensivePaper(options)
     expect(paper).toEqual(generateComprehensivePaper(options))
     expect(paper.mode).toBe('comprehensive')
@@ -124,31 +89,40 @@ describe('comprehensive and special paper generation', () => {
     expect(new Set(paper.questions.map((input) => input.question.instanceId)).size).toBe(30)
     expect(paper.questions.every((input) => input.question.source !== 'review')).toBe(true)
     expectNoRepeatedNumbersNextToEachOther(paper.questions)
-    const units = paper.questions.map((input) => input.question.classification.unitId)
-    expect(units.filter((unit) => unit === 'oral-calculation')).toHaveLength(6)
-    expect(units.filter((unit) => unit === 'written-multiplication')).toHaveLength(8)
-    expect(units.filter((unit) => unit === 'written-division')).toHaveLength(10)
-    expect(units.filter((unit) => unit === 'change-rules')).toHaveLength(3)
-    expect(units.filter((unit) => unit === 'estimation-verification')).toHaveLength(3)
+    const counts = { calculation: 0, singleChoice: 0, knowledgeApplication: 0, wordProblems: 0 }
+    for (const input of paper.questions) {
+      counts[getMathTemplate(input.question.templateId).paperCategory] += 1
+    }
+    expect(counts).toEqual(expectedBlueprints[30])
+    const applicationUnits = new Set(
+      paper.questions
+        .filter(
+          (input) => getMathTemplate(input.question.templateId).paperCategory === 'wordProblems',
+        )
+        .map((input) => input.question.classification.unitId),
+    )
+    expect(applicationUnits.size).toBeGreaterThanOrEqual(2)
   })
 
   it('prioritizes recent-error knowledge points without changing blueprint totals', () => {
     const paper = generateComprehensivePaper({
+      courseId: COURSE_ID,
       seed: 8,
       idPrefix: 'preferred',
       total: 10,
       preferredKnowledgePointIds: ['division-with-remainder'],
     })
     expect(paper.questions).toHaveLength(10)
-    expect(paper.questions[2].question.classification.knowledgePointId).toBe(
+    expect(paper.questions[0].question.classification.knowledgePointId).toBe(
       'division-with-remainder',
     )
     expect(paper.blueprint).toEqual(expectedBlueprints[10])
   })
 
-  it('generates ten filtered special questions at the requested difficulty without a separate task', () => {
+  it('generates ten filtered special questions at the requested difficulty', () => {
     for (let seed = 0; seed < 30; seed += 1) {
       const paper = generateSpecialPaper({
+        courseId: COURSE_ID,
         knowledgePointId: 'division-with-remainder',
         difficulty: 'L3',
         seed,
@@ -166,8 +140,32 @@ describe('comprehensive and special paper generation', () => {
     }
   })
 
+  it('filters special practice by question type and reports unsupported types', () => {
+    const paper = generateSpecialPaper({
+      courseId: COURSE_ID,
+      unitId: 'change-rules',
+      questionType: 'single-choice',
+      difficulty: 'L2',
+      seed: 3,
+      idPrefix: 'choice',
+    })
+    expect(paper.questions).toHaveLength(10)
+    expect(paper.questions.every((input) => input.question.type === 'single-choice')).toBe(true)
+    expect(() =>
+      generateSpecialPaper({
+        courseId: COURSE_ID,
+        unitId: 'change-rules',
+        questionType: 'word-problem',
+        difficulty: 'L2',
+        seed: 3,
+        idPrefix: 'missing-type',
+      }),
+    ).toThrow('没有该题型')
+  })
+
   it('supports unit filters and rejects missing or empty selections', () => {
     const paper = generateSpecialPaper({
+      courseId: COURSE_ID,
       unitId: 'written-multiplication',
       difficulty: 'L1',
       seed: 1,
@@ -178,18 +176,61 @@ describe('comprehensive and special paper generation', () => {
         (input) => input.question.classification.unitId === 'written-multiplication',
       ),
     ).toBe(true)
-    expect(() => generateSpecialPaper({ difficulty: 'L1', seed: 1, idPrefix: 'missing' })).toThrow(
-      '必须选择',
-    )
+    expect(() =>
+      generateSpecialPaper({ courseId: COURSE_ID, difficulty: 'L1', seed: 1, idPrefix: 'missing' }),
+    ).toThrow('必须选择')
     expect(() =>
       generateSpecialPaper({
+        courseId: COURSE_ID,
         knowledgePointId: 'missing',
         difficulty: 'L1',
         seed: 1,
         idPrefix: 'empty',
       }),
     ).toThrow('没有可用题目')
-    expect(() => generateComprehensivePaper({ seed: -1, idPrefix: 'bad' })).toThrow('种子')
-    expect(() => generateComprehensivePaper({ seed: 1, idPrefix: ' ' })).toThrow('前缀')
+    expect(() =>
+      generateComprehensivePaper({ courseId: COURSE_ID, seed: -1, idPrefix: 'bad' }),
+    ).toThrow('种子')
+    expect(() =>
+      generateComprehensivePaper({ courseId: COURSE_ID, seed: 1, idPrefix: ' ' }),
+    ).toThrow('前缀')
+  })
+
+  it('never repeats identical adjacent questions across all four math semesters', () => {
+    const courseIds = [
+      'pep-grade4-autumn-integrated-math',
+      'pep-grade4-spring-math',
+      'pep-grade5-autumn-math',
+      'pep-grade5-spring-math',
+    ]
+    for (const courseId of courseIds) {
+      for (const seed of [1, 7, 42]) {
+        const paper = generateComprehensivePaper({ courseId, seed, idPrefix: 'adjacent' })
+        expectNoRepeatedNumbersNextToEachOther(paper.questions)
+      }
+    }
+    // 单模板专项会循环复用同一模板，相邻题面仍须不同
+    const special = generateSpecialPaper({
+      courseId: 'pep-grade5-spring-math',
+      knowledgePointId: 'g5s-defective-item-strategy',
+      difficulty: 'L2',
+      seed: 3,
+      idPrefix: 'adjacent-special',
+    })
+    expect(special.questions).toHaveLength(10)
+    expectNoRepeatedNumbersNextToEachOther(special.questions)
+  })
+
+  it('gates courses by practice content availability', () => {
+    expect(hasPracticeContent(COURSE_ID)).toBe(true)
+    expect(hasPracticeContent('pep-grade4-spring-math')).toBe(true)
+    expect(hasPracticeContent('pep-grade4-spring-english')).toBe(false)
+    expect(() =>
+      generateComprehensivePaper({
+        courseId: 'pep-grade4-spring-english',
+        seed: 1,
+        idPrefix: 'no-content',
+      }),
+    ).toThrow('没有可用练习内容')
   })
 })

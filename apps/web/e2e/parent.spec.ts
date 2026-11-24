@@ -46,8 +46,11 @@ async function submitFirstCorrect(page: Page): Promise<void> {
   } else if (answer.kind === 'quotient-remainder') {
     await page.getByLabel('商', { exact: true }).fill(String(answer.quotient))
     await page.getByLabel('余数', { exact: true }).fill(String(answer.remainder))
+  } else if (answer.kind === 'word-problem') {
+    await page.locator('input[name="word-problem-value"]').fill(String(answer.value))
+    await page.locator('input[name="word-problem-unit"]').fill(answer.unit ?? '')
   } else {
-    throw new Error('当前练习仅支持数值题和商余数题')
+    throw new Error('当前练习仅支持数值、商余数和应用题')
   }
   await page.getByRole('button', { name: '提交答案', exact: true }).click()
 }

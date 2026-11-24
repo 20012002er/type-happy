@@ -63,8 +63,17 @@ async function submitCurrent(page: Page, keyboard = false): Promise<void> {
       if (keyboard) await page.keyboard.type(String(value))
       else await input.fill(String(value))
     }
+  } else if (answer.kind === 'word-problem') {
+    const valueInput = page.locator('input[name="word-problem-value"]')
+    await valueInput.focus()
+    if (keyboard) await page.keyboard.type(String(answer.value))
+    else await valueInput.fill(String(answer.value))
+    const unitInput = page.locator('input[name="word-problem-unit"]')
+    await unitInput.focus()
+    if (keyboard) await page.keyboard.type(answer.unit ?? '')
+    else await unitInput.fill(answer.unit ?? '')
   } else {
-    throw new Error('当前练习仅支持数值题和商余数题')
+    throw new Error('当前练习仅支持数值、商余数和应用题')
   }
   const submit = page.getByRole('button', { name: /提交答案|提交订正/ })
   if (keyboard) {

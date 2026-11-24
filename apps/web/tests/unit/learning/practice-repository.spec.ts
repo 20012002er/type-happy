@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { GRADE4_AUTUMN_MATH_COURSE } from '../../../src/learning/content/grade4-math'
 import { LearningRepository } from '../../../src/learning/persistence/repository'
 import { generateMathQuestion } from '../../../src/learning/practice/math-generator'
 import { generateSpecialPaper } from '../../../src/learning/practice/paper'
@@ -17,6 +18,7 @@ import { MemoryStorage } from '../../helpers/memory-storage'
 
 function makeSession(id: string, size = 3): PracticeSession {
   const paper = generateSpecialPaper({
+    courseId: GRADE4_AUTUMN_MATH_COURSE.id,
     knowledgePointId: 'oral-multiplication-by-one-digit',
     difficulty: 'L1',
     seed: 71,
@@ -138,6 +140,7 @@ describe('practice session persistence and recovery', () => {
     expect(snapshot.practice.retestPool[0].status).toBe('pending')
 
     const paper = generateSpecialPaper({
+      courseId: original.classification.courseId,
       knowledgePointId: original.classification.knowledgePointId,
       difficulty: original.difficulty,
       seed: 88,
