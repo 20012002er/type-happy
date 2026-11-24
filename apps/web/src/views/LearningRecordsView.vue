@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import LearningPage from '../components/learning/LearningPage.vue'
+import { getCourseById } from '../learning/content/course-registry'
 import { getLearningRecordsPage, getWalletLedgerPage } from '../learning/tasks/learning-summary'
-import type { LearningResult } from '../learning/types'
+import type { LearningRecord, LearningResult } from '../learning/types'
 import type { WalletSource } from '../learning/wallet/wallet'
 import { useLearningStore } from '../stores/learning'
 
@@ -32,8 +33,12 @@ const ledgerPage = ref(1)
 const records = computed(() => getLearningRecordsPage(learning.snapshot, recordPage.value, 20))
 const ledger = computed(() => getWalletLedgerPage(learning.snapshot, ledgerPage.value, 20))
 
-function knowledgeName(id: string): string {
-  return learning.course.knowledgePoints.find((point) => point.id === id)?.name ?? '综合计算'
+function knowledgeName(record: LearningRecord): string {
+  return (
+    getCourseById(record.courseId)?.knowledgePoints.find(
+      (point) => point.id === record.knowledgePointId,
+    )?.name ?? '综合计算'
+  )
 }
 
 function formatTime(timestamp?: number): string {
@@ -71,7 +76,7 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
         <ul v-else class="learn-record-list">
           <li v-for="record in records.items" :key="record.id">
             <div>
-              <strong>{{ knowledgeName(record.knowledgePointId) }}</strong>
+              <strong>{{ knowledgeName(record) }}</strong>
               <time
                 :datetime="record.settledAt ? new Date(record.settledAt).toISOString() : undefined"
               >

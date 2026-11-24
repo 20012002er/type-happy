@@ -3,9 +3,14 @@ import type { Answer, QuestionSnapshot } from '../src/learning/types'
 
 async function startSpecial(page: Page): Promise<void> {
   await page.goto('/learning')
-  const courseSetup = page.getByRole('button', { name: '按默认课程设置' })
-  if (await courseSetup.isVisible()) await courseSetup.click()
-  await page.getByRole('button', { name: '开始专项练习', exact: true }).click()
+  const courseSetup = page.getByText('新用户请先选择课程')
+  await expect(page.locator('.learn-course-option').first()).toBeEnabled()
+  if (await courseSetup.isVisible()) {
+    await page.locator('.learn-course-option').filter({ hasText: '四年级上学期' }).click()
+  }
+  const specialButton = page.getByRole('button', { name: '开始专项练习', exact: true })
+  await expect(specialButton).toBeEnabled()
+  await specialButton.click()
   await expect(page).toHaveURL(/\/learning\/practice\/practice-/)
 }
 
@@ -57,25 +62,91 @@ async function advance(page: Page): Promise<void> {
   await page.getByRole('button', { name: /保存并进入下一题|查看本组结果/ }).click()
 }
 
-test('学习首访显示默认课程，体验设置与任务导航可用', async ({ page }) => {
+test('学习首访先选课程，体验设置与任务导航可用', async ({ page }) => {
   await page.goto('/learning')
   await expect(page).toHaveTitle(/学习 · 打字乐园/)
-  await expect(page.getByText('给家长：首次课程设置')).toBeVisible()
-  await expect(page.getByText('每日 30 题', { exact: false })).toBeVisible()
+  await expect(page.getByText('新用户请先选择课程')).toBeVisible()
+  await expect(page.locator('.learn-course-option')).toHaveCount(4)
+  await expect(page.getByText('每日目标默认为 30 题', { exact: false })).toBeVisible()
   await expect(page.getByText('包含两位数除法', { exact: false }).first()).toBeVisible()
+  await expect(page.getByRole('progressbar', { name: '今日有效完成进度' })).toHaveCount(1)
+  await expect(page.getByRole('button', { name: '开始四年级上学期数学综合练习' })).toBeDisabled()
+  await expect(page.getByRole('button', { name: '开始四年级上学期英语综合练习' })).toBeDisabled()
 
-  await page.getByRole('button', { name: '按默认课程设置' }).click()
-  await expect(page.getByText('给家长：首次课程设置')).toHaveCount(0)
+  await page.locator('.learn-course-option').filter({ hasText: '四年级上学期' }).click()
+  await expect(page.getByText('新用户请先选择课程')).toHaveCount(0)
+  await expect(page.getByRole('button', { name: '开始四年级上学期数学综合练习' })).toBeEnabled()
   await page.getByLabel('正反馈音效').uncheck()
   await page.getByLabel('页面动画').uncheck()
   await page.reload()
   await expect(page.getByLabel('正反馈音效')).not.toBeChecked()
   await expect(page.getByLabel('页面动画')).not.toBeChecked()
+  await expect(page.getByText('当前：四年级上学期', { exact: true })).toBeVisible()
 
   await page.getByRole('link', { name: '今日任务', exact: true }).click()
   await expect(page).toHaveURL(/\/learning\/tasks$/)
   await expect(page.getByRole('heading', { name: '有效完成 30 题' })).toBeVisible()
   await expect(page.getByText('当前连续 0 天')).toBeVisible()
+})
+
+test('四学期选择刷新保持，无内容课程只显示空状态且不建组', async ({ page }) => {
+  await page.goto('/learning')
+  const selections = [
+    { label: '四年级下学期', grade: 4, semester: 'spring' },
+    { label: '五年级上学期', grade: 5, semester: 'autumn' },
+    { label: '五年级下学期', grade: 5, semester: 'spring' },
+  ]
+  for (const selection of selections) {
+    await page.locator('.learn-course-option').filter({ hasText: selection.label }).click()
+    await expect(page.getByText(`当前：${selection.label}`, { exact: true })).toBeVisible()
+    await expect(
+      page.getByRole('button', { name: `开始${selection.label}数学综合练习` }),
+    ).toBeDisabled()
+    await expect(page.locator('.learn-special-empty')).toBeVisible()
+    const stored = await page.evaluate(() => {
+      const raw = localStorage.getItem('type-happy:learning:snapshot')
+      if (!raw) throw new Error('学习快照不存在')
+      const snapshot = JSON.parse(raw)
+      return { course: snapshot.course, sessions: snapshot.practice.sessions }
+    })
+    expect(stored.course).toEqual({ grade: selection.grade, semester: selection.semester })
+    expect(stored.sessions).toEqual({})
+  }
+
+  await page.reload()
+  await expect(page.getByText('当前：五年级下学期', { exact: true })).toBeVisible()
+  await page.locator('.learn-course-option').filter({ hasText: '四年级上学期' }).click()
+  await expect(page.getByRole('button', { name: '开始四年级上学期数学综合练习' })).toBeEnabled()
+  await expect(page.getByRole('button', { name: '开始专项练习', exact: true })).toBeEnabled()
+  await expect(page.getByRole('button', { name: '开始四年级上学期英语综合练习' })).toBeDisabled()
+  await expect(page.locator('.learn-special-empty')).toHaveCount(0)
+})
+
+test('练中切课保留原题快照并继续原课程入口', async ({ page }) => {
+  await startSpecial(page)
+  const sessionId = currentSessionId(page)
+  const originalQuestions = await page.evaluate((id) => {
+    const raw = localStorage.getItem('type-happy:learning:snapshot')
+    if (!raw) throw new Error('学习快照不存在')
+    return JSON.parse(raw).practice.sessions[id].questions
+  }, sessionId)
+
+  await page.goto('/learning')
+  await page.locator('.learn-course-option').filter({ hasText: '五年级上学期' }).click()
+  await expect(page.locator('.learn-active-course')).toContainText(
+    '本组题目、答案和课程快照保持不变',
+  )
+  await expect(page.locator('.learn-active-course')).toContainText('人教版四上综合计算（新旧融合）')
+  const retainedQuestions = await page.evaluate((id) => {
+    const raw = localStorage.getItem('type-happy:learning:snapshot')
+    if (!raw) throw new Error('学习快照不存在')
+    return JSON.parse(raw).practice.sessions[id].questions
+  }, sessionId)
+  expect(retainedQuestions).toEqual(originalQuestions)
+
+  await page.locator('.learn-active-course button').click()
+  await expect(page).toHaveURL(new RegExp(`/learning/practice/${sessionId}$`))
+  expect(await currentQuestion(page)).toEqual(originalQuestions[0].question)
 })
 
 test('首次答错、二级讲解、订正和整组完成形成可读结果', async ({ page }) => {

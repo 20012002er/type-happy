@@ -62,7 +62,9 @@ test('E2E-07 每日目标次日生效，不改写当日任务、历史记录或�
   await expect(page.locator('.parent-goal__facts')).toContainText('次日目标 35 题')
 
   await page.goto('/learning')
-  await page.getByRole('button', { name: '开始今日练习', exact: true }).click()
+  await expect(page.locator('.learn-course-option').first()).toBeEnabled()
+  await page.locator('.learn-course-option').filter({ hasText: '四年级上学期' }).click()
+  await page.getByRole('button', { name: '开始四年级上学期数学综合练习', exact: true }).click()
   await expect(page).toHaveURL(/\/learning\/practice\/practice-/)
   expect(
     (await snapshot(page)).practice.sessions[page.url().split('/').pop()!].questions,
@@ -86,7 +88,7 @@ test('E2E-07 每日目标次日生效，不改写当日任务、历史记录或�
   await expect(page.locator('.parent-goal__facts')).toContainText('今日目标 35 题')
   await expect(page.locator('.parent-goal__facts')).toContainText('次日目标 35 题')
   await page.goto('/learning')
-  await page.getByRole('button', { name: '开始今日练习', exact: true }).click()
+  await page.getByRole('button', { name: '开始四年级上学期数学综合练习', exact: true }).click()
   await expect(page).toHaveURL(/\/learning\/practice\/practice-/)
   const afterNextDay = await snapshot(page)
   expect(afterNextDay.practice.sessions[page.url().split('/').pop()!].questions).toHaveLength(35)
@@ -159,7 +161,9 @@ test('E2E-16 练习和农场出售后的知识点、任务与金币流水保持�
   await seed(page, initial)
   await useFixedClock(page)
   await page.goto('/learning')
-  await page.getByRole('button', { name: '开始专项练习', exact: true }).click()
+  const specialButton = page.getByRole('button', { name: '开始专项练习', exact: true })
+  await expect(specialButton).toBeEnabled()
+  await specialButton.click()
   await submitFirstCorrect(page)
   await expect(page.getByText('+3 学习金币已到账')).toBeVisible()
 

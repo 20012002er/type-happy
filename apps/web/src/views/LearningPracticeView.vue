@@ -6,6 +6,7 @@ import LearningFeedback from '../components/learning/LearningFeedback.vue'
 import LearningPage from '../components/learning/LearningPage.vue'
 import PracticeCompletion from '../components/learning/PracticeCompletion.vue'
 import { LEARNING_RULES } from '../learning/config/rules'
+import { getCourseById } from '../learning/content/course-registry'
 import type { Answer } from '../learning/types'
 import { useLearningStore } from '../stores/learning'
 
@@ -28,8 +29,14 @@ const settled = computed(() =>
 const correcting = computed(() =>
   entry.value ? ['awaiting-correction', 'needs-explanation'].includes(entry.value.status) : false,
 )
+const sessionCourse = computed(() => {
+  const courseId =
+    entry.value?.question.classification.courseId ??
+    session.value?.questions[0]?.question.classification.courseId
+  return courseId ? getCourseById(courseId) : undefined
+})
 const knowledgePoint = computed(() =>
-  learning.course.knowledgePoints.find(
+  sessionCourse.value?.knowledgePoints.find(
     (point) => point.id === entry.value?.question.classification.knowledgePointId,
   ),
 )
@@ -98,7 +105,7 @@ function advance(): void {
 
 function startComprehensive(): void {
   try {
-    const id = learning.startPractice({ mode: 'comprehensive' })
+    const id = learning.startPractice({ mode: 'comprehensive', subject: 'math' })
     if (id) void router.push({ name: 'learning-practice', params: { sessionId: id } })
   } catch {
     // 创建失败时保留在当前完成页，首页可重新尝试。
@@ -116,7 +123,11 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
   <LearningPage
     eyebrow="PRACTICE NOTEBOOK"
     :title="session?.status === 'active' ? '一步一步，把这道题算明白' : '本组学习结果'"
-    :description="session?.mode === 'special' ? '知识点专项练习 · 每组 10 题' : '人教版四上综合计算 · 每日综合练习'"
+    :description="
+      session?.mode === 'special'
+        ? `${sessionCourse?.title ?? '原课程'} · 知识点专项练习 · 每组 10 题`
+        : `${sessionCourse?.title ?? '原课程'} · 每日综合练习`
+    "
   >
     <div v-if="learning.notice" class="learn-message" role="status">{{ learning.notice }}</div>
     <div v-if="learning.saveError" class="learn-message learn-message--error" role="alert">
@@ -151,11 +162,15 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
         <strong>现在是加练</strong>
         新题首次答对 {{ LEARNING_RULES.practiceRewards.extraPractice.firstCorrect }} 金币、
         提示后订正 {{ LEARNING_RULES.practiceRewards.extraPractice.correctedAfterHint }} 金币、
-        讲解后订正 {{ LEARNING_RULES.practiceRewards.extraPractice.correctedAfterExplanation }} 金币；
+        讲解后订正
+        {{ LEARNING_RULES.practiceRewards.extraPractice.correctedAfterExplanation }} 金币；
         不再增加今日任务进度。
       </div>
 
-      <section :key="entry.question.instanceId" class="learn-paper learn-section learn-question learn-reveal">
+      <section
+        :key="entry.question.instanceId"
+        class="learn-paper learn-section learn-question learn-reveal"
+      >
         <div class="learn-question__meta">
           <span class="learn-tag">{{ knowledgePoint?.name ?? '综合计算' }}</span>
           <span class="learn-tag">{{ sourceLabel }}</span>
@@ -183,7 +198,11 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
 
         <div v-if="settled" class="learn-actions">
           <button type="button" class="learn-button" :disabled="learning.saving" @click="advance">
-            {{ session.currentIndex === session.questions.length - 1 ? '查看本组结果' : '保存并进入下一题' }}
+            {{
+              session.currentIndex === session.questions.length - 1
+                ? '查看本组结果'
+                : '保存并进入下一题'
+            }}
           </button>
         </div>
 
@@ -198,18 +217,29 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
 
       <div class="learn-practice-footer">
         <RouterLink to="/learning" class="learn-text-button">返回首页，稍后继续</RouterLink>
-        <button type="button" class="learn-text-button" @click="showAbandonConfirm = true">结束本组</button>
+        <button type="button" class="learn-text-button" @click="showAbandonConfirm = true">
+          结束本组
+        </button>
       </div>
       <div v-if="showAbandonConfirm" class="learn-message" role="group" aria-label="确认结束练习组">
         <span>已结算题目会保留，未做题不计入任务，也不会扣金币。</span>
-        <button type="button" class="learn-button learn-button--secondary" @click="learning.abandonSession(sessionId)">
+        <button
+          type="button"
+          class="learn-button learn-button--secondary"
+          @click="learning.abandonSession(sessionId)"
+        >
           确认结束本组
         </button>
-        <button type="button" class="learn-text-button" @click="showAbandonConfirm = false">继续答题</button>
+        <button type="button" class="learn-text-button" @click="showAbandonConfirm = false">
+          继续答题
+        </button>
       </div>
     </template>
 
-    <section v-else-if="learning.ready && !learning.loadError" class="learn-paper learn-section learn-empty">
+    <section
+      v-else-if="learning.ready && !learning.loadError"
+      class="learn-paper learn-section learn-empty"
+    >
       <h2>没有找到这组练习</h2>
       <p>它可能已被清理，或不属于当前浏览器。</p>
       <RouterLink class="learn-button" to="/learning">返回学习首页</RouterLink>

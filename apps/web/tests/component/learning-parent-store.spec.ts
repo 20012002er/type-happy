@@ -77,7 +77,7 @@ describe('parent daily goal settings', () => {
     learning.getNow()
     expect(learning.today.goal).toBe(35)
     expect(learning.upcomingDailyGoal).toBe(35)
-    const sessionId = learning.startPractice({ mode: 'comprehensive' })
+    const sessionId = learning.startPractice({ mode: 'comprehensive', subject: 'math' })
     expect(sessionId).not.toBeNull()
     expect(learning.getSession(sessionId!)?.questions).toHaveLength(35)
     expect(learning.snapshot.tasks.daily['2026-11-20'].goal).toBe(30)

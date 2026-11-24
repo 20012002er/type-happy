@@ -2,9 +2,11 @@
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import LearningPage from '../components/learning/LearningPage.vue'
+import { GRADE4_AUTUMN_MATH_COURSE } from '../learning/content/grade4-math'
 import { LEARNING_RULES } from '../learning/config/rules'
+import type { CourseSelection } from '../learning/persistence/snapshot'
 import { MATH_TEMPLATES } from '../learning/practice/math-templates'
-import type { Difficulty } from '../learning/types'
+import type { Difficulty, Subject } from '../learning/types'
 import { useLearningStore } from '../stores/learning'
 
 const learning = useLearningStore()
@@ -12,32 +14,70 @@ const router = useRouter()
 const selectedUnit = ref('written-multiplication')
 const selectedDifficulty = ref<Difficulty>('L2')
 const startError = ref('')
+const terms: readonly (CourseSelection & { label: string })[] = [
+  { grade: 4, semester: 'autumn', label: '四年级上学期' },
+  { grade: 4, semester: 'spring', label: '四年级下学期' },
+  { grade: 5, semester: 'autumn', label: '五年级上学期' },
+  { grade: 5, semester: 'spring', label: '五年级下学期' },
+]
 
+const currentTerm = computed(
+  () =>
+    terms.find(
+      (term) =>
+        term.grade === learning.snapshot.course.grade &&
+        term.semester === learning.snapshot.course.semester,
+    ) ?? terms[0],
+)
 const units = computed(() => learning.course.units.filter((unit) => unit.id !== 'prior-review'))
 const supportedDifficulties = computed(
   () =>
     new Set(
       MATH_TEMPLATES.filter(
-        (template) => template.classification.unitId === selectedUnit.value && !template.review,
+        (template) =>
+          template.classification.courseId === learning.course.id &&
+          template.classification.unitId === selectedUnit.value &&
+          !template.review,
       ).flatMap((template) => template.supportedDifficulties),
     ),
+)
+const hasSpecialMatches = computed(
+  () => learning.subjectStatuses.math.contentReady && supportedDifficulties.value.size > 0,
 )
 const progress = computed(() =>
   Math.min(100, Math.round((learning.today.taskCompleted / learning.today.goal) * 100)),
 )
-const primaryLabel = computed(() => {
-  if (learning.activeSession) return '继续本组练习'
-  return learning.today.taskRemaining === 0 ? '开始一组加练' : '开始今日练习'
-})
 const milestoneRemaining = computed(() =>
   Math.max(0, learning.today.nextMilestone.days - learning.today.currentStreak),
 )
+const activeCourseChanged = computed(
+  () => learning.activeCourse && learning.activeCourse.id !== learning.course.id,
+)
 
 watch(selectedUnit, () => {
-  if (!supportedDifficulties.value.has(selectedDifficulty.value)) {
+  if (
+    supportedDifficulties.value.size > 0 &&
+    !supportedDifficulties.value.has(selectedDifficulty.value)
+  ) {
     selectedDifficulty.value = supportedDifficulties.value.has('L2') ? 'L2' : 'L1'
   }
 })
+watch(
+  () => learning.course.id,
+  () => {
+    selectedUnit.value =
+      learning.course.id === GRADE4_AUTUMN_MATH_COURSE.id
+        ? 'written-multiplication'
+        : (units.value[0]?.id ?? '')
+    selectedDifficulty.value = 'L2'
+  },
+)
+
+function chooseCourse(selection: CourseSelection): void {
+  startError.value = ''
+  learning.clearMessages()
+  if (!learning.selectCourse(selection)) startError.value = learning.saveError
+}
 
 function openPractice(sessionId: string | null): void {
   if (!sessionId) {
@@ -47,10 +87,10 @@ function openPractice(sessionId: string | null): void {
   void router.push({ name: 'learning-practice', params: { sessionId } })
 }
 
-function startComprehensive(): void {
+function startComprehensive(subject: Subject): void {
   startError.value = ''
   try {
-    openPractice(learning.startPractice({ mode: 'comprehensive' }))
+    openPractice(learning.startPractice({ mode: 'comprehensive', subject }))
   } catch (error) {
     startError.value = error instanceof Error ? error.message : '练习组暂时无法创建，请重试'
   }
@@ -62,6 +102,7 @@ function startSpecial(): void {
     openPractice(
       learning.startPractice({
         mode: 'special',
+        subject: 'math',
         unitId: selectedUnit.value,
         difficulty: selectedDifficulty.value,
       }),
@@ -80,44 +121,76 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
 
 <template>
   <LearningPage
-    eyebrow="MATH · GRADE 4"
-    title="今天，也算出一点新进步"
-    description="数学 · 四年级上学期 · 人教版新旧融合综合计算，包含两位数除法。答错可以订正，学会比速度更重要。"
+    eyebrow="LEARNING NOTEBOOK"
+    title="今天，也学会一点新本领"
+    :description="`${currentTerm.label} · 数学与英语共用一个今日目标。答错可以订正，学会比速度更重要。`"
   >
     <template #heading-action>
-      <span class="learn-tag">本地保存 · 无需注册</span>
+      <span class="learn-tag">{{ currentTerm.label }} · 本地保存</span>
     </template>
 
-    <section
-      v-if="learning.ready && !learning.preferences.courseIntroSeen"
-      class="learn-note learn-reveal"
-      aria-labelledby="course-intro-title"
-    >
-      <strong id="course-intro-title">给家长：首次课程设置</strong>
-      默认使用人教版四上新旧融合计算课程，每日 {{ LEARNING_RULES.dailyTask.defaultGoal }} 题。
-      课程包含多位数乘两位数和两位数除法，不包含小数、分数或系统混合运算。跳过设置也按此默认范围执行。
-      <div class="learn-actions">
+    <section class="learn-paper learn-section learn-reveal" aria-labelledby="course-title">
+      <div class="learn-section__heading">
+        <div>
+          <p class="learn-kicker">本学期课程</p>
+          <h2 id="course-title">选择年级与学期</h2>
+        </div>
+        <span class="learn-tag">当前：{{ currentTerm.label }}</span>
+      </div>
+      <div class="learn-course-options" role="group" aria-label="年级学期">
         <button
+          v-for="term in terms"
+          :key="`${term.grade}-${term.semester}`"
           type="button"
-          class="learn-button"
-          @click="learning.updatePreferences({ courseIntroSeen: true })"
+          class="learn-course-option"
+          :class="{ 'learn-course-option--selected': currentTerm === term }"
+          :aria-pressed="currentTerm === term"
+          :disabled="learning.saving || !learning.ready"
+          @click="chooseCourse(term)"
         >
-          按默认课程设置
+          <strong>{{ term.label }}</strong>
+          <small>{{ currentTerm === term ? '当前课程' : '选择此课程' }}</small>
         </button>
       </div>
+      <div v-if="learning.ready && learning.courseSelectionRequired" class="learn-note">
+        <strong id="course-intro-title">新用户请先选择课程</strong>
+        点击一个学期确认课程，之后即可开始练习。每日目标默认为
+        {{ LEARNING_RULES.dailyTask.defaultGoal }} 题，选择会保存在本机。
+      </div>
+      <p v-else class="learn-course-hint">
+        切换课程不会清空今日任务、连续记录、金币、农场或历史记录；进行中的练习组不受影响。
+      </p>
     </section>
 
+    <div v-if="learning.notice" class="learn-message" role="status">{{ learning.notice }}</div>
     <div v-if="startError" class="learn-message learn-message--error" role="alert">
       {{ startError }}
     </div>
 
+    <section
+      v-if="learning.activeSession"
+      class="learn-note learn-active-course"
+      aria-label="进行中的练习"
+    >
+      <strong>仍有一组{{ learning.activeCourse?.title ?? '原课程' }}练习</strong>
+      <template v-if="activeCourseChanged">
+        已选择新的学期，但本组题目、答案和课程快照保持不变；完成或放弃本组后，下一组才使用新选择。
+      </template>
+      <template v-else>继续本组即可接着上次的位置练习。</template>
+      <div class="learn-actions">
+        <button type="button" class="learn-button" @click="openPractice(learning.activeSession.id)">
+          继续{{ learning.activeCourse?.title ?? '原课程' }}练习
+        </button>
+      </div>
+    </section>
+
     <div class="learn-grid learn-reveal learn-reveal--late">
       <div class="learn-stack">
         <section class="learn-paper learn-section" aria-labelledby="today-practice-title">
-          <p class="learn-kicker">今日练习单</p>
+          <p class="learn-kicker">数学与英语共享</p>
           <div class="learn-section__heading">
             <h2 id="today-practice-title">
-              {{ learning.today.taskRemaining === 0 ? '今日目标已完成' : '每日综合练习' }}
+              {{ learning.today.taskRemaining === 0 ? '今日目标已完成' : '今日合计进度' }}
             </h2>
             <span class="learn-tag">{{ learning.today.dateKey }}</span>
           </div>
@@ -136,28 +209,69 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
             <span :style="{ '--progress': `${progress}%` }" />
           </div>
           <p class="learn-progress-note">
-            <span>有效完成才计入目标</span>
+            <span>两个学科只计算一个每日目标</span>
             <span>{{ progress }}%</span>
           </p>
 
-          <div
-            v-if="learning.today.taskRemaining === 0"
-            class="learn-note"
-            style="margin-top: 20px"
-          >
-            今日学习已完成，可以去农场看看，也可以休息。若主动加练，新题按首次答对 2 金币、
-            提示后订正 1 金币、讲解后订正 0 金币计算，不再增加今日任务进度。
+          <div v-if="learning.today.taskRemaining === 0" class="learn-note learn-today-note">
+            今日学习已完成，可以去农场看看，也可以休息。主动加练不再增加今日任务进度。
+          </div>
+
+          <div class="learn-subject-grid">
+            <article class="learn-subject-card" aria-labelledby="math-card-title">
+              <div class="learn-section__heading">
+                <h3 id="math-card-title">{{ currentTerm.label }}数学</h3>
+                <span class="learn-tag">
+                  {{ learning.subjectStatuses.math.contentReady ? '可练习' : '暂未开放' }}
+                </span>
+              </div>
+              <p>
+                {{
+                  learning.subjectStatuses.math.contentReady
+                    ? '新旧融合综合计算，包含两位数除法；也可在下方选择专项。'
+                    : learning.subjectStatuses.math.reason
+                }}
+              </p>
+              <button
+                type="button"
+                class="learn-button"
+                :disabled="
+                  learning.saving ||
+                  !learning.ready ||
+                  learning.courseSelectionRequired ||
+                  Boolean(learning.activeSession) ||
+                  !learning.subjectStatuses.math.contentReady
+                "
+                @click="startComprehensive('math')"
+              >
+                开始{{ currentTerm.label }}数学综合练习
+              </button>
+            </article>
+
+            <article class="learn-subject-card" aria-labelledby="english-card-title">
+              <div class="learn-section__heading">
+                <h3 id="english-card-title">{{ currentTerm.label }}英语</h3>
+                <span class="learn-tag">暂未开放</span>
+              </div>
+              <p>{{ learning.subjectStatuses.english.reason }}，不提供听力或跟读入口。</p>
+              <button
+                type="button"
+                class="learn-button learn-button--secondary"
+                :disabled="
+                  learning.saving ||
+                  !learning.ready ||
+                  learning.courseSelectionRequired ||
+                  Boolean(learning.activeSession) ||
+                  !learning.subjectStatuses.english.contentReady
+                "
+                @click="startComprehensive('english')"
+              >
+                开始{{ currentTerm.label }}英语综合练习
+              </button>
+            </article>
           </div>
 
           <div class="learn-actions">
-            <button
-              type="button"
-              class="learn-button"
-              :disabled="learning.saving"
-              @click="startComprehensive"
-            >
-              {{ primaryLabel }}
-            </button>
             <RouterLink class="learn-button learn-button--secondary" to="/learning/tasks">
               查看今日任务
             </RouterLink>
@@ -168,7 +282,7 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
           <div class="learn-section__heading">
             <div>
               <p class="learn-kicker">按需要练一练</p>
-              <h2 id="special-title">知识点专项练习</h2>
+              <h2 id="special-title">数学知识点专项练习</h2>
             </div>
             <span class="learn-tag">每组 10 题</span>
           </div>
@@ -195,10 +309,20 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
               </select>
             </label>
           </div>
+          <div v-if="!hasSpecialMatches" class="learn-empty learn-special-empty">
+            当前课程与筛选条件暂无可用题目。请更换知识模块、难度或学期，不会创建空练习组。
+          </div>
           <div class="learn-actions">
             <button
               type="button"
               class="learn-button learn-button--secondary"
+              :disabled="
+                learning.saving ||
+                !learning.ready ||
+                learning.courseSelectionRequired ||
+                Boolean(learning.activeSession) ||
+                !hasSpecialMatches
+              "
               @click="startSpecial"
             >
               开始专项练习
@@ -281,13 +405,16 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
         </section>
 
         <details class="learn-details">
-          <summary>查看融合课程范围</summary>
+          <summary>查看当前课程范围</summary>
           <div>
             <div class="learn-course-tags">
               <span v-for="unit in units" :key="unit.id" class="learn-tag">{{ unit.title }}</span>
             </div>
-            新版同步内容与旧版补充内容会保留来源标签。每日目标默认 30 题，可在家长设置中按 5
-            题调整，调整次日生效。
+            <template v-if="learning.subjectStatuses.math.contentReady">
+              四上专项仍限既有口算、笔算、变化规律、估算与验算范围。新版同步内容与旧版补充内容保留来源标签。
+            </template>
+            <template v-else>{{ learning.subjectStatuses.math.reason }}</template>
+            每日目标默认 30 题，可在家长设置中按 5 题调整，调整次日生效。
           </div>
         </details>
       </aside>

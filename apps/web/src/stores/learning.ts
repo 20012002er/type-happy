@@ -2,10 +2,12 @@ import { computed, ref, toRaw } from 'vue'
 import { defineStore } from 'pinia'
 import { LEARNING_RULES } from '../learning/config/rules'
 import { GRADE4_AUTUMN_MATH_COURSE } from '../learning/content/grade4-math'
+import { getCourseAvailability, getCourseById } from '../learning/content/course-registry'
 import {
   createEmptyLearningSnapshot,
   LEARNING_STORAGE_KEY,
   UnsupportedSchemaVersionError,
+  type CourseSelection,
   type LearningSnapshot,
 } from '../learning/persistence/snapshot'
 import {
@@ -46,7 +48,11 @@ import {
   mathRandom,
   systemClock,
 } from '../learning/system-adapters'
-import { generateComprehensivePaper, generateSpecialPaper } from '../learning/practice/paper'
+import {
+  generateComprehensivePaper,
+  generateSpecialPaper,
+  hasPracticeContent,
+} from '../learning/practice/paper'
 import { createRetestQuestion } from '../learning/practice/math-generator'
 import { PracticeSessionRepository } from '../learning/practice/practice-repository'
 import {
@@ -68,7 +74,7 @@ import {
   validateDailyGoal,
 } from '../learning/tasks/daily-task'
 import { assertLocalDateKey } from '../learning/date-key'
-import type { Answer, Difficulty } from '../learning/types'
+import type { Answer, Difficulty, Subject } from '../learning/types'
 
 const PREFERENCES_STORAGE_KEY = 'type-happy:learning:preferences:v1'
 
@@ -89,7 +95,8 @@ export interface LearningStoreDependencies {
 }
 
 export type StartPracticeOptions =
-  { mode: 'comprehensive' } | { mode: 'special'; unitId: string; difficulty: Difficulty }
+  | { mode: 'comprehensive'; subject: Subject }
+  | { mode: 'special'; subject: Subject; unitId: string; difficulty: Difficulty }
 
 export type SubmitPracticeResult = 'submitted' | 'replaced' | 'failed'
 
@@ -212,6 +219,7 @@ export const useLearningStore = defineStore('learning', () => {
   const saving = ref(false)
   const farmNow = ref(systemClock.now())
   const preferences = ref<LearningPreferences>({ ...DEFAULT_PREFERENCES })
+  const courseSelectionRequired = ref(false)
 
   let storage: StoragePort | undefined
   let repository: LearningRepository | undefined
@@ -220,6 +228,20 @@ export const useLearningStore = defineStore('learning', () => {
   let ids: IdGenerator = createCryptoIdGenerator()
   let random: Random = mathRandom
 
+  const course = computed(() => {
+    const availability = getCourseAvailability(
+      snapshot.value.course.grade,
+      snapshot.value.course.semester,
+      'math',
+    )
+    return (
+      (availability ? getCourseById(availability.courseId) : undefined) ?? GRADE4_AUTUMN_MATH_COURSE
+    )
+  })
+  const subjectStatuses = computed(() => ({
+    math: getSubjectStatus('math'),
+    english: getSubjectStatus('english'),
+  }))
   const today = computed(() =>
     getTodayLearningSummary(
       snapshot.value,
@@ -245,12 +267,38 @@ export const useLearningStore = defineStore('learning', () => {
         .filter((session) => session.status === 'active')
         .sort((left, right) => right.updatedAt - left.updatedAt)[0],
   )
+  const activeCourse = computed(() => {
+    const courseId = activeSession.value?.questions[0]?.question.classification.courseId
+    return courseId ? getCourseById(courseId) : undefined
+  })
   const practiceSessions = computed(() =>
     Object.values(snapshot.value.practice.sessions).sort(
       (left, right) => right.updatedAt - left.updatedAt,
     ),
   )
   const pendingHarvests = computed(() => getPendingHarvestCount(snapshot.value.farm, farmNow.value))
+
+  function getSubjectStatus(subject: Subject) {
+    const availability = getCourseAvailability(
+      snapshot.value.course.grade,
+      snapshot.value.course.semester,
+      subject,
+    )
+    const registeredCourse = availability ? getCourseById(availability.courseId) : undefined
+    const contentReady =
+      availability?.available === true && hasPracticeContent(availability.courseId)
+    return {
+      availability,
+      course: registeredCourse,
+      contentReady,
+      reason:
+        availability?.available !== true
+          ? (availability?.unavailableReason ?? '该学期暂未开放此学科')
+          : contentReady
+            ? ''
+            : '课程内容正在准备中，暂不能开始练习',
+    }
+  }
 
   function initialize(dependencies: LearningStoreDependencies = {}): boolean {
     if (dependencies.storage) storage = dependencies.storage
@@ -263,8 +311,10 @@ export const useLearningStore = defineStore('learning', () => {
     repository = new LearningRepository(selectedStorage)
     sessions = new PracticeSessionRepository(repository)
     try {
+      const hasExistingSnapshot = selectedStorage.getItem(LEARNING_STORAGE_KEY) !== null
       snapshot.value = repository.load()
       preferences.value = parsePreferences(selectedStorage.getItem(PREFERENCES_STORAGE_KEY))
+      courseSelectionRequired.value = !hasExistingSnapshot && !preferences.value.courseIntroSeen
       loadError.value = ''
       ready.value = true
       return true
@@ -279,8 +329,10 @@ export const useLearningStore = defineStore('learning', () => {
     if (!repository) return
     try {
       getNow()
+      const hasExistingSnapshot = storage?.getItem(LEARNING_STORAGE_KEY) !== null
       snapshot.value = repository.load()
       preferences.value = parsePreferences(storage?.getItem(PREFERENCES_STORAGE_KEY) ?? null)
+      courseSelectionRequired.value = !hasExistingSnapshot && !preferences.value.courseIntroSeen
       loadError.value = ''
       saveError.value = ''
     } catch (error) {
@@ -290,6 +342,47 @@ export const useLearningStore = defineStore('learning', () => {
 
   function handleStorageEvent(event: StorageEvent): void {
     if (event.key === LEARNING_STORAGE_KEY || event.key === PREFERENCES_STORAGE_KEY) refresh()
+  }
+
+  function selectCourse(selection: CourseSelection): boolean {
+    if (saving.value) return false
+    if (!repository || !storage) {
+      saveError.value = '学习数据尚未准备好，请刷新后重试'
+      return false
+    }
+    if (!getCourseAvailability(selection.grade, selection.semester, 'math')?.available) {
+      saveError.value = '所选学期课程无效，请重新选择'
+      return false
+    }
+
+    saving.value = true
+    notice.value = ''
+    saveError.value = ''
+    try {
+      const next = repository.transact(snapshot.value.revision, (current) => ({
+        ...current,
+        course: { grade: selection.grade, semester: selection.semester },
+      }))
+      snapshot.value = next
+      if (
+        !writePreferences(
+          { ...preferences.value, courseIntroSeen: true },
+          '课程设置暂未保存，请重试',
+        )
+      ) {
+        return false
+      }
+      courseSelectionRequired.value = false
+      notice.value = activeSession.value
+        ? '课程选择已保存；当前练习组仍按原课程继续，下一组才使用新选择'
+        : '课程选择已保存到本机'
+      return true
+    } catch (error) {
+      saveError.value = readableSaveError(error)
+      return false
+    } finally {
+      saving.value = false
+    }
   }
 
   function persist(session: Parameters<PracticeSessionRepository['save']>[0]): boolean {
@@ -316,6 +409,15 @@ export const useLearningStore = defineStore('learning', () => {
 
   function startPractice(options: StartPracticeOptions): string | null {
     if (activeSession.value) return activeSession.value.id
+    if (courseSelectionRequired.value) {
+      saveError.value = '请先在首页选择课程，再开始练习'
+      return null
+    }
+    const status = getSubjectStatus(options.subject)
+    if (status.availability?.available !== true || !status.contentReady) {
+      saveError.value = status.reason
+      return null
+    }
     const now = getNow()
     const id = `practice-${ids.next()}`
     const paper =
@@ -523,6 +625,7 @@ export const useLearningStore = defineStore('learning', () => {
     try {
       repository.clear()
       snapshot.value = createEmptyLearningSnapshot()
+      courseSelectionRequired.value = !preferences.value.courseIntroSeen
       getNow()
       loadError.value = ''
       saveError.value = ''
@@ -550,16 +653,20 @@ export const useLearningStore = defineStore('learning', () => {
     notice,
     saving,
     preferences,
+    courseSelectionRequired,
+    course,
+    subjectStatuses,
+    activeCourse,
     today,
     upcomingDailyGoal,
     parentSummary,
     activeSession,
     practiceSessions,
     pendingHarvests,
-    course: GRADE4_AUTUMN_MATH_COURSE,
     initialize,
     refresh,
     handleStorageEvent,
+    selectCourse,
     startPractice,
     resumeSession,
     submitAnswer,

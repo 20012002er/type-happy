@@ -102,11 +102,14 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
         <div class="learn-section__heading">
           <div>
             <p class="learn-kicker">课程设置</p>
-            <h2 id="course-settings-title">四年级上学期综合计算</h2>
+            <h2 id="course-settings-title">{{ learning.course.title }}</h2>
           </div>
           <span class="learn-tag">{{ learning.course.textbook }}</span>
         </div>
-        <p>人教版新旧融合课程，包含多位数乘两位数和两位数除法；不包含小数、分数或系统混合运算。</p>
+        <p v-if="learning.subjectStatuses.math.contentReady">
+          人教版新旧融合课程，包含多位数乘两位数和两位数除法；不包含小数、分数或系统混合运算。
+        </p>
+        <p v-else>{{ learning.subjectStatuses.math.reason }}，课程目录仅用于预览和选择。</p>
         <div class="learn-course-tags" aria-label="课程知识模块">
           <span v-for="unit in learning.course.units" :key="unit.id" class="learn-tag">
             {{ unit.title }}

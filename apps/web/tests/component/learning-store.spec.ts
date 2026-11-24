@@ -1,5 +1,7 @@
 import { createPinia, setActivePinia } from 'pinia'
+import { toRaw } from 'vue'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { GRADE4_AUTUMN_MATH_COURSE } from '../../src/learning/content/grade4-math'
 import {
   createEmptyLearningSnapshot,
   LEARNING_STORAGE_KEY,
@@ -30,8 +32,10 @@ function setup(initialStorage?: MemoryStorage) {
 }
 
 function startSpecial(learning: ReturnType<typeof useLearningStore>): string {
+  learning.selectCourse({ grade: 4, semester: 'autumn' })
   const id = learning.startPractice({
     mode: 'special',
+    subject: 'math',
     unitId: 'written-multiplication',
     difficulty: 'L1',
   })
@@ -193,5 +197,98 @@ describe('learning store UI orchestration', () => {
       dailyGoal: 30,
     })
     expect(restored.today.walletBalance).toBe(0)
+  })
+
+  it('requires a new user to choose a course and restores the selection after refresh', () => {
+    const { learning, storage } = setup()
+    expect(learning.courseSelectionRequired).toBe(true)
+    expect(learning.startPractice({ mode: 'comprehensive', subject: 'math' })).toBeNull()
+    expect(learning.saveError).toContain('请先')
+    expect(learning.practiceSessions).toHaveLength(0)
+
+    expect(learning.selectCourse({ grade: 4, semester: 'spring' })).toBe(true)
+    expect(learning.courseSelectionRequired).toBe(false)
+    expect(learning.snapshot.course).toEqual({ grade: 4, semester: 'spring' })
+
+    const restored = setup(storage).learning
+    expect(restored.courseSelectionRequired).toBe(false)
+    expect(restored.snapshot.course).toEqual({ grade: 4, semester: 'spring' })
+    expect(restored.course.id).toBe('pep-grade4-spring-math')
+  })
+
+  it('keeps existing users on grade 4 autumn without forcing course onboarding', () => {
+    const snapshot = createEmptyLearningSnapshot()
+    const storage = new MemoryStorage({ [LEARNING_STORAGE_KEY]: JSON.stringify(snapshot) })
+    const { learning } = setup(storage)
+
+    expect(learning.courseSelectionRequired).toBe(false)
+    expect(learning.snapshot.course).toEqual({ grade: 4, semester: 'autumn' })
+    expect(learning.startPractice({ mode: 'comprehensive', subject: 'math' })).not.toBeNull()
+  })
+
+  it('blocks unavailable subjects and courses without creating empty groups', () => {
+    const { learning } = setup()
+    expect(learning.selectCourse({ grade: 4, semester: 'autumn' })).toBe(true)
+    expect(learning.subjectStatuses.english.contentReady).toBe(false)
+    expect(learning.startPractice({ mode: 'comprehensive', subject: 'english' })).toBeNull()
+    expect(learning.saveError).toContain('暂未开放英语')
+
+    expect(learning.selectCourse({ grade: 4, semester: 'spring' })).toBe(true)
+    expect(learning.subjectStatuses.math.contentReady).toBe(false)
+    expect(
+      learning.startPractice({
+        mode: 'special',
+        subject: 'math',
+        unitId: 'g4s-four-operations',
+        difficulty: 'L2',
+      }),
+    ).toBeNull()
+    expect(learning.practiceSessions).toHaveLength(0)
+
+    expect(learning.selectCourse({ grade: 4, semester: 'autumn' })).toBe(true)
+    expect(learning.subjectStatuses.math.contentReady).toBe(true)
+    expect(startSpecial(learning)).toMatch(/^practice-/)
+  })
+
+  it('changes only the course when switching during practice and preserves the original group', () => {
+    const { learning } = setup()
+    const sessionId = startSpecial(learning)
+    const first = current(learning, sessionId)
+    expect(learning.submitAnswer(sessionId, first.question.standardAnswer)).toBe('submitted')
+    expect(learning.performFarmOperation({ type: 'claim-gift' })).toBe(true)
+    const originalQuestions = structuredClone(toRaw(learning.getSession(sessionId)!.questions))
+    const originalSnapshot = structuredClone(toRaw(learning.snapshot))
+    const before = {
+      learning: originalSnapshot.learning,
+      practice: originalSnapshot.practice,
+      tasks: originalSnapshot.tasks,
+      wallet: originalSnapshot.wallet,
+      farm: originalSnapshot.farm,
+      processing: originalSnapshot.processing,
+    }
+
+    expect(learning.selectCourse({ grade: 5, semester: 'autumn' })).toBe(true)
+    expect({
+      learning: learning.snapshot.learning,
+      practice: learning.snapshot.practice,
+      tasks: learning.snapshot.tasks,
+      wallet: learning.snapshot.wallet,
+      farm: learning.snapshot.farm,
+      processing: learning.snapshot.processing,
+    }).toEqual(before)
+    expect(learning.activeCourse?.id).toBe(GRADE4_AUTUMN_MATH_COURSE.id)
+    expect(learning.getSession(sessionId)?.questions).toEqual(originalQuestions)
+    expect(learning.startPractice({ mode: 'comprehensive', subject: 'math' })).toBe(sessionId)
+  })
+
+  it('does not publish a course selection when its snapshot write fails', () => {
+    const { learning, storage } = setup()
+    storage.failNext('setItem')
+
+    expect(learning.selectCourse({ grade: 5, semester: 'spring' })).toBe(false)
+    expect(learning.snapshot.course).toEqual({ grade: 4, semester: 'autumn' })
+    expect(learning.preferences.courseIntroSeen).toBe(false)
+    expect(learning.courseSelectionRequired).toBe(true)
+    expect(learning.saveError).toContain('暂未保存')
   })
 })

@@ -1,7 +1,7 @@
 import { LEARNING_RULES } from '../config/rules'
 import type { Difficulty } from '../types'
 import { generateMathQuestion } from './math-generator'
-import { filterMathTemplates, type MathQuestionTemplate } from './math-templates'
+import { filterMathTemplates, MATH_TEMPLATES, type MathQuestionTemplate } from './math-templates'
 import type { PracticeMode, PracticeQuestionInput } from './practice-session'
 import { injectRetestsIntoPaper, type RetestPoolEntry } from './retest'
 
@@ -12,6 +12,10 @@ export interface PracticePaper {
   mode: PracticeMode
   blueprint?: PaperBlueprint
   questions: readonly PracticeQuestionInput[]
+}
+
+export function hasPracticeContent(courseId: string): boolean {
+  return MATH_TEMPLATES.some((template) => template.classification.courseId === courseId)
 }
 
 const CATEGORY_UNITS: Record<PaperCategory, string> = {
