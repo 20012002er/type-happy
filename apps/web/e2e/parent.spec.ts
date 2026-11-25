@@ -258,3 +258,52 @@ test('WP08 减少农场动态效果、系统偏好优先与摘要筛选归属原
   expect(stored.wallet.balance).toBe(3)
   expect(stored.tasks.daily['2026-11-20'].completed).toBe(1)
 })
+
+test('E2E-25 家长摘要与加工流水一致，加工不计入学习题数', async ({ page }) => {
+  const initial = createEmptyLearningSnapshot()
+  initial.farm = claimStarterGift(initial.farm, { actionId: 'starter-gift', now: NOW })
+  initial.farm = { ...initial.farm, inventory: { ...initial.farm.inventory, flour: 1 } }
+  initial.processing = {
+    workshop: { purchased: true, activeTask: null, pendingOutput: null },
+    actions: {},
+  }
+  await seed(page, initial)
+  await useFixedClock(page)
+  await page.goto('/learning')
+  await page.getByRole('button', { name: '开始专项练习', exact: true }).click()
+  await submitFirstCorrect(page)
+  await expect(page.getByText('+3 学习金币已到账')).toBeVisible()
+
+  await page.getByRole('link', { name: '学习农场', exact: true }).click()
+  await page.getByRole('button', { name: '仓库与出售', exact: true }).click()
+  const flourRow = page.locator('.farm-inventory-item').filter({ hasText: '面粉' })
+  await flourRow.getByRole('button', { name: '出售', exact: true }).click()
+  await page.getByRole('button', { name: '确认出售并获得 42 金币', exact: true }).click()
+  expect((await snapshot(page)).wallet.balance).toBe(45)
+
+  await page.getByRole('link', { name: '家长设置', exact: true }).click()
+  const todayMetrics = page.locator(
+    'section[aria-labelledby="today-summary-title"] .parent-metrics',
+  )
+  await expect(todayMetrics).toContainText(/有效完成\s*1/)
+  await expect(page.locator('#today-summary-title').locator('../..')).toContainText(
+    '任务 1 / 30 题',
+  )
+  const practiceRow = page.locator('.parent-table tbody tr').filter({ hasText: '练习奖励' })
+  await expect(practiceRow).toContainText('+3')
+  const processingRow = page.locator('.parent-table tbody tr').filter({ hasText: '加工品出售' })
+  await expect(processingRow).toContainText('+42')
+  await expect(page.locator('.parent-recent-ledger')).toContainText('练习奖励')
+  await expect(page.locator('.parent-recent-ledger')).toContainText('加工品出售')
+
+  // 加工与出售不计入学习题数；学科筛选下只有数学 1 条记录
+  const filterSection = page.locator('section[aria-labelledby="filter-summary-title"]')
+  await page.locator('#summary-subject').selectOption('english')
+  await expect(filterSection).toContainText('当前筛选范围内还没有学习记录')
+  await page.locator('#summary-subject').selectOption('math')
+  await expect(filterSection.locator('.parent-metrics dd').first()).toHaveText('1')
+  const stored = await snapshot(page)
+  expect(stored.tasks.daily['2026-11-20'].completed).toBe(1)
+  expect(stored.learning.records).toHaveLength(1)
+  expect(stored.wallet.ledger.filter((entry) => entry.source === 'processing-sale')).toHaveLength(1)
+})

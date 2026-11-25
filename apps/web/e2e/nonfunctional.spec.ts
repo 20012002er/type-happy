@@ -87,6 +87,8 @@ async function submitCurrent(page: Page, keyboard = false): Promise<void> {
 test('T10-04 学习首页、练习、完成、农场、商店、仓库和家长页通过 axe 严重级扫描', async ({
   page,
 }) => {
+  // 8 次 axe 扫描 + 10 题练习，并行负载下需要更宽裕的超时
+  test.setTimeout(120_000)
   await page.emulateMedia({ reducedMotion: 'reduce' })
   const initial = createEmptyLearningSnapshot()
   initial.farm = claimStarterGift(initial.farm, { actionId: 'starter-gift', now: NOW })
@@ -494,4 +496,122 @@ test('T10-05 反复进入农场不累积定时器或监听器，后台页面停�
     document.dispatchEvent(new Event('visibilitychange'))
   })
   expect((await lifecycleCounts()).timers).toBe(1)
+})
+
+function processingReadySnapshot(purchased = false): LearningSnapshot {
+  const snapshot = createEmptyLearningSnapshot()
+  snapshot.farm = claimStarterGift(snapshot.farm, { actionId: 'starter-gift', now: NOW })
+  const actions: Record<string, string> = { ...snapshot.farm.actions }
+  for (let index = 0; index < 3; index += 1) {
+    actions[`harvest-crop-${index}`] = JSON.stringify({
+      type: 'harvest-crop',
+      now: NOW,
+      plotId: 'plot-1',
+    })
+  }
+  snapshot.farm = {
+    ...snapshot.farm,
+    actions,
+    inventory: { ...snapshot.farm.inventory, wheat: 2 },
+  }
+  snapshot.wallet = settleWallet(snapshot.wallet, {
+    settlementId: 'keyboard-proc-fund',
+    occurredAt: NOW,
+    source: 'practice',
+    referenceId: 'keyboard-proc-fund',
+    direction: 'earn',
+    amount: 500,
+  })
+  if (purchased) {
+    snapshot.processing = {
+      workshop: { purchased: true, activeTask: null, pendingOutput: null },
+      actions: {},
+    }
+  }
+  return snapshot
+}
+
+test('E2E-28 仅用键盘完成加工坊购买、开始、收取和出售，模态框焦点受控', async ({ page }) => {
+  await seed(page, processingReadySnapshot())
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await page.clock.install({ time: new Date(NOW) })
+  await page.clock.pauseAt(new Date(NOW))
+  await page.goto('/learning/farm')
+
+  const processingTab = page.getByRole('button', { name: '加工坊', exact: true })
+  await processingTab.focus()
+  await page.keyboard.press('Enter')
+  const buy = page.getByRole('button', { name: '购买加工坊', exact: true })
+  await buy.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('dialog')).toBeVisible()
+  const payConfirm = page.getByRole('button', { name: '确认支付 240 金币', exact: true })
+  await payConfirm.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  const skipGuide = page.getByRole('button', { name: '跳过引导', exact: true })
+  await skipGuide.focus()
+  await page.keyboard.press('Enter')
+
+  // 开始确认框：Esc 取消后焦点返回触发按钮，无键盘陷阱
+  const start = page.getByRole('button', { name: '开始加工面粉', exact: true })
+  await start.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  await expect(start).toBeFocused()
+  await page.keyboard.press('Enter')
+  const startConfirm = page.getByRole('button', { name: '确认投入并开始加工', exact: true })
+  await startConfirm.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+
+  await page.clock.fastForward(20 * 60_000)
+  const collect = page.getByRole('button', { name: '收取加工品入仓', exact: true })
+  await collect.focus()
+  await page.keyboard.press('Enter')
+
+  const warehouseTab = page.getByRole('button', { name: '仓库与出售', exact: true })
+  await warehouseTab.focus()
+  await page.keyboard.press('Enter')
+  const sell = page
+    .locator('.farm-inventory-item')
+    .filter({ hasText: '面粉' })
+    .getByRole('button', { name: '出售', exact: true })
+  await sell.focus()
+  await page.keyboard.press('Enter')
+  const saleConfirm = page.getByRole('button', { name: '确认出售并获得 42 金币', exact: true })
+  await saleConfirm.focus()
+  await page.keyboard.press('Enter')
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+
+  const stored = await page.evaluate(
+    (key) => JSON.parse(localStorage.getItem(key)!),
+    LEARNING_STORAGE_KEY,
+  )
+  expect(stored.wallet.balance).toBe(302)
+  expect(stored.farm.inventory.flour ?? 0).toBe(0)
+  expect(stored.processing.workshop.purchased).toBe(true)
+  expect(
+    stored.wallet.ledger.filter((entry: { source: string }) => entry.source === 'processing-sale'),
+  ).toHaveLength(1)
+})
+
+test('T10-04 加工坊配方、加工中、可收取与仓库加工品通过 axe 严重级扫描', async ({ page }) => {
+  await seed(page, processingReadySnapshot(true))
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  // axe 内部依赖定时器，时钟不能暂停；真实时间漂移对 20 分钟任务无影响
+  await page.clock.install({ time: new Date(NOW) })
+  await page.goto('/learning/farm')
+  await page.getByRole('button', { name: '加工坊', exact: true }).click()
+  await scan(page, '加工坊配方')
+  await page.getByRole('button', { name: '开始加工面粉', exact: true }).click()
+  await page.getByRole('button', { name: '确认投入并开始加工', exact: true }).click()
+  await scan(page, '加工中')
+  await page.clock.fastForward(20 * 60_000)
+  await scan(page, '可收取')
+  await page.getByRole('button', { name: '收取加工品入仓', exact: true }).click()
+  await page.getByRole('button', { name: '仓库与出售', exact: true }).click()
+  await scan(page, '仓库加工品')
 })

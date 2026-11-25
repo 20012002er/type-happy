@@ -644,3 +644,141 @@ test('E2E-21 双击开始与收取、保存失败重试只结算一次', async (
   expect(retried.wallet.ledger).toHaveLength(0)
   await expect(processingStatus(page)).toContainText('空闲 · 可开始加工')
 })
+
+test('E2E-22 设备时间回拨不提前完成不复制产出并提示异常', async ({ page }) => {
+  await openFarm(
+    page,
+    processingFarm({ purchased: true, inventory: { wheat: 2 }, harvests: { crops: 3 } }),
+  )
+  await openProcessing(page)
+  await recipeCard(page, 'flour').getByRole('button', { name: '开始加工面粉' }).click()
+  await page.getByRole('button', { name: '确认投入并开始加工', exact: true }).click()
+  const taskId = (await snapshot(page)).processing.workshop.activeTask?.id
+
+  await page.clock.fastForward(10 * MINUTE)
+  await page.reload()
+  await openProcessing(page)
+  await expect(processingStatus(page)).toContainText('剩余时间：10 分钟')
+
+  // 回拨 2 小时：进度按已记录时间计算，不提前完成、不丢任务
+  await page.clock.setSystemTime(new Date(NOW - 2 * HOUR))
+  await page.reload()
+  await expect(page.getByRole('status').filter({ hasText: '检测到设备时间被调早了' })).toBeVisible()
+  await openProcessing(page)
+  const rolledBack = await snapshot(page)
+  expect(rolledBack.processing.workshop.activeTask?.id).toBe(taskId)
+  expect(rolledBack.processing.workshop.pendingOutput).toBeNull()
+  await expect(processingStatus(page)).toContainText('剩余时间：10 分钟')
+  await expect(
+    processingStatus(page).getByRole('button', { name: '加工尚未完成，不能提前收取' }),
+  ).toBeDisabled()
+
+  // 时间恢复后正常结算，收取只入仓一次
+  await page.clock.setSystemTime(new Date(NOW + 25 * MINUTE))
+  await page.reload()
+  await openProcessing(page)
+  await expect(processingStatus(page)).toContainText('加工完成 · 可收取')
+  await processingStatus(page).getByRole('button', { name: '收取加工品入仓', exact: true }).click()
+  const collected = await snapshot(page)
+  expect(collected.farm.inventory.flour).toBe(1)
+  expect(collected.processing.workshop.pendingOutput).toBeNull()
+  expect(
+    Object.values(collected.processing.actions).filter((signature) =>
+      signature.includes('collect-processing'),
+    ),
+  ).toHaveLength(1)
+})
+
+test('E2E-23 原料与加工品混合出售至共享上限，达上限仍可加工收取，次日恢复', async ({ page }) => {
+  await openFarm(
+    page,
+    processingFarm({
+      purchased: true,
+      inventory: { radish: 4, flour: 1, wheat: 2 },
+      harvests: { crops: 3 },
+    }),
+  )
+  await switchTab(page, '仓库与出售')
+  await expect(
+    page.getByText('全部可售物品合计 114 金币，超出今日剩余可售额度 60 金币，请分类或分项出售', {
+      exact: true,
+    }),
+  ).toBeVisible()
+  await expect(page.getByRole('button', { name: '出售全部可售物品', exact: true })).toBeDisabled()
+
+  const radishRow = page.locator('.farm-inventory-item').filter({ hasText: '萝卜' })
+  await radishRow.getByLabel('出售萝卜数量', { exact: true }).fill('4')
+  await radishRow.getByRole('button', { name: '出售', exact: true }).click()
+  await page.getByRole('button', { name: '确认出售并获得 36 金币', exact: true }).click()
+  expect((await snapshot(page)).wallet.balance).toBe(36)
+
+  const flourRow = page.locator('.farm-inventory-item').filter({ hasText: '面粉' })
+  await expect(flourRow).toContainText('超出今日出售收入上限，当前最多可出售 0 件')
+  await expect(flourRow.getByRole('button', { name: '出售', exact: true })).toBeDisabled()
+  expect((await snapshot(page)).farm.inventory.flour).toBe(1)
+
+  // 达上限仍可加工与收取，物品保留不丢失
+  await openProcessing(page)
+  await recipeCard(page, 'flour').getByRole('button', { name: '开始加工面粉' }).click()
+  await page.getByRole('button', { name: '确认投入并开始加工', exact: true }).click()
+  await page.clock.fastForward(20 * MINUTE)
+  await processingStatus(page).getByRole('button', { name: '收取加工品入仓', exact: true }).click()
+  const capped = await snapshot(page)
+  expect(capped.farm.inventory.flour).toBe(2)
+  expect(capped.farm.saleIncomeByDate['2026-11-20']).toBe(36)
+
+  // 次日额度恢复：小麦已投入加工，面粉 2 件合计 84 仍超 60，分项出售 1 件
+  await page.clock.fastForward(24 * HOUR)
+  await switchTab(page, '仓库与出售')
+  await expect(page.getByRole('button', { name: '出售全部可售物品', exact: true })).toBeDisabled()
+  await flourRow.getByLabel('出售面粉数量', { exact: true }).fill('1')
+  await flourRow.getByRole('button', { name: '出售', exact: true }).click()
+  await page.getByRole('button', { name: '确认出售并获得 42 金币', exact: true }).click()
+  const nextDay = await snapshot(page)
+  expect(nextDay.wallet.balance).toBe(78)
+  expect(nextDay.farm.inventory.flour).toBe(1)
+  expect(nextDay.farm.saleIncomeByDate['2026-11-21']).toBe(42)
+})
+
+test('E2E-24 有加工中或待收资产时不发无资产补给', async ({ page }) => {
+  await openFarm(
+    page,
+    processingFarm({ purchased: true, inventory: { wheat: 2 }, harvests: { crops: 3 } }),
+  )
+  await openProcessing(page)
+  await recipeCard(page, 'flour').getByRole('button', { name: '开始加工面粉' }).click()
+  await page.getByRole('button', { name: '确认投入并开始加工', exact: true }).click()
+  await page.evaluate((key) => {
+    const value = JSON.parse(localStorage.getItem(key)!)
+    value.farm.inventory = {}
+    localStorage.setItem(key, JSON.stringify(value))
+  }, LEARNING_STORAGE_KEY)
+  await page.reload()
+  await expect(page.getByRole('button', { name: '领取恢复补给', exact: true })).toHaveCount(0)
+
+  await page.clock.fastForward(20 * MINUTE)
+  await page.reload()
+  // 结算在重新挂载时执行，轮询等待落盘完成，避免挂载/保存竞态
+  await expect
+    .poll(async () => (await snapshot(page)).processing.workshop.pendingOutput?.productId)
+    .toBe('flour')
+  await expect(page.getByRole('button', { name: '领取恢复补给', exact: true })).toHaveCount(0)
+
+  await openProcessing(page)
+  await processingStatus(page).getByRole('button', { name: '收取加工品入仓', exact: true }).click()
+  expect((await snapshot(page)).farm.inventory.flour).toBe(1)
+  await expect(page.getByRole('button', { name: '领取恢复补给', exact: true })).toHaveCount(0)
+
+  // 真正无资产时沿用既有补给规则
+  await page.evaluate((key) => {
+    const value = JSON.parse(localStorage.getItem(key)!)
+    value.farm.inventory = {}
+    value.processing.workshop = { purchased: true, activeTask: null, pendingOutput: null }
+    localStorage.setItem(key, JSON.stringify(value))
+  }, LEARNING_STORAGE_KEY)
+  await page.reload()
+  await page.getByRole('button', { name: '领取恢复补给', exact: true }).click()
+  const supplied = await snapshot(page)
+  expect(supplied.farm.inventory['radish-seed']).toBe(2)
+  expect(supplied.wallet.balance).toBe(0)
+})

@@ -99,6 +99,9 @@ interface Confirmation {
 const confirmation = ref<Confirmation | null>(null)
 const farm = computed(() => learning.snapshot.farm)
 const effectiveNow = computed(() => getEffectiveFarmTime(farm.value, displayNow.value))
+const clockRolledBack = computed(
+  () => farm.value.lastAdvancedAt !== null && displayNow.value < farm.value.lastAdvancedAt,
+)
 const pendingNow = computed(() => getPendingHarvestCount(farm.value, displayNow.value))
 const warehouse = computed(() => getWarehouse(farm.value))
 const recovery = computed(() => getRecoverySupplyStatus(learning.snapshot, displayNow.value))
@@ -681,6 +684,9 @@ onUnmounted(() => {
     <div v-if="learning.saveError && !confirmation" class="learn-message learn-message--error" role="alert">
       <span>{{ learning.saveError }}</span>
       <button type="button" class="learn-text-button" @click="learning.refresh()">重新读取</button>
+    </div>
+    <div v-if="clockRolledBack" class="learn-message" role="status">
+      检测到设备时间被调早了。农场和加工进度按已记录的时间计算，作物不会消失，加工也不会提前完成。
     </div>
 
     <div class="farm-workspace learn-reveal learn-reveal--late">

@@ -310,6 +310,27 @@ describe('recipe cards and processing progress (T11-03/04)', () => {
     expect(context.learning.snapshot.farm.inventory.wheat).toBe(0)
     expect(context.learning.snapshot.processing.workshop.activeTask?.recipeId).toBe('flour')
   })
+
+  it('warns on a rolled-back device clock and starts tasks on recorded time', async () => {
+    const snapshot = snapshotWith({ cropHarvests: 3, purchased: true, inventory: { wheat: 2 } })
+    snapshot.farm = { ...snapshot.farm, lastAdvancedAt: NOW + 10 * MINUTE }
+    const context = setup(snapshot)
+    const wrapper = mountView(context)
+    expect(wrapper.text()).toContain('检测到设备时间被调早了')
+    await openTab(wrapper, '加工坊')
+    await wrapper
+      .find('section[aria-labelledby="farm-recipe-flour"]')
+      .find('button')
+      .trigger('click')
+    await clickDialog('.farm-dialog__confirm')
+    // 完成时间基于已记录时间（NOW+10min）而非回拨后的设备时间
+    expect(context.learning.snapshot.processing.workshop.activeTask?.completesAt).toBe(
+      NOW + 30 * MINUTE,
+    )
+    expect(
+      wrapper.find('section[aria-labelledby="farm-processing-status-title"]').text(),
+    ).toContain('剩余时间：20 分钟')
+  })
 })
 
 describe('warehouse processed products and shared sale cap (T11-05)', () => {
