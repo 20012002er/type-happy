@@ -7,7 +7,7 @@ const KET_COURSE_ID = 'ket-core-vocabulary-english'
  * KET（剑桥 A2 Key）核心词汇级别：按主题组织单元，每单元 15 词。
  * 独立于年级学期体系，grade/semester 仅为满足课程契约的名义分类值，
  * 通过 track: 'vocab-level' 标记，不参与学期可用性表。
- * 第 1 批覆盖 17 个主题单元，第 2 批扩充至 34 个，第 3 批扩充至 51 个，第 4 批扩充至 68 个，后续批次继续扩充。
+ * 第 1 批覆盖 17 个主题单元，第 2 批扩充至 34 个，第 3 批扩充至 51 个，第 4 批扩充至 68 个，第 5 批扩充至 85 个，后续批次继续扩充。
  */
 const themes: readonly { id: string; title: string }[] = [
   { id: 'ket-vocab-01-personal-info', title: '个人信息' },
@@ -78,6 +78,23 @@ const themes: readonly { id: string; title: string }[] = [
   { id: 'ket-vocab-66-music-extra', title: '音乐之声' },
   { id: 'ket-vocab-67-machines', title: '机器与设备' },
   { id: 'ket-vocab-68-abstract-nouns', title: '抽象名词' },
+  { id: 'ket-vocab-69-prepositions', title: '介词与空间' },
+  { id: 'ket-vocab-70-pronouns', title: '人称代词' },
+  { id: 'ket-vocab-71-possessives', title: '物主与指示' },
+  { id: 'ket-vocab-72-auxiliaries', title: '助动词与情态' },
+  { id: 'ket-vocab-73-be-forms', title: 'be 动词与地点' },
+  { id: 'ket-vocab-74-time-adverbs', title: '时间副词' },
+  { id: 'ket-vocab-75-directions', title: '方向与导航' },
+  { id: 'ket-vocab-76-food-quantities', title: '食物量与容器' },
+  { id: 'ket-vocab-77-hotel-stay', title: '酒店住宿' },
+  { id: 'ket-vocab-78-airport', title: '机场与飞行' },
+  { id: 'ket-vocab-79-train-bus', title: '轨道与公路' },
+  { id: 'ket-vocab-80-car-parts', title: '汽车与驾驶' },
+  { id: 'ket-vocab-81-emergencies', title: '安全与急救' },
+  { id: 'ket-vocab-82-law-rules', title: '规则与社会' },
+  { id: 'ket-vocab-83-countries', title: '国家与语言' },
+  { id: 'ket-vocab-84-nationalities', title: '国籍与人群' },
+  { id: 'ket-vocab-85-arts-crafts', title: '手工与创作' },
 ]
 
 const units: readonly CourseUnit[] = themes.map((theme, index) => ({
