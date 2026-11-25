@@ -7,7 +7,7 @@ const KET_COURSE_ID = 'ket-core-vocabulary-english'
  * KET（剑桥 A2 Key）核心词汇级别：按主题组织单元，每单元 15 词。
  * 独立于年级学期体系，grade/semester 仅为满足课程契约的名义分类值，
  * 通过 track: 'vocab-level' 标记，不参与学期可用性表。
- * 第 1 批覆盖 17 个主题单元，后续批次继续扩充。
+ * 第 1 批覆盖 17 个主题单元，第 2 批扩充至 34 个，第 3 批扩充至 51 个，后续批次继续扩充。
  */
 const themes: readonly { id: string; title: string }[] = [
   { id: 'ket-vocab-01-personal-info', title: '个人信息' },
@@ -27,6 +27,40 @@ const themes: readonly { id: string; title: string }[] = [
   { id: 'ket-vocab-15-shopping', title: '购物与金钱' },
   { id: 'ket-vocab-16-time', title: '时间与日期' },
   { id: 'ket-vocab-17-hobbies', title: '爱好与运动' },
+  { id: 'ket-vocab-18-jobs', title: '职业' },
+  { id: 'ket-vocab-19-feelings', title: '情感与感受' },
+  { id: 'ket-vocab-20-appearance', title: '外貌描述' },
+  { id: 'ket-vocab-21-actions', title: '日常动作' },
+  { id: 'ket-vocab-22-adjectives', title: '常用形容词' },
+  { id: 'ket-vocab-23-furniture', title: '家具与物品' },
+  { id: 'ket-vocab-24-nature', title: '自然与世界' },
+  { id: 'ket-vocab-25-numbers', title: '数字' },
+  { id: 'ket-vocab-26-subjects', title: '学校科目' },
+  { id: 'ket-vocab-27-sports', title: '体育运动' },
+  { id: 'ket-vocab-28-music-art', title: '音乐与艺术' },
+  { id: 'ket-vocab-29-technology', title: '科技与通讯' },
+  { id: 'ket-vocab-30-colours', title: '颜色' },
+  { id: 'ket-vocab-31-dining', title: '餐饮与用餐' },
+  { id: 'ket-vocab-32-measures', title: '度量与形状' },
+  { id: 'ket-vocab-33-celebrations', title: '节日与庆祝' },
+  { id: 'ket-vocab-34-media', title: '媒体与阅读' },
+  { id: 'ket-vocab-35-travel-holidays', title: '旅行与度假' },
+  { id: 'ket-vocab-36-town-buildings', title: '城镇建筑' },
+  { id: 'ket-vocab-37-shopping-services', title: '购物与服务' },
+  { id: 'ket-vocab-38-health-medicine', title: '健康与医疗' },
+  { id: 'ket-vocab-39-weekdays', title: '星期与周末' },
+  { id: 'ket-vocab-40-months', title: '月份与日期' },
+  { id: 'ket-vocab-41-position', title: '方位与位置' },
+  { id: 'ket-vocab-42-movement', title: '移动与方向' },
+  { id: 'ket-vocab-43-communication', title: '交流与表达' },
+  { id: 'ket-vocab-44-cooking', title: '烹饪与厨房' },
+  { id: 'ket-vocab-45-materials', title: '材料与质地' },
+  { id: 'ket-vocab-46-environment', title: '环境与地球' },
+  { id: 'ket-vocab-47-personality', title: '性格与品质' },
+  { id: 'ket-vocab-48-weather-adjectives', title: '天气描述' },
+  { id: 'ket-vocab-49-animals-extra', title: '更多动物' },
+  { id: 'ket-vocab-50-food-extra', title: '更多食物' },
+  { id: 'ket-vocab-51-thinking', title: '思维与感知' },
 ]
 
 const units: readonly CourseUnit[] = themes.map((theme, index) => ({
