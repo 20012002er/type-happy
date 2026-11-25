@@ -30,6 +30,10 @@ import './english-content-ket-09'
 import './english-content-ket-10'
 import './english-content-ket-11'
 import './english-content-ket-12'
+import './english-content-ket-13'
+import './english-content-ket-14'
+import './english-content-ket-15'
+import './english-content-ket-16'
 
 function unitContent(context: EnglishGeneratorContext) {
   return getEnglishUnitContent(context.course.id, context.template.classification.unitId)

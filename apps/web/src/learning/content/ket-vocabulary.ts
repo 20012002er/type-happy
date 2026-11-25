@@ -7,7 +7,7 @@ const KET_COURSE_ID = 'ket-core-vocabulary-english'
  * KET（剑桥 A2 Key）核心词汇级别：按主题组织单元，每单元 15 词。
  * 独立于年级学期体系，grade/semester 仅为满足课程契约的名义分类值，
  * 通过 track: 'vocab-level' 标记，不参与学期可用性表。
- * 第 1 批覆盖 17 个主题单元，第 2 批扩充至 34 个，第 3 批扩充至 51 个，后续批次继续扩充。
+ * 第 1 批覆盖 17 个主题单元，第 2 批扩充至 34 个，第 3 批扩充至 51 个，第 4 批扩充至 68 个，后续批次继续扩充。
  */
 const themes: readonly { id: string; title: string }[] = [
   { id: 'ket-vocab-01-personal-info', title: '个人信息' },
@@ -61,6 +61,23 @@ const themes: readonly { id: string; title: string }[] = [
   { id: 'ket-vocab-49-animals-extra', title: '更多动物' },
   { id: 'ket-vocab-50-food-extra', title: '更多食物' },
   { id: 'ket-vocab-51-thinking', title: '思维与感知' },
+  { id: 'ket-vocab-52-house-facilities', title: '房屋设施' },
+  { id: 'ket-vocab-53-school-activities', title: '学校活动' },
+  { id: 'ket-vocab-54-adverbs', title: '常用副词' },
+  { id: 'ket-vocab-55-connectors', title: '连词与连接' },
+  { id: 'ket-vocab-56-common-verbs', title: '常用动词' },
+  { id: 'ket-vocab-57-states', title: '状态与描述' },
+  { id: 'ket-vocab-58-quantity', title: '数量与程度' },
+  { id: 'ket-vocab-59-nature-scenery', title: '乡野与景观' },
+  { id: 'ket-vocab-60-plants-garden', title: '植物与园艺' },
+  { id: 'ket-vocab-61-clothes-extra', title: '服饰配件' },
+  { id: 'ket-vocab-62-work-office', title: '职场与办公' },
+  { id: 'ket-vocab-63-taste-texture', title: '味道与口感' },
+  { id: 'ket-vocab-64-home-objects', title: '家居用品' },
+  { id: 'ket-vocab-65-sports-extra', title: '体育器材' },
+  { id: 'ket-vocab-66-music-extra', title: '音乐之声' },
+  { id: 'ket-vocab-67-machines', title: '机器与设备' },
+  { id: 'ket-vocab-68-abstract-nouns', title: '抽象名词' },
 ]
 
 const units: readonly CourseUnit[] = themes.map((theme, index) => ({
