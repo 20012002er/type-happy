@@ -206,8 +206,8 @@ test('T10-04 仅用键盘可答题、打开和取消确认框，系统与应用�
   })
   await seed(page, initial)
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await page.clock.install({ time: new Date(NOW) })
-  await page.clock.pauseAt(new Date(NOW + 1000))
+  await page.clock.install({ time: new Date(NOW - 1000) })
+  await page.clock.pauseAt(new Date(NOW))
   await page.goto('/learning')
   await page.getByLabel('页面动画').uncheck()
   expect(
@@ -349,7 +349,7 @@ test('T10-05 365 天长历史可打开且只渲染分页，核心交互响应低
   initial.farm = claimStarterGift(initial.farm, { actionId: 'starter-gift', now: NOW })
   populateYear(initial)
   await seed(page, initial)
-  await page.clock.install({ time: new Date(NOW) })
+  await page.clock.install({ time: new Date(NOW - 1000) })
   await page.clock.pauseAt(new Date(NOW))
 
   for (const path of ['/learning', '/learning/parent', '/learning/farm']) {
@@ -534,7 +534,7 @@ function processingReadySnapshot(purchased = false): LearningSnapshot {
 test('E2E-28 仅用键盘完成加工坊购买、开始、收取和出售，模态框焦点受控', async ({ page }) => {
   await seed(page, processingReadySnapshot())
   await page.emulateMedia({ reducedMotion: 'reduce' })
-  await page.clock.install({ time: new Date(NOW) })
+  await page.clock.install({ time: new Date(NOW - 1000) })
   await page.clock.pauseAt(new Date(NOW))
   await page.goto('/learning/farm')
 

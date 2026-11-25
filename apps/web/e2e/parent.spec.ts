@@ -20,7 +20,8 @@ async function seed(page: Page, snapshot: LearningSnapshot): Promise<void> {
 }
 
 async function useFixedClock(page: Page): Promise<void> {
-  await page.clock.install({ time: new Date(NOW) })
+  // install 提前 1s 再 pauseAt 到 NOW：避免两步调用间真实时钟漂移导致“fast-forward to the past”
+  await page.clock.install({ time: new Date(NOW - 1000) })
   await page.clock.pauseAt(new Date(NOW))
 }
 
