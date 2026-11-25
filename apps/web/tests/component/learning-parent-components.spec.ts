@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { nextTick } from 'vue'
 import LearningParentView from '../../src/views/LearningParentView.vue'
 import LearningRecordsView from '../../src/views/LearningRecordsView.vue'
+import { KET_CORE_VOCABULARY_COURSE } from '../../src/learning/content/ket-vocabulary'
 import {
   createEmptyLearningSnapshot,
   LEARNING_STORAGE_KEY,
@@ -326,6 +327,33 @@ describe('WP08 parent course scope, motion settings and filters', () => {
     const { pinia } = setup()
     const wrapper = mountView(LearningParentView, pinia)
     expect(wrapper.text()).toContain('当前筛选范围内还没有学习记录')
+    wrapper.unmount()
+  })
+})
+
+describe('KET vocabulary level course label', () => {
+  it('shows the level title instead of the nominal grade label', () => {
+    const snapshot = createEmptyLearningSnapshot()
+    snapshot.learning.records = [
+      makeRecord('ket-record', 'first-correct', {
+        courseId: KET_CORE_VOCABULARY_COURSE.id,
+        knowledgePointId: 'ket-vocab-01-personal-info-vocabulary',
+      }),
+    ]
+    const { pinia } = setup(snapshot)
+    const wrapper = mountView(LearningParentView, pinia)
+
+    const courseOptions = wrapper
+      .find('#summary-course')
+      .findAll('option')
+      .map((option) => option.text())
+    expect(courseOptions).toContain('KET 核心词汇')
+    expect(courseOptions).not.toContain('6 年级上学期英语')
+
+    const knowledge = wrapper.find('section[aria-labelledby="knowledge-summary-title"]')
+    expect(knowledge.text()).toContain('个人信息核心词汇')
+    expect(knowledge.text()).toContain('KET 核心词汇')
+    expect(knowledge.text()).not.toContain('6 年级上学期英语')
     wrapper.unmount()
   })
 })

@@ -3,10 +3,12 @@ import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import LearningPage from '../components/learning/LearningPage.vue'
 import { GRADE4_AUTUMN_MATH_COURSE } from '../learning/content/grade4-math'
+import { KET_CORE_VOCABULARY_COURSE } from '../learning/content/ket-vocabulary'
 import { LEARNING_RULES } from '../learning/config/rules'
 import type { CourseSelection } from '../learning/persistence/snapshot'
 import { filterMathTemplates } from '../learning/practice/math-templates'
 import { filterEnglishTemplates } from '../learning/practice/english-templates'
+import { hasPracticeContent } from '../learning/practice/paper'
 import {
   QUESTION_TYPES,
   type Difficulty,
@@ -120,6 +122,36 @@ const hasEnglishSpecialMatches = computed(
     Boolean(englishAbility.value || englishUnit.value) &&
     englishSupportedDifficulties.value.size > 0,
 )
+const ketAbility = ref<LearningAbility | ''>('english-vocabulary')
+const ketUnit = ref('')
+const ketQuestionType = ref<QuestionType | ''>('')
+const ketDifficulty = ref<Difficulty>('L2')
+const ketContentReady = computed(() => hasPracticeContent(KET_CORE_VOCABULARY_COURSE.id))
+const ketTemplates = computed(() =>
+  filterEnglishTemplates({
+    courseId: KET_CORE_VOCABULARY_COURSE.id,
+    unitId: ketUnit.value || undefined,
+    ability: ketAbility.value || undefined,
+    includeReview: false,
+  }),
+)
+const availableKetQuestionTypes = computed(() =>
+  QUESTION_TYPES.filter((type) => ketTemplates.value.some((template) => template.type === type)),
+)
+const ketSupportedDifficulties = computed(
+  () =>
+    new Set(
+      ketTemplates.value
+        .filter((template) => !ketQuestionType.value || template.type === ketQuestionType.value)
+        .flatMap((template) => template.supportedDifficulties),
+    ),
+)
+const hasKetSpecialMatches = computed(
+  () =>
+    ketContentReady.value &&
+    Boolean(ketAbility.value || ketUnit.value) &&
+    ketSupportedDifficulties.value.size > 0,
+)
 const progress = computed(() =>
   Math.min(100, Math.round((learning.today.taskCompleted / learning.today.goal) * 100)),
 )
@@ -180,6 +212,19 @@ watch([englishAbility, englishUnit, englishQuestionType], () => {
     englishDifficulty.value = englishSupportedDifficulties.value.has('L2') ? 'L2' : 'L1'
   }
 })
+watch([ketAbility, ketUnit], () => {
+  if (ketQuestionType.value && !availableKetQuestionTypes.value.includes(ketQuestionType.value)) {
+    ketQuestionType.value = ''
+  }
+})
+watch([ketAbility, ketUnit, ketQuestionType], () => {
+  if (
+    ketSupportedDifficulties.value.size > 0 &&
+    !ketSupportedDifficulties.value.has(ketDifficulty.value)
+  ) {
+    ketDifficulty.value = ketSupportedDifficulties.value.has('L2') ? 'L2' : 'L1'
+  }
+})
 
 function chooseCourse(selection: CourseSelection): void {
   startError.value = ''
@@ -233,6 +278,40 @@ function startEnglishSpecial(): void {
         ability: englishAbility.value || undefined,
         questionType: englishQuestionType.value || undefined,
         difficulty: englishDifficulty.value,
+      }),
+    )
+  } catch (error) {
+    startError.value = error instanceof Error ? error.message : '所选专项暂时没有可用题目'
+  }
+}
+
+function startKetComprehensive(): void {
+  startError.value = ''
+  try {
+    openPractice(
+      learning.startPractice({
+        mode: 'comprehensive',
+        subject: 'english',
+        courseId: KET_CORE_VOCABULARY_COURSE.id,
+      }),
+    )
+  } catch (error) {
+    startError.value = error instanceof Error ? error.message : '练习组暂时无法创建，请重试'
+  }
+}
+
+function startKetSpecial(): void {
+  startError.value = ''
+  try {
+    openPractice(
+      learning.startPractice({
+        mode: 'special',
+        subject: 'english',
+        courseId: KET_CORE_VOCABULARY_COURSE.id,
+        unitId: ketUnit.value || undefined,
+        ability: ketAbility.value || undefined,
+        questionType: ketQuestionType.value || undefined,
+        difficulty: ketDifficulty.value,
       }),
     )
   } catch (error) {
@@ -577,6 +656,98 @@ onUnmounted(() => window.removeEventListener('storage', learning.handleStorageEv
               @click="startEnglishSpecial"
             >
               开始英语专项练习
+            </button>
+          </div>
+        </section>
+
+        <section class="learn-paper learn-section" aria-labelledby="ket-level-title">
+          <div class="learn-section__heading">
+            <div>
+              <p class="learn-kicker">词汇级别</p>
+              <h2 id="ket-level-title">KET 核心词汇</h2>
+            </div>
+            <span class="learn-tag">不随学期切换</span>
+          </div>
+          <p>
+            按剑桥 A2 Key 词表分主题练习，独立于学期课程；综合每组
+            {{ learning.today.goal }} 题，专项每组 10 题。
+          </p>
+          <div class="learn-actions">
+            <button
+              type="button"
+              class="learn-button"
+              :disabled="
+                learning.saving ||
+                !learning.ready ||
+                Boolean(learning.activeSession) ||
+                !ketContentReady
+              "
+              @click="startKetComprehensive"
+            >
+              开始KET核心词汇综合练习
+            </button>
+          </div>
+          <div class="learn-form-grid">
+            <label class="learn-field">
+              专项能力
+              <select v-model="ketAbility">
+                <option v-for="item in ENGLISH_ABILITIES" :key="item.value" :value="item.value">
+                  {{ item.label }}
+                </option>
+              </select>
+            </label>
+            <label class="learn-field">
+              主题单元
+              <select v-model="ketUnit">
+                <option value="">全部单元</option>
+                <option
+                  v-for="unit in KET_CORE_VOCABULARY_COURSE.units"
+                  :key="unit.id"
+                  :value="unit.id"
+                >
+                  {{ unit.title }}
+                </option>
+              </select>
+            </label>
+            <label class="learn-field">
+              题型
+              <select v-model="ketQuestionType">
+                <option value="">全部题型</option>
+                <option v-for="type in availableKetQuestionTypes" :key="type" :value="type">
+                  {{ QUESTION_TYPE_LABELS[type] ?? type }}
+                </option>
+              </select>
+            </label>
+            <label class="learn-field">
+              难度
+              <select v-model="ketDifficulty">
+                <option
+                  v-for="level in ['L1', 'L2', 'L3']"
+                  :key="level"
+                  :value="level"
+                  :disabled="!ketSupportedDifficulties.has(level as Difficulty)"
+                >
+                  {{ level }} · {{ level === 'L1' ? '基础' : level === 'L2' ? '达标' : '综合' }}
+                </option>
+              </select>
+            </label>
+          </div>
+          <div v-if="!hasKetSpecialMatches" class="learn-empty learn-special-empty">
+            当前筛选条件暂无可用题目。请更换专项能力、主题单元或难度，不会创建空练习组。
+          </div>
+          <div class="learn-actions">
+            <button
+              type="button"
+              class="learn-button learn-button--secondary"
+              :disabled="
+                learning.saving ||
+                !learning.ready ||
+                Boolean(learning.activeSession) ||
+                !hasKetSpecialMatches
+              "
+              @click="startKetSpecial"
+            >
+              开始KET专项练习
             </button>
           </div>
         </section>

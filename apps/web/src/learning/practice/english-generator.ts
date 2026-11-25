@@ -18,6 +18,10 @@ import { getEnglishTemplate } from './english-templates'
 import './english-content-grade4-spring'
 import './english-content-grade5-autumn'
 import './english-content-grade5-spring'
+import './english-content-ket-01'
+import './english-content-ket-02'
+import './english-content-ket-03'
+import './english-content-ket-04'
 
 function unitContent(context: EnglishGeneratorContext) {
   return getEnglishUnitContent(context.course.id, context.template.classification.unitId)

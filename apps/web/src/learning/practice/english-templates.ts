@@ -3,6 +3,7 @@ import type { EnglishQuestionTemplate } from './english-template-kit'
 import { GRADE4_SPRING_ENGLISH_TEMPLATES } from './templates-english-grade4-spring'
 import { GRADE5_AUTUMN_ENGLISH_TEMPLATES } from './templates-english-grade5-autumn'
 import { GRADE5_SPRING_ENGLISH_TEMPLATES } from './templates-english-grade5-spring'
+import { KET_CORE_VOCABULARY_TEMPLATES } from './templates-english-ket'
 
 export type { EnglishPaperCategory, EnglishQuestionTemplate } from './english-template-kit'
 
@@ -10,6 +11,7 @@ export const ENGLISH_TEMPLATES: readonly EnglishQuestionTemplate[] = [
   ...GRADE4_SPRING_ENGLISH_TEMPLATES,
   ...GRADE5_AUTUMN_ENGLISH_TEMPLATES,
   ...GRADE5_SPRING_ENGLISH_TEMPLATES,
+  ...KET_CORE_VOCABULARY_TEMPLATES,
 ]
 
 export function getEnglishTemplate(templateId: string): EnglishQuestionTemplate {

@@ -2,6 +2,8 @@ import { createPinia, setActivePinia } from 'pinia'
 import { toRaw } from 'vue'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { GRADE4_AUTUMN_MATH_COURSE } from '../../src/learning/content/grade4-math'
+import { KET_CORE_VOCABULARY_COURSE } from '../../src/learning/content/ket-vocabulary'
+import { GRADE4_SPRING_ENGLISH_COURSE } from '../../src/learning/content/course-registry'
 import {
   createEmptyLearningSnapshot,
   LEARNING_STORAGE_KEY,
@@ -369,5 +371,72 @@ describe('learning store UI orchestration', () => {
     expect(learning.preferences.courseIntroSeen).toBe(false)
     expect(learning.courseSelectionRequired).toBe(true)
     expect(learning.saveError).toContain('暂未保存')
+  })
+})
+
+describe('KET vocabulary level practice', () => {
+  beforeEach(() => setActivePinia(createPinia()))
+
+  it('starts level practice by explicit courseId without semester selection', () => {
+    const { learning } = setup()
+    expect(learning.courseSelectionRequired).toBe(true)
+
+    const comprehensive = learning.startPractice({
+      mode: 'comprehensive',
+      subject: 'english',
+      courseId: KET_CORE_VOCABULARY_COURSE.id,
+    })
+    expect(comprehensive).toMatch(/^practice-/)
+    const session = learning.getSession(comprehensive!)
+    expect(session?.questions).toHaveLength(30)
+    expect(
+      session?.questions.every(
+        (entry) => entry.question.classification.courseId === KET_CORE_VOCABULARY_COURSE.id,
+      ),
+    ).toBe(true)
+    expect(learning.snapshot.course).toEqual({ grade: 4, semester: 'autumn' })
+    expect(learning.abandonSession(comprehensive!)).toBe(true)
+
+    const special = learning.startPractice({
+      mode: 'special',
+      subject: 'english',
+      courseId: KET_CORE_VOCABULARY_COURSE.id,
+      ability: 'english-vocabulary',
+      difficulty: 'L1',
+    })
+    expect(special).toMatch(/^practice-/)
+    const specialSession = learning.getSession(special!)
+    expect(specialSession?.questions).toHaveLength(10)
+    expect(
+      specialSession?.questions.every(
+        (entry) => entry.question.classification.ability === 'english-vocabulary',
+      ),
+    ).toBe(true)
+  })
+
+  it('rejects unknown, semester and subject-mismatched courseIds on the level path', () => {
+    const { learning } = setup()
+    expect(
+      learning.startPractice({ mode: 'comprehensive', subject: 'english', courseId: 'unknown' }),
+    ).toBeNull()
+    expect(learning.saveError).toContain('词汇级别')
+
+    expect(
+      learning.startPractice({
+        mode: 'comprehensive',
+        subject: 'english',
+        courseId: GRADE4_SPRING_ENGLISH_COURSE.id,
+      }),
+    ).toBeNull()
+    expect(learning.saveError).toContain('词汇级别')
+
+    expect(
+      learning.startPractice({
+        mode: 'comprehensive',
+        subject: 'math',
+        courseId: KET_CORE_VOCABULARY_COURSE.id,
+      }),
+    ).toBeNull()
+    expect(learning.activeSession).toBeUndefined()
   })
 })

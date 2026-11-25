@@ -59,9 +59,9 @@ describe('english paper blueprint', () => {
 })
 
 describe('english template registry and content readiness', () => {
-  it('registers 90 templates across three semesters', () => {
-    expect(ENGLISH_TEMPLATES).toHaveLength(90)
-    expect(new Set(ENGLISH_TEMPLATES.map((template) => template.id)).size).toBe(90)
+  it('registers 175 templates across three semesters and the KET level', () => {
+    expect(ENGLISH_TEMPLATES).toHaveLength(175)
+    expect(new Set(ENGLISH_TEMPLATES.map((template) => template.id)).size).toBe(175)
   })
 
   it('marks all three english courses as having practice content', () => {

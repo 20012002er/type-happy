@@ -1,6 +1,7 @@
 import { parseCourse } from '../contracts'
 import type { Course, Semester, Subject } from '../types'
 import { GRADE4_AUTUMN_MATH_COURSE } from './grade4-math'
+import { KET_CORE_VOCABULARY_COURSE } from './ket-vocabulary'
 
 const grade4SpringMath = {
   id: 'pep-grade4-spring-math',
@@ -1227,6 +1228,7 @@ export const COURSE_REGISTRY: readonly Course[] = [
   GRADE4_SPRING_ENGLISH_COURSE,
   GRADE5_AUTUMN_ENGLISH_COURSE,
   GRADE5_SPRING_ENGLISH_COURSE,
+  KET_CORE_VOCABULARY_COURSE,
 ]
 
 export interface CourseAvailability {

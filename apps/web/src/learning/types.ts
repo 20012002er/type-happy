@@ -33,6 +33,9 @@ export interface CourseUnit {
   order: number
 }
 
+/** 课程轨道：学期课程或独立词汇级别；缺省视为学期课程。 */
+export type CourseTrack = 'semester' | 'vocab-level'
+
 export interface KnowledgePoint {
   id: string
   courseId: string
@@ -50,6 +53,7 @@ export interface Course {
   grade: number
   semester: Semester
   textbook: string
+  track?: CourseTrack
   units: readonly CourseUnit[]
   knowledgePoints: readonly KnowledgePoint[]
 }

@@ -434,6 +434,90 @@ test('英语专项可按能力、单元与题型筛选组卷', async ({ page }) 
   await expect(page.getByText('第 2 / 10 题', { exact: true })).toBeVisible()
 })
 
+test('KET词汇级别新用户免选学期直接综合练习', async ({ page }) => {
+  await page.goto('/learning')
+  await expect(page.getByText('新用户请先选择课程')).toBeVisible()
+  await expect(page.getByRole('button', { name: '开始四年级上学期数学综合练习' })).toBeDisabled()
+  const ketSection = page.locator('section[aria-labelledby="ket-level-title"]')
+  await expect(ketSection).toBeVisible()
+  const ketComprehensive = page.getByRole('button', {
+    name: '开始KET核心词汇综合练习',
+    exact: true,
+  })
+  await expect(ketComprehensive).toBeEnabled()
+  await ketComprehensive.click()
+  await expect(page).toHaveURL(/\/learning\/practice\/practice-/)
+
+  const stored = await page.evaluate(() => {
+    const raw = localStorage.getItem('type-happy:learning:snapshot')
+    if (!raw) throw new Error('学习快照不存在')
+    const snapshot = JSON.parse(raw)
+    const sessions = Object.values(snapshot.practice.sessions) as Array<{
+      questions: Array<{ question: QuestionSnapshot }>
+    }>
+    return {
+      course: snapshot.course,
+      questions: sessions[0].questions.map((entry) => entry.question),
+    }
+  })
+  expect(stored.course).toEqual({ grade: 4, semester: 'autumn' })
+  expect(stored.questions).toHaveLength(30)
+  expect(
+    stored.questions.every(
+      (question) => question.classification.courseId === 'ket-core-vocabulary-english',
+    ),
+  ).toBe(true)
+  expect(
+    stored.questions.reduce<Record<string, number>>((counts, question) => {
+      counts[question.type] = (counts[question.type] ?? 0) + 1
+      return counts
+    }, {}),
+  ).toEqual({ 'single-choice': 15, 'english-spelling': 6, 'sentence-completion': 9 })
+  await expect(page.locator('audio')).toHaveCount(0)
+
+  await submitCurrent(page)
+  await expect(page.getByText('+3 学习金币已到账')).toBeVisible()
+  await advance(page)
+  await expect(page.getByText('第 2 / 30 题', { exact: true })).toBeVisible()
+})
+
+test('KET专项按能力、主题单元与题型筛选组卷', async ({ page }) => {
+  await page.goto('/learning')
+  await page.locator('.learn-course-option').filter({ hasText: '四年级下学期' }).click()
+  const ketFields = page.locator('section[aria-labelledby="ket-level-title"] select')
+  await expect(ketFields).toHaveCount(4)
+  await ketFields.nth(0).selectOption('english-vocabulary')
+  await ketFields.nth(1).selectOption('ket-vocab-01-personal-info')
+  await ketFields.nth(2).selectOption('english-spelling')
+  await ketFields.nth(3).selectOption('L1')
+  await page.getByRole('button', { name: '开始KET专项练习', exact: true }).click()
+  await expect(page).toHaveURL(/\/learning\/practice\/practice-/)
+
+  const questions = await page.evaluate(() => {
+    const raw = localStorage.getItem('type-happy:learning:snapshot')
+    if (!raw) throw new Error('学习快照不存在')
+    const snapshot = JSON.parse(raw)
+    const sessions = Object.values(snapshot.practice.sessions) as Array<{
+      questions: Array<{ question: QuestionSnapshot }>
+    }>
+    return sessions[0].questions.map((entry) => entry.question)
+  })
+  expect(questions).toHaveLength(10)
+  expect(
+    questions.every(
+      (question) =>
+        question.type === 'english-spelling' &&
+        question.classification.courseId === 'ket-core-vocabulary-english' &&
+        question.classification.unitId === 'ket-vocab-01-personal-info',
+    ),
+  ).toBe(true)
+
+  await submitCurrent(page)
+  await expect(page.getByText('+3 学习金币已到账')).toBeVisible()
+  await advance(page)
+  await expect(page.getByText('第 2 / 10 题', { exact: true })).toBeVisible()
+})
+
 test('数学与英语有效完成计入同一个每日目标', async ({ page }) => {
   await page.goto('/learning')
   await page.locator('.learn-course-option').filter({ hasText: '四年级下学期' }).click()

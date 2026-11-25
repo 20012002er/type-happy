@@ -422,6 +422,9 @@ export function parseCourse(value: unknown): Course {
   expectInteger(course.grade, 'course.grade', 1)
   expectSemester(course.semester, 'course.semester')
   expectString(course.textbook, 'course.textbook')
+  if (course.track !== undefined && course.track !== 'semester' && course.track !== 'vocab-level') {
+    throw new ContentValidationError('course.track', '课程轨道必须是 semester 或 vocab-level')
+  }
   const units = expectArray(course.units, 'course.units', 1)
   const unitIds = new Set<string>()
   units.forEach((item, index) => {

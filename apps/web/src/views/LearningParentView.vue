@@ -65,6 +65,8 @@ const questionTypeLabels: Record<QuestionType, string> = {
 function courseLabel(courseId: string): string {
   const course = getCourseById(courseId)
   if (!course) return courseId
+  // 词汇级别课程的 grade/semester 是名义分类值，直接显示课程标题
+  if (course.track === 'vocab-level') return course.title
   return `${course.grade} 年级${semesterLabels[course.semester]}${subjectLabels[course.subject]}`
 }
 

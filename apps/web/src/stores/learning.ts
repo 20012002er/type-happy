@@ -107,10 +107,11 @@ export interface LearningStoreDependencies {
 }
 
 export type StartPracticeOptions =
-  | { mode: 'comprehensive'; subject: Subject }
+  | { mode: 'comprehensive'; subject: Subject; courseId?: string }
   | {
       mode: 'special'
       subject: Subject
+      courseId?: string
       unitId?: string
       knowledgePointId?: string
       ability?: LearningAbility
@@ -509,16 +510,32 @@ export const useLearningStore = defineStore('learning', () => {
 
   function startPractice(options: StartPracticeOptions): string | null {
     if (activeSession.value) return activeSession.value.id
-    if (courseSelectionRequired.value) {
-      saveError.value = '请先在首页选择课程，再开始练习'
-      return null
+    let courseId: string
+    if (options.courseId !== undefined) {
+      // 词汇级别课程通过显式 courseId 直连组卷，不依赖学期课程选择
+      const levelCourse = getCourseById(options.courseId)
+      if (
+        !levelCourse ||
+        levelCourse.track !== 'vocab-level' ||
+        levelCourse.subject !== options.subject ||
+        !hasPracticeContent(levelCourse.id)
+      ) {
+        saveError.value = '该词汇级别课程不可用，请刷新后重试'
+        return null
+      }
+      courseId = levelCourse.id
+    } else {
+      if (courseSelectionRequired.value) {
+        saveError.value = '请先在首页选择课程，再开始练习'
+        return null
+      }
+      const status = getSubjectStatus(options.subject)
+      if (status.availability?.available !== true || !status.contentReady || !status.course) {
+        saveError.value = status.reason
+        return null
+      }
+      courseId = status.course.id
     }
-    const status = getSubjectStatus(options.subject)
-    if (status.availability?.available !== true || !status.contentReady || !status.course) {
-      saveError.value = status.reason
-      return null
-    }
-    const courseId = status.course.id
     const now = getNow()
     const id = `practice-${ids.next()}`
     const paper =

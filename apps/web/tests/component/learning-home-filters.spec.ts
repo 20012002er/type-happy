@@ -2,6 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createMemoryHistory, createRouter } from 'vue-router'
+import { KET_CORE_VOCABULARY_COURSE } from '../../src/learning/content/ket-vocabulary'
 import {
   createEmptyLearningSnapshot,
   LEARNING_STORAGE_KEY,
@@ -14,12 +15,14 @@ import { createSeededRandom } from '../helpers/seeded-random'
 
 const NOW = new Date(2026, 10, 20, 12).getTime()
 
-function setup() {
+function setup(options: { freshUser?: boolean } = {}) {
   const pinia = createPinia()
   setActivePinia(pinia)
-  const storage = new MemoryStorage({
-    [LEARNING_STORAGE_KEY]: JSON.stringify(createEmptyLearningSnapshot()),
-  })
+  const storage = new MemoryStorage(
+    options.freshUser
+      ? {}
+      : { [LEARNING_STORAGE_KEY]: JSON.stringify(createEmptyLearningSnapshot()) },
+  )
   const learning = useLearningStore()
   let id = 0
   expect(
@@ -213,6 +216,74 @@ describe('learning home english special practice filters', () => {
     expect((fields.unit.element as HTMLSelectElement).value).toBe('')
     expect((fields.questionType.element as HTMLSelectElement).value).toBe('')
     expect((fields.difficulty.element as HTMLSelectElement).value).toBe('L2')
+    wrapper.unmount()
+  })
+})
+
+function ketSelects(wrapper: ReturnType<typeof mount>) {
+  const all = wrapper.findAll('section[aria-labelledby="ket-level-title"] select')
+  return { ability: all[0], unit: all[1], questionType: all[2], difficulty: all[3] }
+}
+
+describe('learning home KET vocabulary level', () => {
+  it('offers the KET level section independent of semester selection', async () => {
+    const { learning, router, wrapper } = setup({ freshUser: true })
+    await wrapper.vm.$nextTick()
+    expect(learning.courseSelectionRequired).toBe(true)
+
+    const section = wrapper.find('section[aria-labelledby="ket-level-title"]')
+    expect(section.exists()).toBe(true)
+    expect(wrapper.findAll('section[aria-labelledby="ket-level-title"] select')).toHaveLength(4)
+    const startButton = wrapper
+      .findAll('button')
+      .find((button) => button.text() === '开始KET核心词汇综合练习')
+    expect(startButton?.attributes('disabled')).toBeUndefined()
+    await startButton?.trigger('click')
+    await flushPromises()
+
+    const session = learning.activeSession
+    expect(session).not.toBeNull()
+    expect(session?.questions).toHaveLength(30)
+    expect(
+      session?.questions.every(
+        (entry) => entry.question.classification.courseId === KET_CORE_VOCABULARY_COURSE.id,
+      ),
+    ).toBe(true)
+    expect(router.currentRoute.value.name).toBe('learning-practice')
+    wrapper.unmount()
+  })
+
+  it('starts KET special practice with ability, unit and type filters', async () => {
+    const { learning, wrapper } = setup()
+    expect(learning.selectCourse({ grade: 4, semester: 'spring' })).toBe(true)
+    await wrapper.vm.$nextTick()
+
+    const fields = ketSelects(wrapper)
+    const unitOptions = fields.unit.findAll('option').map((option) => option.element.value)
+    expect(unitOptions).toContain('')
+    expect(unitOptions.length).toBe(KET_CORE_VOCABULARY_COURSE.units.length + 1)
+
+    await fields.ability.setValue('english-vocabulary')
+    await fields.unit.setValue(KET_CORE_VOCABULARY_COURSE.units[0].id)
+    await fields.questionType.setValue('english-spelling')
+    await fields.difficulty.setValue('L1')
+    const startButton = wrapper
+      .findAll('button')
+      .find((button) => button.text() === '开始KET专项练习')
+    await startButton?.trigger('click')
+    await flushPromises()
+
+    const session = learning.activeSession
+    expect(session?.mode).toBe('special')
+    expect(session?.questions).toHaveLength(10)
+    expect(
+      session?.questions.every(
+        (entry) =>
+          entry.question.type === 'english-spelling' &&
+          entry.question.classification.courseId === KET_CORE_VOCABULARY_COURSE.id &&
+          entry.question.classification.unitId === KET_CORE_VOCABULARY_COURSE.units[0].id,
+      ),
+    ).toBe(true)
     wrapper.unmount()
   })
 })

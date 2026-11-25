@@ -93,7 +93,7 @@ function requireCourse(courseId: string): Course {
 }
 
 describe('course registry', () => {
-  it('registers the legacy course and six new courses in the required order', () => {
+  it('registers the legacy course, six semester courses and the KET level in the required order', () => {
     expect(DEFAULT_COURSE_ID).toBe('pep-grade4-autumn-integrated-math')
     expect(COURSE_REGISTRY.map((course) => course.id)).toEqual([
       'pep-grade4-autumn-integrated-math',
@@ -103,8 +103,9 @@ describe('course registry', () => {
       'pep-grade4-spring-english',
       'pep-grade5-autumn-english',
       'pep-grade5-spring-english',
+      'ket-core-vocabulary-english',
     ])
-    expect(new Set(COURSE_REGISTRY.map((course) => course.id)).size).toBe(7)
+    expect(new Set(COURSE_REGISTRY.map((course) => course.id)).size).toBe(8)
   })
 
   it('keeps the legacy course object, unit IDs and knowledge point IDs unchanged', () => {
