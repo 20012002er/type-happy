@@ -47,8 +47,76 @@ async function snapshot(page: Page): Promise<LearningSnapshot> {
   return page.evaluate((key) => JSON.parse(localStorage.getItem(key)!), LEARNING_STORAGE_KEY)
 }
 
-async function switchTab(page: Page, name: '农场' | '商店与建筑' | '仓库与出售'): Promise<void> {
+async function switchTab(
+  page: Page,
+  name: '农场' | '加工坊' | '商店与建筑' | '仓库与出售',
+): Promise<void> {
   await page.getByRole('button', { name, exact: true }).click()
+}
+
+interface ProcessingFarmOptions {
+  balance?: number
+  purchased?: boolean
+  inventory?: Record<string, number>
+  harvests?: { crops?: number; eggs?: number; milk?: number }
+}
+
+function processingFarm(options: ProcessingFarmOptions = {}): LearningSnapshot {
+  const snapshot = fundedFarm(options.balance ?? 0)
+  const actions: Record<string, string> = { ...snapshot.farm.actions }
+  const animals = [...snapshot.farm.animals]
+  const buildings = { ...snapshot.farm.buildings }
+  for (let index = 0; index < (options.harvests?.crops ?? 0); index += 1) {
+    actions[`harvest-crop-${index}`] = JSON.stringify({
+      type: 'harvest-crop',
+      now: NOW,
+      plotId: 'plot-1',
+    })
+  }
+  if (options.harvests?.milk) {
+    buildings.cowshed = { level: 1 }
+    animals.push({ id: 'cow-1', kind: 'cow', production: null, productPending: false })
+  }
+  for (let index = 0; index < (options.harvests?.eggs ?? 0); index += 1) {
+    actions[`collect-egg-${index}`] = JSON.stringify({
+      type: 'collect-animal-product',
+      now: NOW,
+      animalId: 'chicken-1',
+    })
+  }
+  for (let index = 0; index < (options.harvests?.milk ?? 0); index += 1) {
+    actions[`collect-milk-${index}`] = JSON.stringify({
+      type: 'collect-animal-product',
+      now: NOW,
+      animalId: 'cow-1',
+    })
+  }
+  snapshot.farm = {
+    ...snapshot.farm,
+    animals,
+    buildings,
+    actions,
+    inventory: { ...snapshot.farm.inventory, ...options.inventory },
+  }
+  if (options.purchased) {
+    snapshot.processing = {
+      workshop: { purchased: true, activeTask: null, pendingOutput: null },
+      actions: {},
+    }
+  }
+  return snapshot
+}
+
+async function openProcessing(page: Page): Promise<void> {
+  await page.locator('.farm-tabs button').filter({ hasText: '加工坊' }).click()
+}
+
+function processingStatus(page: Page) {
+  return page.locator('section[aria-labelledby="farm-processing-status-title"]')
+}
+
+function recipeCard(page: Page, recipeId: string) {
+  return page.locator(`section[aria-labelledby="farm-recipe-${recipeId}"]`)
 }
 
 test('E2E-09 礼包、四种作物、化肥、顺序购地与建筑确认', async ({ page }) => {
@@ -224,11 +292,11 @@ test('E2E-11 离线成熟入仓、单项与全部出售、上限和次日恢复'
   await page.getByRole('button', { name: '确认出售并获得 54 金币', exact: true }).click()
   expect((await snapshot(page)).farm.inventory.radish).toBe(5)
   expect((await snapshot(page)).wallet.balance).toBe(54)
-  await expect(page.getByRole('button', { name: '出售全部农产品', exact: true })).toBeDisabled()
+  await expect(page.getByRole('button', { name: '出售全部可售物品', exact: true })).toBeDisabled()
 
   await page.clock.fastForward(24 * HOUR)
-  await expect(page.getByRole('button', { name: '出售全部农产品', exact: true })).toBeEnabled()
-  await page.getByRole('button', { name: '出售全部农产品', exact: true }).click()
+  await expect(page.getByRole('button', { name: '出售全部可售物品', exact: true })).toBeEnabled()
+  await page.getByRole('button', { name: '出售全部可售物品', exact: true }).click()
   await expect(page.getByRole('dialog')).toContainText('合计：5 件，45 学习金币')
   await page.getByRole('button', { name: '确认出售并获得 45 金币', exact: true }).click()
   expect((await snapshot(page)).farm.inventory.radish).toBe(0)
@@ -349,4 +417,230 @@ test('WP09 动态画布装饰层、减动效静态降级与 360px 可操作', as
   const stored = await snapshot(page)
   expect(stored.farm.plots.filter((plot) => plot.crop !== null)).toHaveLength(3)
   expect(stored.farm.inventory['radish-seed']).toBe(1)
+})
+
+test('E2E-17 老用户满足收获条件购买加工坊，余额不足不扣款', async ({ page }) => {
+  await openFarm(page, processingFarm({ balance: 239, harvests: { crops: 3 } }))
+  await expect(page.locator('.farm-building--processing')).toContainText(
+    '已解锁购买资格，售价 240 学习金币',
+  )
+  await openProcessing(page)
+  await expect(page.getByText('学习金币不足，还差 1 金币', { exact: true })).toBeVisible()
+  await expect(page.getByRole('link', { name: '去学习赚金币', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: '购买加工坊', exact: true })).toBeDisabled()
+
+  await page.evaluate(({ key, value }) => localStorage.setItem(key, value), {
+    key: LEARNING_STORAGE_KEY,
+    value: JSON.stringify(processingFarm({ balance: 500, harvests: { crops: 3 } })),
+  })
+  await page.reload()
+  await openProcessing(page)
+  await page.getByRole('button', { name: '购买加工坊', exact: true }).click()
+  await expect(page.getByRole('dialog')).toContainText('总价：240 学习金币')
+  await expect(page.getByRole('dialog')).toContainText('购买后余额：260 金币')
+  await expect(page.getByRole('dialog')).toContainText('只有 1 个加工位')
+  await page.getByRole('button', { name: '取消，不执行', exact: true }).click()
+  expect((await snapshot(page)).wallet.balance).toBe(500)
+  expect((await snapshot(page)).processing.workshop.purchased).toBe(false)
+
+  await page.getByRole('button', { name: '购买加工坊', exact: true }).click()
+  await page.getByRole('button', { name: '确认支付 240 金币', exact: true }).click()
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  const bought = await snapshot(page)
+  expect(bought.wallet.balance).toBe(260)
+  expect(bought.processing.workshop.purchased).toBe(true)
+  expect(
+    bought.wallet.ledger.filter((entry) => entry.source === 'processing-purchase'),
+  ).toHaveLength(1)
+  // 建成后只自动开放一次配方页与三步引导
+  await expect(page.getByText('加工坊三步上手', { exact: true })).toBeVisible()
+  await expect(recipeCard(page, 'flour')).toBeVisible()
+  await page.getByRole('button', { name: '跳过引导', exact: true }).click()
+  await page.reload()
+  await openProcessing(page)
+  await expect(page.getByText('加工坊三步上手', { exact: true })).toHaveCount(0)
+})
+
+test('E2E-18 小麦加工面粉：扣料、虚拟时间 20 分钟与手动收取', async ({ page }) => {
+  await openFarm(
+    page,
+    processingFarm({ purchased: true, inventory: { wheat: 2 }, harvests: { crops: 3 } }),
+  )
+  await openProcessing(page)
+  await recipeCard(page, 'flour').getByRole('button', { name: '开始加工面粉' }).click()
+  await expect(page.getByRole('dialog')).toContainText('投入：小麦 × 2（库存 2 → 0）')
+  await expect(page.getByRole('dialog')).toContainText('原料不可退回')
+  await page.getByRole('button', { name: '确认投入并开始加工', exact: true }).click()
+  const started = await snapshot(page)
+  expect(started.farm.inventory.wheat).toBe(0)
+  expect(started.processing.workshop.activeTask?.completesAt).toBe(NOW + 20 * MINUTE)
+  await expect(processingStatus(page)).toContainText('剩余时间：20 分钟')
+  await expect(
+    processingStatus(page).getByRole('button', { name: '加工尚未完成，不能提前收取' }),
+  ).toBeDisabled()
+
+  await page.clock.fastForward(20 * MINUTE)
+  await expect(processingStatus(page)).toContainText('加工完成 · 可收取')
+  await processingStatus(page).getByRole('button', { name: '收取加工品入仓', exact: true }).click()
+  const collected = await snapshot(page)
+  expect(collected.farm.inventory.flour).toBe(1)
+  expect(collected.processing.workshop.activeTask).toBeNull()
+  expect(collected.processing.workshop.pendingOutput).toBeNull()
+  await expect(processingStatus(page)).toContainText('空闲 · 可开始加工')
+})
+
+test('E2E-19 牛奶奶油与蛋奶布丁：解锁、时长、售价与共享上限', async ({ page }) => {
+  await openFarm(
+    page,
+    processingFarm({
+      purchased: true,
+      inventory: { milk: 2, egg: 1 },
+      harvests: { crops: 1, eggs: 1, milk: 1 },
+    }),
+  )
+  await openProcessing(page)
+  await expect(recipeCard(page, 'cream')).toContainText('已解锁')
+  await expect(recipeCard(page, 'egg-milk-pudding')).toContainText('已解锁')
+
+  await recipeCard(page, 'cream').getByRole('button', { name: '开始加工奶油' }).click()
+  await page.getByRole('button', { name: '确认投入并开始加工', exact: true }).click()
+  expect((await snapshot(page)).processing.workshop.activeTask?.completesAt).toBe(NOW + 30 * MINUTE)
+  await page.clock.fastForward(30 * MINUTE)
+  await processingStatus(page).getByRole('button', { name: '收取加工品入仓', exact: true }).click()
+  expect((await snapshot(page)).farm.inventory.cream).toBe(1)
+
+  await recipeCard(page, 'egg-milk-pudding')
+    .getByRole('button', { name: '开始加工蛋奶布丁' })
+    .click()
+  await page.getByRole('button', { name: '确认投入并开始加工', exact: true }).click()
+  expect((await snapshot(page)).farm.inventory.egg).toBe(0)
+  expect((await snapshot(page)).farm.inventory.milk).toBe(0)
+  await page.clock.fastForward(45 * MINUTE)
+  await processingStatus(page).getByRole('button', { name: '收取加工品入仓', exact: true }).click()
+  const collected = await snapshot(page)
+  expect(collected.farm.inventory['egg-milk-pudding']).toBe(1)
+  expect(collected.farm.inventory.cream).toBe(1)
+
+  await switchTab(page, '仓库与出售')
+  await page
+    .locator('.farm-inventory-item')
+    .filter({ hasText: '奶油' })
+    .getByRole('button', { name: '出售', exact: true })
+    .click()
+  await expect(page.getByRole('dialog')).toContainText('奶油 × 1，单价 48，小计 48 金币')
+  await page.getByRole('button', { name: '确认出售并获得 48 金币', exact: true }).click()
+  expect((await snapshot(page)).wallet.balance).toBe(48)
+  // 剩余额度 12 金币：布丁 60 金币单项被拒，不扣库存
+  await expect(
+    page
+      .locator('.farm-inventory-item')
+      .filter({ hasText: '蛋奶布丁' })
+      .getByText('超出今日出售收入上限，当前最多可出售 0 件', { exact: true }),
+  ).toBeVisible()
+  expect((await snapshot(page)).farm.inventory['egg-milk-pudding']).toBe(1)
+  await page.clock.fastForward(24 * HOUR)
+  await page
+    .locator('.farm-inventory-item')
+    .filter({ hasText: '蛋奶布丁' })
+    .getByRole('button', { name: '出售', exact: true })
+    .click()
+  await page.getByRole('button', { name: '确认出售并获得 60 金币', exact: true }).click()
+  const sold = await snapshot(page)
+  expect(sold.wallet.balance).toBe(108)
+  expect(sold.farm.inventory['egg-milk-pudding']).toBe(0)
+  expect(sold.farm.inventory.cream).toBe(0)
+})
+
+test('E2E-20 加工中离开刷新与离线返回：不重复扣料不自动下一轮', async ({ page }) => {
+  await openFarm(
+    page,
+    processingFarm({ purchased: true, inventory: { wheat: 2 }, harvests: { crops: 3 } }),
+  )
+  await openProcessing(page)
+  await recipeCard(page, 'flour').getByRole('button', { name: '开始加工面粉' }).click()
+  await page.getByRole('button', { name: '确认投入并开始加工', exact: true }).click()
+  const taskId = (await snapshot(page)).processing.workshop.activeTask?.id
+
+  await page.clock.fastForward(10 * MINUTE)
+  await page.reload()
+  await openProcessing(page)
+  const mid = await snapshot(page)
+  expect(mid.farm.inventory.wheat).toBe(0)
+  expect(mid.processing.workshop.activeTask?.id).toBe(taskId)
+  await expect(processingStatus(page)).toContainText('剩余时间：10 分钟')
+
+  await page.clock.fastForward(15 * MINUTE)
+  await page.reload()
+  await openProcessing(page)
+  const settled = await snapshot(page)
+  expect(settled.processing.workshop.pendingOutput).toMatchObject({
+    productId: 'flour',
+    quantity: 1,
+  })
+  expect(settled.processing.workshop.activeTask).toBeNull()
+  await expect(processingStatus(page)).toContainText('加工完成 · 可收取')
+
+  // 完成后无限期待收，不自动开始第二轮
+  await page.clock.fastForward(24 * HOUR)
+  await page.reload()
+  await openProcessing(page)
+  const later = await snapshot(page)
+  expect(later.processing.workshop.pendingOutput?.quantity).toBe(1)
+  expect(later.processing.workshop.activeTask).toBeNull()
+  expect(later.farm.inventory.wheat).toBe(0)
+  await processingStatus(page).getByRole('button', { name: '收取加工品入仓', exact: true }).click()
+  expect((await snapshot(page)).farm.inventory.flour).toBe(1)
+})
+
+test('E2E-21 双击开始与收取、保存失败重试只结算一次', async ({ page }) => {
+  await openFarm(
+    page,
+    processingFarm({ purchased: true, inventory: { wheat: 4 }, harvests: { crops: 3 } }),
+  )
+  await openProcessing(page)
+  await recipeCard(page, 'flour').getByRole('button', { name: '开始加工面粉' }).click()
+  await page
+    .getByRole('button', { name: '确认投入并开始加工', exact: true })
+    .evaluate((button: HTMLButtonElement) => {
+      button.click()
+      button.click()
+    })
+  await expect(page.getByRole('dialog')).toHaveCount(0)
+  const started = await snapshot(page)
+  expect(started.farm.inventory.wheat).toBe(2)
+  expect(started.processing.workshop.activeTask?.recipeId).toBe('flour')
+  expect(Object.keys(started.processing.actions)).toHaveLength(1)
+
+  await page.clock.fastForward(20 * MINUTE)
+  await page.evaluate(() => {
+    const original = Storage.prototype.setItem
+    let failOnce = true
+    Storage.prototype.setItem = function (key, value) {
+      if (failOnce && key === 'type-happy:learning:snapshot') {
+        failOnce = false
+        throw new DOMException('Injected quota failure', 'QuotaExceededError')
+      }
+      return original.call(this, key, value)
+    }
+  })
+  await processingStatus(page).getByRole('button', { name: '收取加工品入仓', exact: true }).click()
+  await expect(page.getByRole('alert').filter({ hasText: '本次进度暂未保存' })).toBeVisible()
+  const failed = await snapshot(page)
+  expect(failed.farm.inventory.flour ?? 0).toBe(0)
+  expect(failed.farm.inventory.wheat).toBe(2)
+  // 保存失败时结算未落盘：任务原样保留，不重复生成产出
+  expect(failed.processing.workshop.activeTask?.id).toBe(started.processing.workshop.activeTask?.id)
+  expect(Object.keys(failed.processing.actions)).toHaveLength(1)
+
+  await processingStatus(page)
+    .getByRole('button', { name: '收取加工品入仓', exact: true })
+    .evaluate((button: HTMLButtonElement) => {
+      button.click()
+      button.click()
+    })
+  const retried = await snapshot(page)
+  expect(retried.farm.inventory.flour).toBe(1)
+  expect(retried.processing.workshop.pendingOutput).toBeNull()
+  expect(retried.wallet.ledger).toHaveLength(0)
+  await expect(processingStatus(page)).toContainText('空闲 · 可开始加工')
 })

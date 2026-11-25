@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import FarmScene from '../components/learning/FarmScene.vue'
 import LearningConfirmDialog from '../components/learning/LearningConfirmDialog.vue'
 import LearningPage from '../components/learning/LearningPage.vue'
@@ -27,11 +27,19 @@ import {
   type FarmProductId,
   type WarehouseCategory,
 } from '../learning/farm/farm-state'
-import { useLearningStore, type FarmOperation } from '../stores/learning'
+import {
+  quoteProcessingSale,
+  type ProcessingSaleQuote,
+  type ProcessingSaleSelection,
+} from '../learning/processing/operations'
+import { PROCESSING_RECIPES, getProcessingRecipe, getProcessingSlotStatus } from '../learning/processing/recipes'
+import { getProcessingPurchaseEligibility, getRecipeAvailability } from '../learning/processing/state'
+import { isProcessingProduct, type ProcessingProductId } from '../learning/processing/types'
+import { useLearningStore, type FarmOperation, type ProcessingOperation } from '../stores/learning'
 import '../learning/farm.css'
 
 const learning = useLearningStore()
-const activeTab = ref<'farm' | 'shop' | 'warehouse'>('farm')
+const activeTab = ref<'farm' | 'processing' | 'shop' | 'warehouse'>('farm')
 const displayNow = ref(learning.getNow())
 const selectedKey = ref<string | null>('plot:plot-1')
 const plantingCrop = ref<CropId>('radish')
@@ -85,7 +93,7 @@ interface Confirmation {
   description: string
   lines: readonly string[]
   confirmLabel: string
-  operation: FarmOperation
+  operations: readonly (FarmOperation | ProcessingOperation)[]
 }
 
 const confirmation = ref<Confirmation | null>(null)
@@ -182,6 +190,141 @@ const categoryQuotes = computed(() => ({
   all: getQuote({ kind: 'all' }),
 }))
 
+const workshop = computed(() => learning.snapshot.processing.workshop)
+const eligibility = computed(() => getProcessingPurchaseEligibility(farm.value))
+const slotStatus = computed(() => getProcessingSlotStatus(workshop.value, effectiveNow.value))
+const activeRecipe = computed(() =>
+  workshop.value.activeTask ? getProcessingRecipe(workshop.value.activeTask.recipeId) : null,
+)
+const pendingOutput = computed(() => workshop.value.pendingOutput)
+const pendingProduct = computed(() => {
+  if (pendingOutput.value) {
+    return { itemId: pendingOutput.value.productId, quantity: pendingOutput.value.quantity }
+  }
+  const recipe = activeRecipe.value
+  return recipe ? { itemId: recipe.output.itemId, quantity: recipe.output.quantity } : null
+})
+const workshopPrice = LEARNING_RULES.farm.processing.purchasePrice
+const workshopShortage = computed(() => Math.max(0, workshopPrice - learning.today.walletBalance))
+const motionReduced = computed(() => learning.animationsReduced || learning.farmMotionReduced)
+const processableRawIds = [...new Set(PROCESSING_RECIPES.flatMap((recipe) => Object.keys(recipe.inputs)))]
+
+const recipeCards = computed(() =>
+  PROCESSING_RECIPES.map((recipe) => {
+    const availability = getRecipeAvailability(farm.value, recipe)
+    const inputs = Object.entries(recipe.inputs).map(([itemId, required]) => {
+      const available = farm.value.inventory[itemId] ?? 0
+      return { itemId, required, available, shortage: Math.max(0, required - available) }
+    })
+    let reason = ''
+    if (!workshop.value.purchased) reason = '请先购买加工坊'
+    else if (!availability.available) {
+      reason = `解锁条件：${availability.missing
+        .map((entry) => `还需手动收获${itemNames[entry.itemId]} × ${entry.required - entry.collected}`)
+        .join('、')}`
+    } else if (workshop.value.pendingOutput !== null) reason = '请先收取待收加工品'
+    else if (workshop.value.activeTask !== null) reason = '加工位正在使用中'
+    else {
+      const shortages = inputs.filter((input) => input.shortage > 0)
+      if (shortages.length > 0) {
+        reason = `原料不足：${shortages
+          .map((input) => `${itemNames[input.itemId]}还差 ${input.shortage} 件`)
+          .join('、')}`
+      }
+    }
+    return { recipe, availability, inputs, reason }
+  }),
+)
+
+interface ProcessingQuoteResult {
+  quote: ProcessingSaleQuote | null
+  error: string
+}
+
+function getProcessingQuote(selection: ProcessingSaleSelection): ProcessingQuoteResult {
+  try {
+    return { quote: quoteProcessingSale(farm.value, selection, displayNow.value), error: '' }
+  } catch (error) {
+    return { quote: null, error: error instanceof Error ? error.message : '暂时无法计算出售金额' }
+  }
+}
+
+const processedRows = computed(() =>
+  warehouse.value
+    .filter((group) => group.category === 'processed-products')
+    .flatMap((group) =>
+      group.items.filter((item) => isProcessingProduct(item.itemId)).map((item) => {
+        const selection: ProcessingSaleSelection = {
+          kind: 'item',
+          itemId: item.itemId as ProcessingProductId,
+          quantity: saleQuantities.value[item.itemId] ?? 1,
+        }
+        return { ...item, selection, ...getProcessingQuote(selection) }
+      }),
+    ),
+)
+const processingAllQuote = computed(() => getProcessingQuote({ kind: 'all' }))
+// 农产品与加工品共享每日 60 金币上限：全部可售清单按全部库存合计校验额度，
+// 任一类别单独超限也先提示分类/分项出售，避免静默漏卖
+const allSale = computed(() => {
+  const farmQuote = categoryQuotes.value.all.quote
+  const procQuote = processingAllQuote.value.quote
+  const sellableItems = warehouse.value
+    .filter(
+      (group) =>
+        group.category === 'crops' ||
+        group.category === 'animal-products' ||
+        group.category === 'processed-products',
+    )
+    .flatMap((group) => group.items)
+    .filter((item) => item.quantity > 0 && item.salePrice !== null)
+  const quantity = sellableItems.reduce((total, item) => total + item.quantity, 0)
+  const amount = sellableItems.reduce((total, item) => total + item.quantity * (item.salePrice ?? 0), 0)
+  if (quantity === 0) {
+    return { farmQuote, procQuote, quantity, amount, error: '没有可出售的农产品或加工品' }
+  }
+  if (amount > remainingSaleIncome.value) {
+    return {
+      farmQuote,
+      procQuote,
+      quantity,
+      amount,
+      error: `全部可售物品合计 ${amount} 金币，超出今日剩余可售额度 ${remainingSaleIncome.value} 金币，请分类或分项出售`,
+    }
+  }
+  return { farmQuote, procQuote, quantity, amount, error: '' }
+})
+
+const guideReopened = ref(false)
+const guideVisible = computed(
+  () =>
+    workshop.value.purchased &&
+    (!learning.preferences.processingGuideSeen || guideReopened.value),
+)
+const unlockNoticeVisible = computed(
+  () =>
+    eligibility.value.eligible &&
+    !workshop.value.purchased &&
+    !learning.preferences.processingUnlockSeen,
+)
+const completionNotice = ref('')
+let celebratedTaskId: string | null = null
+
+// 完成庆祝只在会话内从加工中转为可收取时播放一次；刷新/重入只显示当前状态
+watch(slotStatus, (status, previous) => {
+  if (status !== 'ready-to-collect' || previous !== 'processing') return
+  const task = workshop.value.activeTask
+  const output = workshop.value.pendingOutput
+  const taskId = output?.taskId ?? task?.id ?? null
+  if (!taskId || celebratedTaskId === taskId) return
+  celebratedTaskId = taskId
+  const product = pendingProduct.value
+  completionNotice.value = product
+    ? `加工完成：${itemNames[product.itemId]} × ${product.quantity} 待收取。`
+    : '加工完成，加工品待收取。'
+  if (!motionReduced.value) sceneRef.value?.playFeedback('building:processing', 'process-collect')
+})
+
 function formatDuration(milliseconds: number): string {
   const seconds = Math.max(0, Math.ceil(milliseconds / 1000))
   if (seconds < 60) return `${seconds} 秒`
@@ -192,6 +335,11 @@ function formatDuration(milliseconds: number): string {
   return rest === 0 ? `${hours} 小时` : `${hours} 小时 ${rest} 分钟`
 }
 
+function formatClock(timestamp: number): string {
+  const date = new Date(timestamp)
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
 function shortage(price: number): number {
   return Math.max(0, price - learning.today.walletBalance)
 }
@@ -199,17 +347,31 @@ function shortage(price: number): number {
 function selectObject(key: string): void {
   selectedKey.value = key
   learning.clearMessages()
+  if (key === 'building:processing') activeTab.value = 'processing'
 }
 
-function switchTab(tab: 'farm' | 'shop' | 'warehouse'): void {
+function switchTab(tab: 'farm' | 'processing' | 'shop' | 'warehouse'): void {
   activeTab.value = tab
   learning.clearMessages()
 }
 
-function execute(operation: FarmOperation): boolean {
+function isProcessingOperation(
+  operation: FarmOperation | ProcessingOperation,
+): operation is ProcessingOperation {
+  return (
+    operation.type === 'buy-workshop' ||
+    operation.type === 'start-processing' ||
+    operation.type === 'collect-processing' ||
+    operation.type === 'sell-processing'
+  )
+}
+
+function execute(operation: FarmOperation | ProcessingOperation): boolean {
   learning.clearMessages()
   const balanceBefore = learning.today.walletBalance
-  const succeeded = learning.performFarmOperation(operation)
+  const succeeded = isProcessingOperation(operation)
+    ? learning.performProcessingOperation(operation)
+    : learning.performFarmOperation(operation)
   displayNow.value = learning.getNow()
   scheduleRefresh()
   // 成功效果只在保存成功后播放；失败保留原视觉状态，不展示到账效果（T09-07）
@@ -218,11 +380,19 @@ function execute(operation: FarmOperation): boolean {
     if (target) sceneRef.value?.playFeedback(target.id, target.kind)
     const delta = learning.today.walletBalance - balanceBefore
     if (delta !== 0) sceneRef.value?.playCoins(delta)
+    if (operation.type === 'buy-workshop') {
+      // 建成引导只自动开放一次；之后可通过“查看使用引导”重看
+      learning.updatePreferences({ processingGuideSeen: true })
+      guideReopened.value = true
+    }
+    if (operation.type === 'collect-processing') completionNotice.value = ''
   }
   return succeeded
 }
 
-function feedbackTarget(operation: FarmOperation): { id: string; kind: FarmFeedbackKind } | null {
+function feedbackTarget(
+  operation: FarmOperation | ProcessingOperation,
+): { id: string; kind: FarmFeedbackKind } | null {
   switch (operation.type) {
     case 'plant':
       return { id: `plot:${operation.plotId}`, kind: 'plant' }
@@ -242,6 +412,12 @@ function feedbackTarget(operation: FarmOperation): { id: string; kind: FarmFeedb
       const count = farm.value.animals.filter((animal) => animal.kind === operation.kind).length
       return { id: `animal:${operation.kind}-${count}`, kind: 'buy' }
     }
+    case 'buy-workshop':
+      return { id: 'building:processing', kind: 'buy' }
+    case 'start-processing':
+      return { id: 'building:processing', kind: 'process-start' }
+    case 'collect-processing':
+      return { id: 'building:processing', kind: 'process-collect' }
     default:
       return null
   }
@@ -272,7 +448,7 @@ function buyNextPlot(): void {
       `土地数量：${farm.value.plots.length} → ${nextPlotNumber.value} 块`,
     ],
     confirmLabel: `确认支付 ${nextPlotPrice.value} 金币`,
-    operation: { type: 'buy-plot' },
+    operations: [{ type: 'buy-plot' }],
   })
 }
 
@@ -289,8 +465,66 @@ function buyBuilding(building: 'chickenCoop' | 'cowshed'): void {
       `购买后余额：${learning.today.walletBalance - card.price} 金币`,
     ],
     confirmLabel: `确认支付 ${card.price} 金币`,
-    operation: { type: 'buy-building', building },
+    operations: [{ type: 'buy-building', building }],
   })
+}
+
+function buyWorkshop(): void {
+  if (!eligibility.value.eligible || workshopShortage.value > 0) return
+  openConfirmation({
+    title: '购买加工坊？',
+    description:
+      '加工坊把小麦、鸡蛋、牛奶加工成更值钱的加工品。只有 1 个加工位，一次只能加工一份配方，完成后需手动收取。',
+    lines: [
+      `总价：${workshopPrice} 学习金币`,
+      `当前余额：${learning.today.walletBalance} 金币`,
+      `购买后余额：${learning.today.walletBalance - workshopPrice} 金币`,
+      `解锁条件已满足：累计手动收获 ${eligibility.value.manualHarvestQuantity} / ${eligibility.value.requiredManualHarvestQuantity} 份`,
+    ],
+    confirmLabel: `确认支付 ${workshopPrice} 金币`,
+    operations: [{ type: 'buy-workshop' }],
+  })
+}
+
+function requestStartProcessing(recipeId: ProcessingProductId): void {
+  const card = recipeCards.value.find((candidate) => candidate.recipe.id === recipeId)
+  if (!card || card.reason) return
+  const recipe = card.recipe
+  openConfirmation({
+    title: `开始加工${recipe.title}？`,
+    description: '原料会在开始时一次性扣除。加工任务不可取消，原料不可退回。',
+    lines: [
+      ...card.inputs.map(
+        (input) =>
+          `投入：${itemNames[input.itemId]} × ${input.required}（库存 ${input.available} → ${input.available - input.required}）`,
+      ),
+      `加工时长：${recipe.durationMinutes} 分钟`,
+      `预计完成：${formatClock(effectiveNow.value + recipe.durationMinutes * 60_000)}`,
+      `产出：${itemNames[recipe.output.itemId]} × ${recipe.output.quantity}，单价 ${recipe.unitPrice} 金币`,
+    ],
+    confirmLabel: '确认投入并开始加工',
+    operations: [{ type: 'start-processing', recipeId }],
+  })
+}
+
+function dismissGuide(): void {
+  guideReopened.value = false
+  learning.updatePreferences({ processingGuideSeen: true })
+}
+
+// 收取前再校验一次槽位状态：同帧双击的第二次点击在 DOM 更新前直接被拦下
+function collectProcessing(): void {
+  if (slotStatus.value !== 'ready-to-collect') return
+  execute({ type: 'collect-processing' })
+}
+
+function reopenGuide(): void {
+  guideReopened.value = true
+}
+
+function dismissUnlockNotice(open: boolean): void {
+  learning.updatePreferences({ processingUnlockSeen: true })
+  if (open) switchTab('processing')
 }
 
 function requestSale(selection: FarmSaleSelection): void {
@@ -306,13 +540,69 @@ function requestSale(selection: FarmSaleSelection): void {
       `出售后今日剩余可售收入：${quote.remainingIncome - quote.amount} 金币`,
     ],
     confirmLabel: `确认出售并获得 ${quote.amount} 金币`,
-    operation: { type: 'sell', selection },
+    operations: [{ type: 'sell', selection }],
+  })
+}
+
+function requestProcessingSale(selection: ProcessingSaleSelection): void {
+  const result = getProcessingQuote(selection)
+  if (!result.quote) return
+  const quote = result.quote
+  openConfirmation({
+    title: selection.kind === 'all' ? '出售全部加工品？' : `出售${itemNames[selection.itemId]}？`,
+    description: `本单收入 ${quote.amount} 学习金币。加工品与农产品共享今日 60 金币出售上限。`,
+    lines: [
+      ...quote.lines.map((line) => `${itemNames[line.itemId]} × ${line.quantity}，单价 ${line.unitPrice}，小计 ${line.amount} 金币`),
+      `合计：${quote.quantity} 件，${quote.amount} 学习金币`,
+      `出售后今日剩余可售收入：${quote.remainingIncome - quote.amount} 金币`,
+    ],
+    confirmLabel: `确认出售并获得 ${quote.amount} 金币`,
+    operations: [{ type: 'sell-processing', selection }],
+  })
+}
+
+function requestAllSale(): void {
+  const { farmQuote, procQuote, quantity, amount, error } = allSale.value
+  if (error || (!farmQuote && !procQuote)) return
+  const operations: (FarmOperation | ProcessingOperation)[] = []
+  const lines: string[] = []
+  if (farmQuote) {
+    operations.push({ type: 'sell', selection: { kind: 'all' } })
+    lines.push(
+      ...farmQuote.lines.map((line) => `${itemNames[line.itemId]} × ${line.quantity}，单价 ${line.unitPrice}，小计 ${line.amount} 金币`),
+    )
+  }
+  if (procQuote) {
+    operations.push({ type: 'sell-processing', selection: { kind: 'all' } })
+    lines.push(
+      ...procQuote.lines.map((line) => `${itemNames[line.itemId]} × ${line.quantity}，单价 ${line.unitPrice}，小计 ${line.amount} 金币`),
+    )
+  }
+  openConfirmation({
+    title: '出售全部可售物品？',
+    description: `本单收入 ${amount} 学习金币。农产品与加工品共享今日 60 金币出售上限，收获与加工本身不受上限影响。`,
+    lines: [
+      ...lines,
+      `合计：${quantity} 件，${amount} 学习金币`,
+      `出售后今日剩余可售收入：${remainingSaleIncome.value - amount} 金币`,
+    ],
+    confirmLabel: `确认出售并获得 ${amount} 金币`,
+    operations,
   })
 }
 
 function confirmOperation(): void {
   if (!confirmation.value || learning.saving) return
-  if (execute(confirmation.value.operation)) confirmation.value = null
+  const remaining = [...confirmation.value.operations]
+  while (remaining.length > 0) {
+    if (!execute(remaining[0])) {
+      // 保存失败保留弹层与剩余操作，重试只补未完成部分，不重复结算
+      confirmation.value = { ...confirmation.value, operations: remaining }
+      return
+    }
+    remaining.shift()
+  }
+  confirmation.value = null
 }
 
 function updateSaleQuantity(itemId: string, event: Event): void {
@@ -336,6 +626,9 @@ function scheduleRefresh(): void {
         ? [animal.production.readyAt]
         : [],
     ),
+    ...(workshop.value.activeTask && workshop.value.activeTask.completesAt > displayNow.value
+      ? [workshop.value.activeTask.completesAt]
+      : []),
   ]
   const nextReadyAt = readyTimes.length > 0 ? Math.min(...readyTimes) : Number.POSITIVE_INFINITY
   const delay = Math.min(60_000, Math.max(50, nextReadyAt - displayNow.value))
@@ -413,8 +706,18 @@ onUnmounted(() => {
       </section>
 
       <template v-else>
+        <section v-if="unlockNoticeVisible" class="learn-note farm-unlock-notice" role="status" aria-labelledby="farm-unlock-title">
+          <strong id="farm-unlock-title">新设施可以建造了：加工坊</strong>
+          把小麦、鸡蛋、牛奶加工成更值钱的加工品，不强制立即购买。
+          <div class="learn-actions">
+            <button type="button" class="learn-button learn-button--secondary" @click="dismissUnlockNotice(true)">去看看</button>
+            <button type="button" class="learn-text-button" @click="dismissUnlockNotice(false)">知道了</button>
+          </div>
+        </section>
+
         <nav class="farm-tabs" aria-label="农场功能">
           <button type="button" :class="{ 'is-active': activeTab === 'farm' }" :aria-current="activeTab === 'farm' ? 'page' : undefined" @click="switchTab('farm')">农场</button>
+          <button type="button" :class="{ 'is-active': activeTab === 'processing' }" :aria-current="activeTab === 'processing' ? 'page' : undefined" :aria-label="pendingOutput ? `加工坊，待收 ${pendingOutput.quantity} 份` : '加工坊'" @click="switchTab('processing')">加工坊<span v-if="pendingOutput" class="farm-tabs__badge">待收 {{ pendingOutput.quantity }}</span></button>
           <button type="button" :class="{ 'is-active': activeTab === 'shop' }" :aria-current="activeTab === 'shop' ? 'page' : undefined" @click="switchTab('shop')">商店与建筑</button>
           <button type="button" :class="{ 'is-active': activeTab === 'warehouse' }" :aria-current="activeTab === 'warehouse' ? 'page' : undefined" @click="switchTab('warehouse')">仓库与出售</button>
         </nav>
@@ -525,6 +828,86 @@ onUnmounted(() => {
           </aside>
         </div>
 
+        <div v-else-if="activeTab === 'processing'" class="farm-processing">
+          <section v-if="guideVisible" class="learn-note farm-processing__guide" aria-labelledby="farm-processing-guide-title">
+            <strong id="farm-processing-guide-title">加工坊三步上手</strong>
+            <ol>
+              <li>选配方：确认原料库存后投入，原料不可退回。</li>
+              <li>等加工：按真实时间进行，离开页面也会继续。</li>
+              <li>收取入仓：完成后手动收取，加工品可在仓库出售。</li>
+            </ol>
+            <div class="learn-actions">
+              <button type="button" class="learn-button learn-button--secondary" @click="dismissGuide">跳过引导</button>
+            </div>
+          </section>
+
+          <p v-if="completionNotice" class="learn-message" role="status">{{ completionNotice }}</p>
+
+          <section v-if="!workshop.purchased" class="learn-paper learn-section farm-shop-card" aria-labelledby="farm-workshop-buy-title">
+            <div class="farm-shop-card__top">
+              <div><p class="learn-kicker">新设施</p><h2 id="farm-workshop-buy-title">加工坊</h2></div>
+              <span class="farm-shop-card__price">{{ workshopPrice }} <small>金币</small></span>
+            </div>
+            <div class="farm-shop-card__facts">
+              <span>解锁条件：<strong>累计手动收获 {{ eligibility.manualHarvestQuantity }} / {{ eligibility.requiredManualHarvestQuantity }} 份</strong></span>
+              <span>当前余额：<strong>{{ learning.today.walletBalance }} 金币</strong></span>
+              <span>只有 1 个加工位，一次加工一份配方，完成后手动收取</span>
+            </div>
+            <p class="farm-shop-card__reason" :class="{ 'farm-shop-card__ok': eligibility.eligible && workshopShortage === 0 }">
+              {{ !eligibility.eligible ? `累计手动收获 ${eligibility.requiredManualHarvestQuantity} 份后解锁购买（当前 ${eligibility.manualHarvestQuantity} 份）` : workshopShortage > 0 ? `学习金币不足，还差 ${workshopShortage} 金币` : '购买前会确认价格、用途与单加工位规则' }}
+            </p>
+            <RouterLink v-if="eligibility.eligible && workshopShortage > 0" class="learn-button learn-button--secondary" to="/learning">去学习赚金币</RouterLink>
+            <button type="button" class="learn-button" :disabled="learning.saving || !eligibility.eligible || workshopShortage > 0" @click="buyWorkshop">购买加工坊</button>
+          </section>
+
+          <template v-else>
+            <section class="learn-paper learn-section farm-processing__status" aria-labelledby="farm-processing-status-title">
+              <div class="farm-shop-card__top">
+                <div><p class="learn-kicker">单加工位</p><h2 id="farm-processing-status-title">加工位状态</h2></div>
+                <button type="button" class="learn-text-button" @click="reopenGuide">查看使用引导</button>
+              </div>
+              <template v-if="slotStatus === 'processing' && workshop.activeTask">
+                <span class="farm-context__status">{{ activeRecipe?.title }} · 加工中</span>
+                <ul class="farm-context__facts">
+                  <li>开始时间：<strong>{{ formatClock(workshop.activeTask.startedAt) }}</strong></li>
+                  <li>预计完成：<strong>{{ formatClock(workshop.activeTask.completesAt) }}</strong></li>
+                  <li>剩余时间：<strong>{{ formatDuration(workshop.activeTask.completesAt - effectiveNow) }}</strong></li>
+                  <li>加工开始后不可取消，原料不会退回；离开页面也会继续。</li>
+                </ul>
+                <button type="button" class="learn-button" disabled>加工尚未完成，不能提前收取</button>
+              </template>
+              <template v-else-if="slotStatus === 'ready-to-collect'">
+                <span class="farm-context__status">加工完成 · 可收取</span>
+                <ul class="farm-context__facts">
+                  <li v-if="pendingProduct">可收取：<strong>{{ itemNames[pendingProduct.itemId] }} × {{ pendingProduct.quantity }}</strong></li>
+                  <li>收取后加工品进入仓库，加工位恢复空闲。</li>
+                </ul>
+                <button type="button" class="learn-button" :disabled="learning.saving" @click="collectProcessing">收取加工品入仓</button>
+              </template>
+              <template v-else>
+                <span class="farm-context__status">空闲 · 可开始加工</span>
+                <p>选择下方配方开始加工。完成后需要手动收取，不会自动开始下一轮。</p>
+              </template>
+            </section>
+
+            <div class="farm-processing__recipes">
+              <section v-for="card in recipeCards" :key="card.recipe.id" class="learn-paper learn-section farm-shop-card" :aria-labelledby="`farm-recipe-${card.recipe.id}`">
+                <div class="farm-shop-card__top">
+                  <div><p class="learn-kicker">配方 · {{ card.recipe.durationMinutes }} 分钟</p><h2 :id="`farm-recipe-${card.recipe.id}`">{{ card.recipe.title }}</h2></div>
+                  <span class="farm-shop-card__price">{{ card.recipe.unitPrice }} <small>金币/份</small></span>
+                </div>
+                <div class="farm-shop-card__facts">
+                  <span v-for="input in card.inputs" :key="input.itemId">投入：<strong>{{ itemNames[input.itemId] }} × {{ input.required }}</strong> · 库存 {{ input.available }}<template v-if="input.shortage > 0"> · 还差 {{ input.shortage }} 件</template></span>
+                  <span>产出：<strong>{{ itemNames[card.recipe.output.itemId] }} × {{ card.recipe.output.quantity }}</strong></span>
+                  <span>解锁状态：{{ card.availability.available ? '已解锁' : '未解锁' }}</span>
+                </div>
+                <p class="farm-shop-card__reason" :class="{ 'farm-shop-card__ok': !card.reason }">{{ card.reason || `投入后原料不可退回，加工需 ${card.recipe.durationMinutes} 分钟` }}</p>
+                <button type="button" class="learn-button" :disabled="learning.saving || !!card.reason" @click="requestStartProcessing(card.recipe.id)">开始加工{{ card.recipe.title }}</button>
+              </section>
+            </div>
+          </template>
+        </div>
+
         <div v-else-if="activeTab === 'shop'" class="farm-shop-grid">
           <section class="learn-paper learn-section farm-shop-card" aria-labelledby="farm-land-shop-title">
             <div class="farm-shop-card__top">
@@ -587,10 +970,10 @@ onUnmounted(() => {
 
         <div v-else class="farm-warehouse">
           <section class="learn-paper learn-section farm-warehouse__summary" aria-labelledby="farm-sale-all-title">
-            <div><p class="learn-kicker">每日收入规则</p><h2 id="farm-sale-all-title">今日还可通过出售获得 {{ remainingSaleIncome }} 金币</h2><p>投入品不可出售。超出上限的出售不会提交，库存保持不变。</p></div>
-            <button type="button" class="learn-button" :disabled="learning.saving || !categoryQuotes.all.quote" @click="requestSale({ kind: 'all' })">出售全部农产品</button>
-            <p v-if="categoryQuotes.all.error" class="farm-context__reason">{{ categoryQuotes.all.error }}</p>
-            <p v-else-if="categoryQuotes.all.quote">全部共 {{ categoryQuotes.all.quote.quantity }} 件，可获得 {{ categoryQuotes.all.quote.amount }} 金币。</p>
+            <div><p class="learn-kicker">每日收入规则</p><h2 id="farm-sale-all-title">今日还可通过出售获得 {{ remainingSaleIncome }} 金币</h2><p>农产品与加工品共享每日 60 金币上限，投入品不可出售。超出上限的出售不会提交，库存保持不变。</p></div>
+            <button type="button" class="learn-button" :disabled="learning.saving || !!allSale.error" @click="requestAllSale">出售全部可售物品</button>
+            <p v-if="allSale.error" class="farm-context__reason">{{ allSale.error }}</p>
+            <p v-else>全部共 {{ allSale.quantity }} 件，可获得 {{ allSale.amount }} 金币。</p>
           </section>
 
           <div class="farm-warehouse__groups">
@@ -606,10 +989,21 @@ onUnmounted(() => {
               <template v-if="group.category === 'crops' || group.category === 'animal-products'">
                 <ul class="farm-inventory-list">
                   <li v-for="row in productRows.filter((item) => item.category === group.category)" :key="row.itemId" class="farm-inventory-item">
-                    <div class="farm-inventory-item__name"><strong>{{ itemNames[row.itemId] }}</strong><small>单价 {{ row.salePrice }} 金币</small></div>
+                    <div class="farm-inventory-item__name"><strong>{{ itemNames[row.itemId] }}<span v-if="processableRawIds.includes(row.itemId)" class="farm-inventory-item__tag">可用于加工</span></strong><small>单价 {{ row.salePrice }} 金币</small></div>
                     <span class="farm-inventory-item__quantity">库存 {{ row.quantity }}</span>
                     <input :aria-label="`出售${itemNames[row.itemId]}数量`" type="number" min="1" :max="Math.max(1, row.quantity)" step="1" :value="saleQuantities[row.itemId] ?? 1" :disabled="row.quantity === 0 || learning.saving" @input="updateSaleQuantity(row.itemId, $event)" />
                     <button type="button" class="learn-button learn-button--secondary" :disabled="learning.saving || !row.quote" @click="requestSale(row.selection)">出售</button>
+                    <p class="farm-inventory-item__quote" :class="{ 'is-error': !!row.error }">{{ row.error || `本单 ${row.quote!.quantity} 件，共 ${row.quote!.amount} 金币` }}<button v-if="processableRawIds.includes(row.itemId)" type="button" class="learn-text-button" @click="switchTab('processing')">查看配方</button></p>
+                  </li>
+                </ul>
+              </template>
+              <template v-else-if="group.category === 'processed-products'">
+                <ul class="farm-inventory-list">
+                  <li v-for="row in processedRows" :key="row.itemId" class="farm-inventory-item">
+                    <div class="farm-inventory-item__name"><strong>{{ itemNames[row.itemId] }}</strong><small>加工品 · 单价 {{ row.salePrice }} 金币</small></div>
+                    <span class="farm-inventory-item__quantity">库存 {{ row.quantity }}</span>
+                    <input :aria-label="`出售${itemNames[row.itemId]}数量`" type="number" min="1" :max="Math.max(1, row.quantity)" step="1" :value="saleQuantities[row.itemId] ?? 1" :disabled="row.quantity === 0 || learning.saving" @input="updateSaleQuantity(row.itemId, $event)" />
+                    <button type="button" class="learn-button learn-button--secondary" :disabled="learning.saving || !row.quote" @click="requestProcessingSale(row.selection)">出售</button>
                     <p class="farm-inventory-item__quote" :class="{ 'is-error': !!row.error }">{{ row.error || `本单 ${row.quote!.quantity} 件，共 ${row.quote!.amount} 金币` }}</p>
                   </li>
                 </ul>
@@ -617,7 +1011,7 @@ onUnmounted(() => {
               <template v-else>
                 <ul class="farm-inventory-list">
                   <li v-for="item in group.items" :key="item.itemId" class="farm-inventory-item">
-                    <div class="farm-inventory-item__name"><strong>{{ itemNames[item.itemId] }}</strong><small>{{ group.category === 'processed-products' ? `加工品 · 单价 ${item.salePrice} 金币` : '投入品 · 不可出售' }}</small></div>
+                    <div class="farm-inventory-item__name"><strong>{{ itemNames[item.itemId] }}</strong><small>投入品 · 不可出售</small></div>
                     <span class="farm-inventory-item__quantity">库存 {{ item.quantity }}</span>
                   </li>
                 </ul>

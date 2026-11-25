@@ -195,6 +195,8 @@ describe('learning store UI orchestration', () => {
       soundEnabled: false,
       animationsEnabled: false,
       reduceFarmMotion: false,
+      processingUnlockSeen: false,
+      processingGuideSeen: false,
       dailyGoal: 30,
     })
     expect(restored.today.walletBalance).toBe(0)

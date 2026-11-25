@@ -354,6 +354,17 @@
 .farm-inventory-item__quote { grid-column: 1 / -1; margin: 0; color: var(--learn-muted); font-size: 12px; }
 .farm-inventory-item__quote.is-error { color: #8a4b31; }
 .farm-inventory-empty { padding: 18px 0; color: var(--learn-muted); }
+.farm-inventory-item__tag { margin-left: 8px; padding: 1px 7px; border: 1px dashed #167965; border-radius: 999px; color: #167965; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.farm-inventory-item__quote .learn-text-button { margin-left: 8px; }
+
+.farm-processing { display: grid; gap: 20px; }
+.farm-processing__guide ol { display: grid; gap: 6px; margin: 10px 0; padding-left: 22px; }
+.farm-processing__status { display: grid; gap: 12px; }
+.farm-processing__status .farm-context__facts { margin: 0; }
+.farm-processing__recipes { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.farm-processing-entry { margin-top: 10px; }
+.farm-unlock-notice { display: grid; gap: 8px; }
+.farm-tabs__badge { margin-left: 6px; padding: 1px 7px; border-radius: 999px; background: #f2cf65; color: #24352d; font-size: 11px; font-weight: 800; }
 
 @keyframes farm-ready-pulse {
   50% { filter: drop-shadow(0 0 9px #fff0a2) brightness(1.12); }
@@ -372,6 +383,7 @@
   .farm-starter { grid-template-columns: 1fr; }
   .farm-inventory-item { grid-template-columns: 1fr auto; }
   .farm-inventory-item__name { grid-column: 1 / -1; }
+  .farm-processing__recipes { grid-template-columns: 1fr; }
 }
 
 /* “减少农场动态效果”偏好或系统减少动态效果开启时，只关闭农场场景动效，不影响文字反馈 */

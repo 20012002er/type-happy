@@ -92,6 +92,8 @@ export interface LearningPreferences {
   soundEnabled: boolean
   animationsEnabled: boolean
   reduceFarmMotion: boolean
+  processingUnlockSeen: boolean
+  processingGuideSeen: boolean
   dailyGoal: number
   pendingDailyGoal?: number
   pendingDailyGoalEffectiveFrom?: string
@@ -144,6 +146,8 @@ const DEFAULT_PREFERENCES: LearningPreferences = {
   soundEnabled: true,
   animationsEnabled: true,
   reduceFarmMotion: false,
+  processingUnlockSeen: false,
+  processingGuideSeen: false,
   dailyGoal: LEARNING_RULES.dailyTask.defaultGoal,
 }
 
@@ -167,6 +171,8 @@ function parsePreferences(raw: string | null): LearningPreferences {
       soundEnabled: value.soundEnabled !== false,
       animationsEnabled: value.animationsEnabled !== false,
       reduceFarmMotion: value.reduceFarmMotion === true,
+      processingUnlockSeen: value.processingUnlockSeen === true,
+      processingGuideSeen: value.processingGuideSeen === true,
       dailyGoal: validateDailyGoal(value.dailyGoal ?? LEARNING_RULES.dailyTask.defaultGoal),
     }
     if (value.pendingDailyGoal !== undefined && value.pendingDailyGoalEffectiveFrom !== undefined) {

@@ -318,6 +318,14 @@ function animalsOf(kind: AnimalKind): readonly FarmAnimal[] {
         <div class="farm-building__yard">
           <span class="farm-processing-pixel" data-scene-anchor="building:processing" aria-hidden="true"><i /><b /></span>
           <p class="farm-building__empty">{{ processingText }}</p>
+          <button
+            type="button"
+            class="learn-button learn-button--secondary farm-processing-entry"
+            :disabled="busy"
+            @click="emit('select', 'building:processing')"
+          >
+            {{ sceneModel.processing.state === 'locked' ? '查看解锁条件' : sceneModel.processing.state === 'unpurchased' ? '购买加工坊' : '进入加工坊' }}
+          </button>
         </div>
       </section>
     </div>
