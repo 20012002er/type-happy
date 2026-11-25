@@ -21,7 +21,7 @@ unit('ket-vocab-09-clothes', {
       misspellings: [{ value: 'trouses', feedback: '中间有 r，trou-sers' }],
     },
     { word: 'jeans', meaning: '牛仔裤', context: 'She likes blue ____.' },
-    { word: 'dress', meaning: '连衣裙', context: 'The red ____ is beautiful.' },
+    { word: 'apron', meaning: '围裙', context: 'Mum wears an ____ when she cooks.' },
     { word: 'skirt', meaning: '短裙', context: 'The girl wears a pink ____.' },
     { word: 'coat', meaning: '外套', context: 'Put on your ____. It is cold.' },
     {

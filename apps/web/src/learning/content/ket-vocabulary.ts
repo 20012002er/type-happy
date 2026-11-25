@@ -7,7 +7,7 @@ const KET_COURSE_ID = 'ket-core-vocabulary-english'
  * KET（剑桥 A2 Key）核心词汇级别：按主题组织单元，每单元 15 词。
  * 独立于年级学期体系，grade/semester 仅为满足课程契约的名义分类值，
  * 通过 track: 'vocab-level' 标记，不参与学期可用性表。
- * 第 1 批覆盖 17 个主题单元，第 2 批扩充至 34 个，第 3 批扩充至 51 个，第 4 批扩充至 68 个，第 5 批扩充至 85 个，后续批次继续扩充。
+ * 第 1 批覆盖 17 个主题单元，第 2 批扩充至 34 个，第 3 批扩充至 51 个，第 4 批扩充至 68 个，第 5 批扩充至 85 个，第 6 批扩充至 100 个（全量 1500 词）。
  */
 const themes: readonly { id: string; title: string }[] = [
   { id: 'ket-vocab-01-personal-info', title: '个人信息' },
@@ -95,6 +95,21 @@ const themes: readonly { id: string; title: string }[] = [
   { id: 'ket-vocab-83-countries', title: '国家与语言' },
   { id: 'ket-vocab-84-nationalities', title: '国籍与人群' },
   { id: 'ket-vocab-85-arts-crafts', title: '手工与创作' },
+  { id: 'ket-vocab-86-sea-travel', title: '航海与船只' },
+  { id: 'ket-vocab-87-camping', title: '露营与探险' },
+  { id: 'ket-vocab-88-farm-life', title: '农场劳作' },
+  { id: 'ket-vocab-89-birds', title: '鸟类世界' },
+  { id: 'ket-vocab-90-sea-life', title: '海洋生物' },
+  { id: 'ket-vocab-91-space-sky', title: '天空与宇宙' },
+  { id: 'ket-vocab-92-geography', title: '地理地貌' },
+  { id: 'ket-vocab-93-city-life', title: '城市生活' },
+  { id: 'ket-vocab-94-money-banking', title: '银行与理财' },
+  { id: 'ket-vocab-95-post-mail', title: '邮政与寄递' },
+  { id: 'ket-vocab-96-phone-internet', title: '网络与通讯' },
+  { id: 'ket-vocab-97-housework', title: '家务与清洁' },
+  { id: 'ket-vocab-98-baby-family', title: '育儿与成长' },
+  { id: 'ket-vocab-99-illness-care', title: '伤病与护理' },
+  { id: 'ket-vocab-100-celebrations', title: '庆典与仪式' },
 ]
 
 const units: readonly CourseUnit[] = themes.map((theme, index) => ({
